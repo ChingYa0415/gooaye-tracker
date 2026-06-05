@@ -1041,6 +1041,10 @@ P4：Dashboard。
 4. 新增每日實作紀錄模板。
 5. 建立專案目錄骨架。
 6. 建立 README.md，說明專案目的、第一階段目標與主要資料夾用途。
+7. 設定 GitHub remote：https://github.com/ChingYa0415/gooaye-tracker.git
+8. 將本機分支改為 main。
+9. 建立初始 commit：Initial project scaffold。
+10. 將 main 分支推送到 GitHub，並設定 upstream tracking。
 
 修改或新增檔案：
 
@@ -1060,16 +1064,20 @@ P4：Dashboard。
 3. 所有正式回測資料必須保留 evidence_text 並經人工 approved。
 4. 每天實作結束都要更新本節紀錄。
 5. 第一個實作步驟先建立資料夾骨架與 README，不先寫程式，以免資料定義還沒固定就過早實作。
+6. GitHub repository 使用 HTTPS remote，後續 push 會依賴本機 GitHub 認證狀態。
 
 遇到問題：
 
 1. Apple Podcasts 與 YouTube 字幕不能假設穩定支援中文第三方內容，因此逐字稿流程要保留手動與 ASR 路線。
+2. 沙盒內 `.git` 目錄需要提權才能修改，因此 branch、remote、commit、push 需以允許 Git metadata 寫入的方式執行。
 
 驗證方式：
 
 1. 已確認規劃文件存在於專案根目錄。
 2. 已確認文件包含後續實作項目與每日紀錄欄位。
 3. 已確認專案骨架目錄與 README.md 建立完成。
+4. 已確認 initial commit 成功建立。
+5. 已確認 main 分支成功推送到 origin/main。
 
 明日待辦：
 
