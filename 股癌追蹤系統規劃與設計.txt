@@ -1,0 +1,1082 @@
+股癌追蹤系統規劃與設計
+版本：0.1
+日期：2026-06-05
+
+一、計劃目的
+
+本計劃要做的事情，是把 Podcast、YouTube 或社群內容中「被看好、被看壞、被持續追蹤」的公司與產業觀點，轉成可檢查、可追蹤、可回測的結構化資料。
+
+核心問題不是「某一集有沒有提到股票」，而是：
+
+1. 某位內容創作者在什麼時間點提到了哪家公司或產業？
+2. 當時語氣是看多、看空、中性，還是只是描述新聞？
+3. 這個觀點有沒有明確理由與原文證據？
+4. 播出後 7、30、90、180 天，該股票或相關股票籃子的表現如何？
+5. 表現是否優於大盤、同產業指數或合理 benchmark？
+6. 長期統計後，是否真的存在可觀察的命中率或超額報酬？
+
+第一階段聚焦在「股癌」相關節目與提及標的，但資料模型要保留未來支援多節目、多主持人、多市場的能力。
+
+
+二、產品定義
+
+產品暫名：
+「股癌追蹤器」或「Podcast 投資觀點追蹤器」
+
+一句話描述：
+把節目逐字稿中的投資觀點抽出來，追蹤後續股價表現，建立一套可驗證的投資觀點資料庫。
+
+目標使用者：
+
+1. 想驗證財經 Podcast / YouTube 觀點準確度的個人投資人。
+2. 想追蹤特定主持人、節目、來賓投資觀點的研究者。
+3. 想從長內容中建立股票 watchlist 的使用者。
+4. 未來若擴充，也可服務財經內容整理、投資研究助理、社群聲量追蹤。
+
+第一階段不做：
+
+1. 不直接產生買賣建議。
+2. 不把命中率包裝成保證獲利。
+3. 不做自動下單。
+4. 不在沒有授權的情況下公開散布完整逐字稿。
+5. 不把「只是提到」誤標成「推薦」。
+
+
+三、研究摘要
+
+1. Podket
+   Podket 已經提供接近本計劃的能力：Podcast / YouTube 摘要、股票提及、觀點追蹤、跨節目比較、播出後價格變動追蹤。它可以當成競品與快速驗證工具。
+   參考：https://podket.app/
+
+2. Apple Podcasts 逐字稿
+   Apple Podcasts 提供逐字稿、搜尋逐字稿、點選文字跳轉音訊等功能。不過截至本規劃日期，官方支援語言列表主要包含英文、丹麥文、荷蘭文、芬蘭文、法文、德文、義大利文、挪威文、葡萄牙文、西班牙文、瑞典文，中文節目不能假設一定可用。
+   設計結論：中文財經 Podcast 應把「自行語音轉文字」視為主要路線，把 Apple 逐字稿視為輔助來源。
+   參考：https://podcasters.apple.com/support/5316-transcripts-on-apple-podcasts
+
+3. YouTube 字幕
+   YouTube Data API 有 Captions 相關端點，但下載字幕需要合適權限，對第三方影片不可假設可穩定取得官方字幕文字。
+   設計結論：YouTube 來源需支援三種路徑：
+   - 使用影片本身可取得的字幕或人工提供逐字稿。
+   - 使用授權的第三方字幕/逐字稿服務。
+   - 對音訊自行轉錄。
+   參考：https://developers.google.com/youtube/v3/docs/captions/download
+
+4. 台股價格資料
+   台股上市股票可用 TWSE OpenAPI 或政府資料開放平台「上市個股日成交資訊」。上櫃股票可用 TPEx OpenAPI。若想降低整合成本，可先用 FinMind 這類整合型資料 API。
+   參考：
+   - https://data.gov.tw/dataset/11549
+   - https://openapi.twse.com.tw/
+   - https://www.tpex.org.tw/openapi/
+   - https://finmind.github.io/
+
+
+四、核心使用流程
+
+流程 A：手動 MVP
+
+1. 使用者輸入一集節目資訊：節目名稱、集數、發布日期、URL。
+2. 使用者貼上逐字稿，或貼上重點片段。
+3. 系統用 AI 抽取公司、股票代號、產業、立場、理由與原文證據。
+4. 使用者人工確認每一筆抽取結果。
+5. 系統抓取播出日後第一個交易日的收盤價，作為基準價。
+6. 系統計算 7、30、90、180 天報酬。
+7. Dashboard 顯示命中率、平均報酬、相對大盤超額報酬、成功與失敗案例。
+
+流程 B：半自動 MVP
+
+1. 系統定期讀取 Podcast RSS 或 YouTube 頻道更新。
+2. 新集數進入待處理佇列。
+3. 系統取得音訊或影片資訊。
+4. 系統轉逐字稿。
+5. AI 抽取投資觀點。
+6. 使用者在後台審核。
+7. 通過審核後才進入正式追蹤。
+8. 每日更新價格與報酬。
+
+流程 C：完整自動化
+
+1. 多節目來源監控。
+2. 自動轉錄與語意切段。
+3. AI 抽取觀點、產業、股票、信心分數。
+4. 實體辨識與股票代號配對。
+5. 人工抽查與錯誤回饋。
+6. 自動回測、統計、排名與趨勢分析。
+7. 可搜尋資料庫與視覺化報表。
+
+
+五、資料流程設計
+
+高階資料流：
+
+來源內容
+-> 取得 metadata
+-> 取得逐字稿
+-> 切段
+-> 公司/股票/產業辨識
+-> 立場與理由抽取
+-> 人工審核
+-> 價格資料抓取
+-> 報酬與 benchmark 計算
+-> Dashboard / 報表
+
+詳細模組：
+
+1. Source Collector
+   負責收集 Podcast RSS、YouTube URL、手動輸入的 Threads/文章連結。
+
+2. Transcript Processor
+   負責取得或產生逐字稿。
+   來源優先順序：
+   - 節目官方提供逐字稿。
+   - 平台可合法取得之字幕。
+   - 使用者手動貼上。
+   - 自行 ASR 轉錄。
+
+3. Segmenter
+   把長逐字稿切成可分析片段。
+   建議切法：
+   - 每 30 到 90 秒一段。
+   - 或每 500 到 1000 中文字一段。
+   - 保留時間戳與上下文前後段。
+
+4. Entity Resolver
+   把「台積電」「TSMC」「2330」「台積」統一成同一家公司。
+   也要處理：
+   - 公司暱稱。
+   - 產業概念，例如 AI Server、散熱、PCB、CoWoS。
+   - 非單一股票觀點，例如「記憶體族群」、「軍工」、「機器人」。
+
+5. Stance Extractor
+   判斷這段話是看多、看空、中性、觀察、回顧，還是無投資意圖。
+
+6. Human Review
+   所有正式進入回測的 mention 必須人工確認。
+   第一階段人工審核比完全自動更重要，否則很容易把玩笑、反諷、新聞轉述誤判成推薦。
+
+7. Price Engine
+   依股票代號與日期抓取價格。
+   預設進場價：播出後第一個交易日收盤價。
+   預設計算期間：7、30、90、180 個自然日後最近交易日。
+
+8. Analytics Engine
+   計算命中率、超額報酬、分組表現與回測統計。
+
+
+六、資料模型草案
+
+表：sources
+
+- id
+- source_type：podcast / youtube / threads / article / manual
+- source_name：例如 股癌 Gooaye
+- creator_name
+- url
+- created_at
+
+表：episodes
+
+- id
+- source_id
+- title
+- published_at
+- url
+- duration_seconds
+- raw_transcript_path
+- transcript_status：missing / imported / generated / reviewed
+- notes
+
+表：segments
+
+- id
+- episode_id
+- start_seconds
+- end_seconds
+- text
+- speaker
+- created_at
+
+表：instruments
+
+- id
+- market：TWSE / TPEx / US / HK / concept
+- ticker
+- name
+- aliases
+- industry
+- is_active
+
+表：mentions
+
+- id
+- episode_id
+- segment_id
+- instrument_id
+- mention_type：company / industry / theme / index / commodity
+- stance：bullish / bearish / neutral / watch / past_review / unclear
+- conviction：low / medium / high
+- time_horizon：short / medium / long / unclear
+- evidence_text
+- rationale
+- ai_confidence：0 到 1
+- review_status：pending / approved / rejected / needs_context
+- reviewed_by
+- reviewed_at
+- created_at
+
+表：prices
+
+- id
+- instrument_id
+- trade_date
+- open
+- high
+- low
+- close
+- adjusted_close
+- volume
+- data_source
+
+表：mention_returns
+
+- id
+- mention_id
+- base_trade_date
+- base_price
+- horizon_days：7 / 30 / 90 / 180
+- target_trade_date
+- target_price
+- absolute_return
+- benchmark_return
+- excess_return
+- max_drawdown_during_period
+- max_runup_during_period
+- calculated_at
+
+表：benchmarks
+
+- id
+- market
+- benchmark_code
+- name
+- trade_date
+- close
+
+
+七、立場標註規則
+
+為了避免誤判，第一版採保守分類。
+
+1. bullish
+   明確看好公司、產業或標的。
+   例：覺得這家公司接下來受惠、持續成長、估值合理、已經買進、會繼續抱。
+
+2. bearish
+   明確看壞公司、產業或標的。
+   例：不看好、風險太高、估值太貴、景氣反轉、需求下修。
+
+3. neutral
+   有分析但沒有方向性。
+   例：說明財報、新聞、產業現況，沒有明確正負立場。
+
+4. watch
+   放入觀察名單，但沒有明確買賣或方向。
+   例：值得注意、可以觀察、接下來看某指標。
+
+5. past_review
+   回顧以前講過或已發生的事，不應算新訊號。
+
+6. unclear
+   語氣可能是玩笑、反諷、引用別人說法，或上下文不足。
+
+正式統計只納入 approved 且 stance 為 bullish 或 bearish 的 mention。
+watch 可另做「觀察名單績效」，不要與明確看多看空混在一起。
+
+
+八、AI 抽取設計
+
+AI 抽取輸入：
+
+- 節目標題
+- 發布日期
+- 節目來源
+- 逐字稿片段
+- 前後文片段
+- 已知股票別名表
+
+AI 輸出 JSON 草案：
+
+[
+  {
+    "company_or_theme": "台積電",
+    "ticker_guess": "2330",
+    "market_guess": "TWSE",
+    "mention_type": "company",
+    "stance": "bullish",
+    "conviction": "medium",
+    "time_horizon": "medium",
+    "rationale": "提到先進製程與 AI 需求支撐成長",
+    "evidence_text": "原文中可支持判斷的短句",
+    "is_new_signal": true,
+    "needs_human_review": true,
+    "confidence": 0.78
+  }
+]
+
+抽取原則：
+
+1. 沒有原文證據，不產生 mention。
+2. 只是新聞轉述，不標成 bullish 或 bearish。
+3. 主持人引用他人觀點，要標示 quoted_view，不能直接視為主持人立場。
+4. 玩笑與反諷先標 unclear。
+5. 舊觀點回顧標 past_review。
+6. 一段話如果只講產業，不硬猜單一股票。
+
+
+九、回測與統計方法
+
+基準日：
+
+- episode.published_at 之後第一個交易日。
+- 若節目在交易日盤後發布，可用下一交易日。
+- 若要更嚴謹，可記錄發布時間並區分盤中、盤後。
+
+基準價：
+
+- 第一版：基準日收盤價。
+- 第二版：基準日開盤價、VWAP 或隔日開盤價可做敏感度分析。
+
+觀察期間：
+
+- 7 天：短線市場反應。
+- 30 天：一個月動能。
+- 90 天：季度級趨勢。
+- 180 天：半年級趨勢。
+
+成功定義：
+
+1. bullish 成功：
+   - 絕對報酬 > 0。
+   - 或超額報酬 > 0。
+   - 建議以「超額報酬 > 0」作為主要指標。
+
+2. bearish 成功：
+   - 絕對報酬 < 0。
+   - 或相對 benchmark 表現落後。
+   - 建議以「超額報酬 < 0」作為主要指標。
+
+主要指標：
+
+- hit_rate：成功筆數 / 可計算筆數。
+- average_return：平均絕對報酬。
+- median_return：中位數報酬。
+- average_excess_return：平均超額報酬。
+- median_excess_return：中位數超額報酬。
+- win_loss_ratio：成功平均報酬 / 失敗平均虧損。
+- max_drawdown：期間最大回撤。
+- coverage：被成功解析與回測的 mention 比例。
+
+分組分析：
+
+- 依主持人。
+- 依節目。
+- 依市場：台股 / 美股 / 其他。
+- 依產業。
+- 依立場強度。
+- 依時間區間。
+- 依是否為明確持股。
+- 依股票市值或流動性。
+
+避免偏誤：
+
+1. 不只記錄漲的案例，也要記錄所有符合規則的案例。
+2. 不能事後才回填「當時其實有講過」。
+3. 不把同一段節目重複提到同一檔股票算成多筆獨立訊號。
+4. 不把「市場整體大漲」誤認為個人觀點準確。
+5. 產業觀點應用股票籃子或產業指數衡量，不要硬挑一檔事後最強的股票。
+
+
+十、MVP 介面設計
+
+第一階段可以先不用做完整 Web App，從資料表與報表開始。
+
+MVP 頁面或表格：
+
+1. Episodes
+   - 節目清單
+   - 標題
+   - 日期
+   - URL
+   - 逐字稿狀態
+   - 已抽取 mention 數
+
+2. Mentions Review
+   - 原文片段
+   - 股票 / 產業
+   - AI 判斷立場
+   - AI 理由
+   - 人工核准 / 退回 / 改分類
+
+3. Tracking Table
+   - 股票
+   - 節目日期
+   - 立場
+   - 基準價
+   - 7 / 30 / 90 / 180 天報酬
+   - 相對 benchmark
+
+4. Dashboard
+   - 總 mention 數
+   - 已審核數
+   - 命中率
+   - 平均超額報酬
+   - 最佳案例
+   - 最差案例
+   - 產業分布
+   - 最近新增觀點
+
+
+十一、技術選型建議
+
+低成本 MVP：
+
+- Google Sheets 或 Airtable：資料表與人工審核。
+- Python 腳本：抓價格、計算報酬、匯出 CSV。
+- AI API 或本地模型：抽取 mention。
+- Looker Studio / Observable / Streamlit：簡單 Dashboard。
+
+可產品化版本：
+
+- Frontend：Next.js 或 React。
+- Backend：Python FastAPI 或 Node.js。
+- Database：PostgreSQL。
+- Job Queue：簡單可先用 cron，後續用 Celery / BullMQ。
+- Storage：本機檔案、S3-compatible storage，儲存逐字稿與中間結果。
+- Auth：個人使用可先省略；多人使用再加。
+
+第一版建議：
+
+先用「CSV + Python + SQLite」或「Google Sheets + Python」。
+原因是這個專案最大的風險不是介面，而是資料定義與標註品質。
+
+
+十二、開發階段規劃
+
+階段 0：定義規則與手動樣本
+
+時間：1 到 2 天
+
+工作：
+
+1. 選定最近 10 集股癌內容。
+2. 手動建立 episode 清單。
+3. 手動或半自動取得逐字稿/重點片段。
+4. 人工標出所有股票與產業 mention。
+5. 確認立場分類規則是否夠用。
+
+產出：
+
+- sample_episodes.csv
+- sample_mentions.csv
+- 標註規則文件
+
+驗收：
+
+- 至少 10 集。
+- 至少 30 筆 mention。
+- 每筆 mention 都有原文證據。
+
+
+階段 1：價格追蹤與回測 MVP
+
+時間：2 到 4 天
+
+工作：
+
+1. 建立 instruments 對照表。
+2. 串接台股價格資料。
+3. 計算 7 / 30 / 90 / 180 天報酬。
+4. 加入 benchmark 報酬。
+5. 匯出 tracking result。
+
+產出：
+
+- instruments.csv
+- prices.db 或 prices.csv
+- mention_returns.csv
+- 第一版統計報表
+
+驗收：
+
+- 已審核 mention 可以自動計算基準價與期間報酬。
+- 至少可以比較 TAIEX 或合理 benchmark。
+
+
+階段 2：AI 抽取
+
+時間：3 到 5 天
+
+工作：
+
+1. 設計抽取 prompt。
+2. 對 sample transcripts 跑 AI 抽取。
+3. 比對人工標註。
+4. 記錄 precision / recall。
+5. 調整規則與 prompt。
+
+產出：
+
+- extraction_prompt.txt
+- ai_mentions_raw.json
+- ai_vs_human_review.csv
+
+驗收：
+
+- AI 抽取結果可人工審核。
+- 對明確 bullish / bearish mention 的 precision 達到可接受水準。
+- 不追求全自動，只追求減少人工整理時間。
+
+
+階段 3：半自動資料管線
+
+時間：1 到 2 週
+
+工作：
+
+1. RSS / YouTube URL 匯入。
+2. 音訊下載或逐字稿匯入流程。
+3. ASR 轉錄流程。
+4. 自動切段。
+5. 自動抽取候選 mention。
+6. 每日價格更新。
+
+產出：
+
+- ingest 腳本
+- transcript pipeline
+- review queue
+
+驗收：
+
+- 新集數可以從 URL 進入待審核流程。
+- 使用者只需審核候選 mention，不需從零讀完整逐字稿。
+
+
+階段 4：Dashboard 與產品化
+
+時間：1 到 2 週
+
+工作：
+
+1. 建立 Web UI 或 Streamlit Dashboard。
+2. 節目、股票、產業、主持人篩選。
+3. 顯示績效曲線與明細。
+4. 支援搜尋原文證據。
+5. 加入資料品質標籤。
+
+產出：
+
+- 可互動 Dashboard
+- 可搜尋 mention 資料庫
+
+驗收：
+
+- 使用者可以回答：「某節目過去 90 天看多命中率是多少？」
+- 使用者可以點回原始證據。
+
+
+十三、MVP 檔案結構建議
+
+如果後續要在本工作區開始實作，可採用：
+
+data/
+  raw/
+    transcripts/
+  processed/
+    episodes.csv
+    mentions.csv
+    instruments.csv
+    mention_returns.csv
+  prices/
+    twse_prices.csv
+    tpex_prices.csv
+
+docs/
+  標註規則.txt
+  資料來源.txt
+  回測方法.txt
+
+scripts/
+  fetch_prices.py
+  calculate_returns.py
+  extract_mentions.py
+  resolve_instruments.py
+
+reports/
+  dashboard.html
+  summary.csv
+
+
+十四、第一版 CSV 欄位建議
+
+episodes.csv
+
+- episode_id
+- source_name
+- title
+- published_at
+- url
+- transcript_status
+- notes
+
+mentions.csv
+
+- mention_id
+- episode_id
+- published_at
+- company_or_theme
+- ticker
+- market
+- stance
+- conviction
+- time_horizon
+- evidence_text
+- rationale
+- review_status
+- reviewer_note
+
+instruments.csv
+
+- ticker
+- market
+- name
+- aliases
+- benchmark
+
+mention_returns.csv
+
+- mention_id
+- ticker
+- stance
+- base_trade_date
+- base_price
+- return_7d
+- return_30d
+- return_90d
+- return_180d
+- excess_return_7d
+- excess_return_30d
+- excess_return_90d
+- excess_return_180d
+
+
+十五、主要風險與處理方式
+
+風險 1：逐字稿來源不穩
+
+處理：
+第一階段允許手動貼逐字稿或重點片段。自動轉錄放到第二階段。
+
+風險 2：AI 誤判語氣
+
+處理：
+所有正式統計都要人工審核。AI 只當候選產生器。
+
+風險 3：股票別名混淆
+
+處理：
+建立 instruments aliases 表，逐步補公司暱稱、英文名、簡稱。
+
+風險 4：樣本偏誤
+
+處理：
+按集數完整抽取，不只記錄印象深刻案例。
+
+風險 5：回測偷看未來
+
+處理：
+用播出後第一個交易日收盤價作為基準，所有資料以 published_at 為切點。
+
+風險 6：市場行情造成假命中
+
+處理：
+主要看 benchmark-adjusted return，不只看絕對報酬。
+
+風險 7：授權與平台條款
+
+處理：
+個人研究可保留來源 URL 與短證據片段；若要公開產品，必須重新確認平台條款與內容授權，不公開完整逐字稿。
+
+
+十六、決策建議
+
+目前最建議的路線：
+
+1. 先做手動標註 + 價格回測，不急著自動轉錄。
+2. 用最近 10 到 20 集股癌建立第一批樣本。
+3. 每筆只要有「日期、股票、立場、證據、基準價、90 天報酬」就能開始驗證價值。
+4. 當手動流程證明有價值，再投資 AI 抽取與自動管線。
+
+推薦第一個里程碑：
+
+在一週內完成：
+
+- 10 集節目
+- 30 筆以上 mention
+- 台股價格自動更新
+- 7 / 30 / 90 天報酬計算
+- 一份簡單統計報告
+
+完成後要回答三個問題：
+
+1. 股癌明確看多標的的 30 / 90 天超額報酬是否為正？
+2. AI 是否能有效減少人工整理時間？
+3. 這套追蹤方法是否值得擴展到更多節目或更多主持人？
+
+
+十七、下一步工作清單
+
+立即下一步：
+
+1. 建立 docs/標註規則.txt。
+2. 建立 data/processed/episodes.csv。
+3. 建立 data/processed/mentions.csv。
+4. 選定第一批 10 集節目。
+5. 手動標註第一批 mention。
+6. 建立 instruments.csv。
+7. 撰寫價格抓取與報酬計算腳本。
+
+優先順序：
+
+P0：資料定義與手動樣本。
+P1：價格與報酬計算。
+P2：AI 抽取。
+P3：自動化轉錄。
+P4：Dashboard。
+
+
+十八、驗收標準
+
+一個可用的 MVP 應符合：
+
+1. 任一 mention 都能追溯到節目、時間、原文證據。
+2. 系統能區分「提到」與「看多/看空」。
+3. 每筆 approved mention 都能計算至少 30 天與 90 天報酬。
+4. 統計結果同時顯示絕對報酬與相對 benchmark 報酬。
+5. 使用者可以檢查成功案例與失敗案例，不只看摘要。
+6. 新增一集節目的人工整理時間逐步下降。
+
+
+十九、後續實作項目清單
+
+本節作為後續實作追蹤用。狀態欄位使用：
+
+- Todo：尚未開始。
+- Doing：正在進行。
+- Review：已完成初版，等待檢查或驗證。
+- Done：完成並通過基本驗證。
+- Blocked：受阻，需要決策、資料或外部條件。
+
+整體原則：
+
+1. 先完成可手動運作的 MVP，再做自動化。
+2. 每一階段都要留下可檢查的資料檔或程式。
+3. 所有實作決策都要能回到本文件或 docs 文件查到原因。
+4. 每天結束前更新「二十、每日實作紀錄」。
+
+
+十九之一、專案骨架
+
+狀態：Done
+
+實作項目：
+
+1. 建立 docs/ 目錄。
+2. 建立 data/raw/transcripts/ 目錄。
+3. 建立 data/processed/ 目錄。
+4. 建立 data/prices/ 目錄。
+5. 建立 scripts/ 目錄。
+6. 建立 reports/ 目錄。
+7. 建立 README 或簡短使用說明。
+
+驗收標準：
+
+1. 目錄結構與第十三節一致。
+2. 每個目錄用途清楚。
+3. 不放入大型、不必要或授權不明的原始媒體檔。
+
+
+十九之二、標註規則文件
+
+狀態：Todo
+
+實作項目：
+
+1. 建立 docs/標註規則.txt。
+2. 定義 mention、stance、conviction、time_horizon。
+3. 補上 bullish / bearish / neutral / watch / past_review / unclear 範例。
+4. 補上不應納入回測的案例，例如玩笑、轉述、反諷、新聞描述。
+5. 補上同一集重複提及同一股票時的去重規則。
+
+驗收標準：
+
+1. 人工標註時可依文件做一致判斷。
+2. 至少包含 10 個正反範例。
+3. 規則能區分「只是提到」與「明確看多/看空」。
+
+
+十九之三、資料表初始化
+
+狀態：Todo
+
+實作項目：
+
+1. 建立 data/processed/episodes.csv。
+2. 建立 data/processed/mentions.csv。
+3. 建立 data/processed/instruments.csv。
+4. 建立 data/processed/mention_returns.csv。
+5. 建立欄位說明文件 docs/資料字典.txt。
+6. 加入少量範例資料，用來驗證欄位是否足夠。
+
+驗收標準：
+
+1. CSV 欄位符合第十四節。
+2. 所有 id 欄位命名一致。
+3. 缺值策略清楚，例如 unknown、unclear、空白欄位的使用規則。
+
+
+十九之四、第一批節目樣本
+
+狀態：Todo
+
+實作項目：
+
+1. 選定最近 10 集股癌內容作為第一批樣本。
+2. 記錄每集標題、發布日期、URL、來源平台。
+3. 建立逐字稿來源狀態：manual / imported / generated / missing。
+4. 至少完成 3 集的人工初步標註。
+5. 累積至少 30 筆候選 mention。
+
+驗收標準：
+
+1. sample episodes 至少 10 集。
+2. approved 或 pending mention 至少 30 筆。
+3. 每筆 mention 都有 evidence_text。
+
+
+十九之五、股票代號與別名解析
+
+狀態：Todo
+
+實作項目：
+
+1. 建立 instruments.csv 的台股基礎資料。
+2. 支援 TWSE 與 TPEx 市場欄位。
+3. 加入常見公司別名，例如台積、TSMC、台積電。
+4. 加入概念與產業項目，例如 AI Server、PCB、散熱、記憶體。
+5. 設計無法解析股票代號時的處理流程。
+
+驗收標準：
+
+1. 手動標註時能快速配對常見台股。
+2. 同一家公司不會因別名變成多個 instrument。
+3. 產業觀點不被硬塞成單一股票。
+
+
+十九之六、價格資料抓取
+
+狀態：Todo
+
+實作項目：
+
+1. 撰寫 scripts/fetch_prices.py。
+2. 優先支援台股上市資料。
+3. 再支援上櫃資料。
+4. 儲存 daily open/high/low/close/volume。
+5. 記錄 data_source 與更新日期。
+6. 加入錯誤處理，例如找不到股票、非交易日、API 暫時失敗。
+
+驗收標準：
+
+1. 可抓取至少 5 檔台股指定期間價格。
+2. 資料可輸出到 data/prices/ 或 SQLite。
+3. 同一日期同一股票不重複寫入。
+4. 能處理週末與假日。
+
+
+十九之七、報酬與 benchmark 計算
+
+狀態：Todo
+
+實作項目：
+
+1. 撰寫 scripts/calculate_returns.py。
+2. 讀取 approved mentions。
+3. 找出發布後第一個交易日作為 base_trade_date。
+4. 計算 7 / 30 / 90 / 180 天報酬。
+5. 加入 benchmark return 與 excess return。
+6. 輸出 data/processed/mention_returns.csv。
+
+驗收標準：
+
+1. 每筆 approved mention 都能找到基準價或給出明確錯誤原因。
+2. 報酬計算公式可被手動抽查。
+3. bullish / bearish 的成功判斷符合第九節。
+
+
+十九之八、人工審核流程
+
+狀態：Todo
+
+實作項目：
+
+1. 定義 review_status 的操作方式。
+2. 建立 pending -> approved / rejected / needs_context 流程。
+3. 決定第一版使用 CSV、Google Sheets，或簡單 CLI 進行審核。
+4. 記錄 reviewer_note。
+5. 設計修改 AI 判斷結果時的欄位保留方式。
+
+驗收標準：
+
+1. 每筆正式回測資料都經過 approved。
+2. rejected 資料仍保留，以便未來檢查誤判原因。
+3. 審核流程不需要重新閱讀整集逐字稿。
+
+
+十九之九、AI 抽取原型
+
+狀態：Todo
+
+實作項目：
+
+1. 建立 extraction_prompt.txt。
+2. 撰寫 scripts/extract_mentions.py。
+3. 輸入節目 metadata 與逐字稿片段。
+4. 輸出候選 mentions JSON 或 CSV。
+5. 將 AI 結果與人工標註比對。
+6. 統計 precision / recall 或至少記錄誤判類型。
+
+驗收標準：
+
+1. AI 輸出包含 company_or_theme、stance、evidence_text、rationale、confidence。
+2. 沒有 evidence_text 的候選 mention 不進入正式審核。
+3. AI 對明確 bullish / bearish 的誤判率可被檢查與改善。
+
+
+十九之十、簡易報表
+
+狀態：Todo
+
+實作項目：
+
+1. 建立 reports/summary.csv。
+2. 建立 reports/dashboard.html 或簡易文字報告。
+3. 顯示總 mention 數、已審核數、可計算報酬數。
+4. 顯示 7 / 30 / 90 / 180 天平均報酬與超額報酬。
+5. 顯示最佳與最差案例。
+6. 顯示依 stance、產業、市場分組的結果。
+
+驗收標準：
+
+1. 報表能回答「股癌明確看多標的 30 / 90 天是否有超額報酬」。
+2. 報表可追溯到 mention_id。
+3. 不只顯示成功案例，也顯示失敗案例。
+
+
+十九之十一、文件與操作說明
+
+狀態：Todo
+
+實作項目：
+
+1. 補 README 或 docs/操作流程.txt。
+2. 說明如何新增一集節目。
+3. 說明如何人工標註。
+4. 說明如何抓價格。
+5. 說明如何計算報酬。
+6. 說明如何產生報表。
+
+驗收標準：
+
+1. 未來回來接手時，不需要重新猜流程。
+2. 每個 script 的輸入與輸出都清楚。
+3. 每日實作紀錄能對應到完成的項目。
+
+
+二十、每日實作紀錄
+
+本節用來記錄每天實作內容。每天結束前新增一筆，格式如下：
+
+日期：
+
+今日目標：
+
+完成內容：
+
+修改或新增檔案：
+
+重要決策：
+
+遇到問題：
+
+驗證方式：
+
+明日待辦：
+
+備註：
+
+
+二十之一、2026-06-05 實作紀錄
+
+日期：
+2026-06-05
+
+今日目標：
+完成系統規劃，加入後續實作項目與每日紀錄格式，並啟動第一步專案骨架實作。
+
+完成內容：
+
+1. 建立「股癌追蹤系統規劃與設計.txt」。
+2. 完成產品目的、研究摘要、資料流程、資料模型、回測方法與 MVP 階段規劃。
+3. 新增後續實作項目清單。
+4. 新增每日實作紀錄模板。
+5. 建立專案目錄骨架。
+6. 建立 README.md，說明專案目的、第一階段目標與主要資料夾用途。
+
+修改或新增檔案：
+
+1. 股癌追蹤系統規劃與設計.txt
+2. README.md
+3. docs/.gitkeep
+4. data/raw/transcripts/.gitkeep
+5. data/processed/.gitkeep
+6. data/prices/.gitkeep
+7. scripts/.gitkeep
+8. reports/.gitkeep
+
+重要決策：
+
+1. 第一階段採用手動標註 + 價格回測的 MVP 路線。
+2. AI 先作為候選 mention 產生器，不直接進入正式統計。
+3. 所有正式回測資料必須保留 evidence_text 並經人工 approved。
+4. 每天實作結束都要更新本節紀錄。
+5. 第一個實作步驟先建立資料夾骨架與 README，不先寫程式，以免資料定義還沒固定就過早實作。
+
+遇到問題：
+
+1. Apple Podcasts 與 YouTube 字幕不能假設穩定支援中文第三方內容，因此逐字稿流程要保留手動與 ASR 路線。
+
+驗證方式：
+
+1. 已確認規劃文件存在於專案根目錄。
+2. 已確認文件包含後續實作項目與每日紀錄欄位。
+3. 已確認專案骨架目錄與 README.md 建立完成。
+
+明日待辦：
+
+1. 建立 docs/標註規則.txt。
+2. 建立 data/processed/episodes.csv、mentions.csv、instruments.csv。
+3. 建立 docs/資料字典.txt。
+4. 選定第一批節目樣本。
+
+備註：
+本日已從規劃進入第一步實作，尚未開始撰寫資料處理腳本。
