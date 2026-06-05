@@ -1,0 +1,3 @@
+instrument_id,ticker,market,name,aliases,industry,benchmark,is_active,notes
+inst_tw_2330,2330,TWSE,台積電,"台積;TSMC;Taiwan Semiconductor",半導體,TAIEX,true,sample row for schema validation
+inst_concept_ai_server,,concept,AI Server,"AI伺服器;AI 伺服器",科技硬體,,true,concept sample; not a single tradable instrument

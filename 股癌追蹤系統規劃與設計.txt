@@ -826,7 +826,7 @@ P4：Dashboard。
 
 十九之三、資料表初始化
 
-狀態：Todo
+狀態：Done
 
 實作項目：
 
@@ -1047,6 +1047,9 @@ P4：Dashboard。
 10. 將 main 分支推送到 GitHub，並設定 upstream tracking。
 11. 建立 docs/標註規則.txt，定義 stance、conviction、time_horizon、納入回測規則、去重規則、引用規則、產業概念規則與人工審核流程。
 12. 在標註規則中加入 12 個範例，用於區分看多、看空、中性、觀察、回顧、玩笑、引用與產業觀點。
+13. 建立 data/processed/episodes.csv、mentions.csv、instruments.csv、mention_returns.csv。
+14. 建立 docs/資料字典.txt，定義核心 CSV 欄位、型別、允許值、空值規則與正式回測納入條件。
+15. 在核心 CSV 加入 sample_ 前綴範例資料，用於驗證欄位是否足夠。
 
 修改或新增檔案：
 
@@ -1054,11 +1057,16 @@ P4：Dashboard。
 2. README.md
 3. docs/.gitkeep
 4. docs/標註規則.txt
-5. data/raw/transcripts/.gitkeep
-6. data/processed/.gitkeep
-7. data/prices/.gitkeep
-8. scripts/.gitkeep
-9. reports/.gitkeep
+5. docs/資料字典.txt
+6. data/raw/transcripts/.gitkeep
+7. data/processed/.gitkeep
+8. data/processed/episodes.csv
+9. data/processed/mentions.csv
+10. data/processed/instruments.csv
+11. data/processed/mention_returns.csv
+12. data/prices/.gitkeep
+13. scripts/.gitkeep
+14. reports/.gitkeep
 
 重要決策：
 
@@ -1069,11 +1077,15 @@ P4：Dashboard。
 5. 第一個實作步驟先建立資料夾骨架與 README，不先寫程式，以免資料定義還沒固定就過早實作。
 6. GitHub repository 使用 HTTPS remote，後續 push 會依賴本機 GitHub 認證狀態。
 7. 標註規則採保守原則：模糊時不升級為 bullish / bearish，不讓 unclear、watch、neutral 進入主要回測。
+8. 第一版資料儲存採 CSV，以降低 MVP 實作成本；未來資料量增加後再轉 SQLite 或 PostgreSQL。
+9. sample_ 前綴資料只用於 schema 驗證，正式統計與報表必須排除。
+10. 日期欄位第一版只使用 YYYY-MM-DD；若未來需要盤中/盤後判斷，再新增時間欄位，不混入日期欄。
 
 遇到問題：
 
 1. Apple Podcasts 與 YouTube 字幕不能假設穩定支援中文第三方內容，因此逐字稿流程要保留手動與 ASR 路線。
 2. 沙盒內 `.git` 目錄需要提權才能修改，因此 branch、remote、commit、push 需以允許 Git metadata 寫入的方式執行。
+3. CSV 初版檢查時發現空白行與 mention_returns.csv 範例列欄位數不一致，已移除空白行並修正欄位數。
 
 驗證方式：
 
@@ -1083,13 +1095,16 @@ P4：Dashboard。
 4. 已確認 initial commit 成功建立。
 5. 已確認 main 分支成功推送到 origin/main。
 6. 已確認 docs/標註規則.txt 包含 12 個範例，符合至少 10 個正反範例的驗收要求。
+7. 已確認 data/processed/ 下 4 個核心 CSV 已建立。
+8. 已確認 docs/資料字典.txt 已建立，並包含 CSV 欄位與正式回測納入條件。
+9. 已用欄位數檢查確認 4 個核心 CSV 每列欄位數一致。
 
 明日待辦：
 
-1. 建立 data/processed/episodes.csv、mentions.csv、instruments.csv、mention_returns.csv。
-2. 建立 docs/資料字典.txt。
-3. 加入少量範例資料，用來驗證欄位是否足夠。
-4. 選定第一批節目樣本。
+1. 選定第一批 10 集節目樣本。
+2. 建立第一批 episodes 正式資料。
+3. 開始人工標註第一批 mentions。
+4. 補充 instruments.csv 的常見台股與別名資料。
 
 備註：
 本日已從規劃進入第一步實作，尚未開始撰寫資料處理腳本。

@@ -1,0 +1,2 @@
+mention_id,ticker,market,stance,base_trade_date,base_price,return_7d,return_30d,return_90d,return_180d,benchmark_return_7d,benchmark_return_30d,benchmark_return_90d,benchmark_return_180d,excess_return_7d,excess_return_30d,excess_return_90d,excess_return_180d,calculation_status,notes
+sample_m_001,2330,TWSE,bullish,,,,,,,,,,,,,,,pending_price,sample row; returns not calculated yet

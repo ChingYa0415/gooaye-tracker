@@ -1,0 +1,377 @@
+股癌追蹤資料字典
+版本：0.1
+日期：2026-06-05
+
+一、文件目的
+
+本文件定義 data/processed/ 目錄下核心 CSV 的欄位、型別、允許值與使用規則。
+
+核心 CSV：
+
+1. episodes.csv
+   記錄節目、影片、文章或社群貼文等來源單位。
+
+2. mentions.csv
+   記錄從來源內容中抽出的公司、股票、產業或主題觀點。
+
+3. instruments.csv
+   記錄股票、指數、產業概念或其他可追蹤標的。
+
+4. mention_returns.csv
+   記錄每筆 approved mention 的報酬計算結果。
+
+第一版採 CSV，是為了快速建立可手動操作的 MVP。未來若資料量增加，可轉成 SQLite 或 PostgreSQL。
+
+
+二、通用規則
+
+1. ID 規則
+   - episode_id 使用 ep_ 前綴，範例資料使用 sample_ep_ 前綴。
+   - mention_id 使用 m_ 前綴，範例資料使用 sample_m_ 前綴。
+   - instrument_id 使用 inst_ 前綴。
+
+2. 日期格式
+   - 日期使用 YYYY-MM-DD。
+   - 若未來需要時間，另增 published_time 或 published_at_time，不在日期欄混用。
+
+3. 空值規則
+   - 未知但未來可補：留空。
+   - 無此欄位意義：留空。
+   - 判斷不明：使用 unclear。
+   - 市場未知：使用 unknown。
+
+4. 布林值
+   - 使用 true / false 小寫文字。
+
+5. 範例資料
+   - sample_ 開頭的資料只用於驗證欄位。
+   - 正式統計或報表應排除 sample_ 開頭的資料。
+
+
+三、episodes.csv
+
+用途：
+記錄每一個來源單位。一集 Podcast、一支 YouTube 影片、一篇文章或一則社群貼文都算一筆 episode。
+
+欄位：
+
+1. episode_id
+   型別：string
+   必填：是
+   說明：來源單位唯一 ID。
+   範例：ep_20260605_001
+
+2. source_name
+   型別：string
+   必填：是
+   說明：節目或來源名稱。
+   範例：股癌 Gooaye
+
+3. source_type
+   型別：enum
+   必填：是
+   允許值：podcast / youtube / threads / article / manual
+   說明：來源類型。
+
+4. title
+   型別：string
+   必填：是
+   說明：節目、影片、文章或貼文標題。
+
+5. published_at
+   型別：date
+   必填：是
+   說明：來源發布日期。
+
+6. url
+   型別：string
+   必填：否
+   說明：來源 URL。
+
+7. duration_seconds
+   型別：integer
+   必填：否
+   說明：音訊或影片長度秒數。文章或 Threads 可留空。
+
+8. transcript_status
+   型別：enum
+   必填：是
+   允許值：missing / manual / imported / generated / reviewed
+   說明：逐字稿取得狀態。
+
+9. notes
+   型別：string
+   必填：否
+   說明：補充說明。
+
+
+四、mentions.csv
+
+用途：
+記錄某一段內容中形成的股票、公司、產業或主題觀點。
+
+欄位：
+
+1. mention_id
+   型別：string
+   必填：是
+   說明：mention 唯一 ID。
+   範例：m_20260605_001
+
+2. episode_id
+   型別：string
+   必填：是
+   說明：對應 episodes.csv 的 episode_id。
+
+3. published_at
+   型別：date
+   必填：是
+   說明：來源發布日期，用於回測基準日。
+
+4. company_or_theme
+   型別：string
+   必填：是
+   說明：公司、股票、產業、指數或主題名稱。
+
+5. ticker
+   型別：string
+   必填：否
+   說明：股票代號。概念或產業可留空。
+
+6. market
+   型別：enum
+   必填：是
+   允許值：TWSE / TPEx / US / HK / concept / unknown
+   說明：市場或標的類型。
+
+7. mention_type
+   型別：enum
+   必填：是
+   允許值：company / industry / theme / index / commodity
+   說明：mention 標的類型。
+
+8. stance
+   型別：enum
+   必填：是
+   允許值：bullish / bearish / neutral / watch / past_review / unclear
+   說明：方向性判斷，定義見 docs/標註規則.txt。
+
+9. conviction
+   型別：enum
+   必填：是
+   允許值：low / medium / high
+   說明：觀點強度。
+
+10. time_horizon
+   型別：enum
+   必填：是
+   允許值：short / medium / long / unclear
+   說明：觀點時間尺度。
+
+11. evidence_text
+   型別：string
+   必填：是
+   說明：支持標註的原文短句。approved mention 不可空白。
+
+12. rationale
+   型別：string
+   必填：是
+   說明：人工或 AI 對標註原因的簡述。
+
+13. review_status
+   型別：enum
+   必填：是
+   允許值：pending / approved / rejected / needs_context
+   說明：人工審核狀態。
+
+14. reviewer_note
+   型別：string
+   必填：否
+   說明：審核補充說明。
+
+正式回測納入條件：
+
+1. review_status = approved。
+2. stance = bullish 或 bearish。
+3. evidence_text 不可空白。
+4. 若 market 不是 concept，ticker 不可空白。
+5. mention_id 不可以 sample_ 開頭。
+
+
+五、instruments.csv
+
+用途：
+記錄可追蹤標的與別名。包含股票、產業概念、指數或未來可能加入的商品。
+
+欄位：
+
+1. instrument_id
+   型別：string
+   必填：是
+   說明：標的唯一 ID。
+
+2. ticker
+   型別：string
+   必填：否
+   說明：股票代號。概念或產業可留空。
+
+3. market
+   型別：enum
+   必填：是
+   允許值：TWSE / TPEx / US / HK / concept / unknown
+   說明：市場或標的類型。
+
+4. name
+   型別：string
+   必填：是
+   說明：正式名稱。
+
+5. aliases
+   型別：string
+   必填：否
+   說明：別名，以分號分隔。
+   範例：台積;TSMC;Taiwan Semiconductor
+
+6. industry
+   型別：string
+   必填：否
+   說明：產業分類。
+
+7. benchmark
+   型別：string
+   必填：否
+   說明：比較基準。
+   範例：TAIEX、NASDAQ、SOXX。
+
+8. is_active
+   型別：boolean
+   必填：是
+   說明：是否仍使用此標的。
+
+9. notes
+   型別：string
+   必填：否
+   說明：補充說明。
+
+
+六、mention_returns.csv
+
+用途：
+記錄每筆 mention 在指定期間的報酬與相對 benchmark 表現。
+
+欄位：
+
+1. mention_id
+   型別：string
+   必填：是
+   說明：對應 mentions.csv 的 mention_id。
+
+2. ticker
+   型別：string
+   必填：否
+   說明：股票代號。概念型 mention 可留空。
+
+3. market
+   型別：enum
+   必填：是
+   允許值：TWSE / TPEx / US / HK / concept / unknown
+
+4. stance
+   型別：enum
+   必填：是
+   允許值：bullish / bearish
+   說明：主要回測只處理 bullish / bearish。
+
+5. base_trade_date
+   型別：date
+   必填：否
+   說明：發布後第一個交易日。
+
+6. base_price
+   型別：number
+   必填：否
+   說明：基準日收盤價。
+
+7. return_7d
+   型別：number
+   必填：否
+   說明：7 天後報酬率。使用小數，例如 0.05 代表 5%。
+
+8. return_30d
+   型別：number
+   必填：否
+   說明：30 天後報酬率。
+
+9. return_90d
+   型別：number
+   必填：否
+   說明：90 天後報酬率。
+
+10. return_180d
+   型別：number
+   必填：否
+   說明：180 天後報酬率。
+
+11. benchmark_return_7d
+   型別：number
+   必填：否
+   說明：benchmark 7 天後報酬率。
+
+12. benchmark_return_30d
+   型別：number
+   必填：否
+   說明：benchmark 30 天後報酬率。
+
+13. benchmark_return_90d
+   型別：number
+   必填：否
+   說明：benchmark 90 天後報酬率。
+
+14. benchmark_return_180d
+   型別：number
+   必填：否
+   說明：benchmark 180 天後報酬率。
+
+15. excess_return_7d
+   型別：number
+   必填：否
+   說明：return_7d - benchmark_return_7d。
+
+16. excess_return_30d
+   型別：number
+   必填：否
+   說明：return_30d - benchmark_return_30d。
+
+17. excess_return_90d
+   型別：number
+   必填：否
+   說明：return_90d - benchmark_return_90d。
+
+18. excess_return_180d
+   型別：number
+   必填：否
+   說明：return_180d - benchmark_return_180d。
+
+19. calculation_status
+   型別：enum
+   必填：是
+   允許值：pending_price / calculated / missing_price / not_applicable / error
+   說明：報酬計算狀態。
+
+20. notes
+   型別：string
+   必填：否
+   說明：錯誤原因或補充說明。
+
+
+七、下一步檢查清單
+
+建立或修改資料後，至少檢查：
+
+1. CSV 欄位數是否與資料字典一致。
+2. sample_ 開頭資料是否被排除在正式統計之外。
+3. approved mention 是否都有 evidence_text。
+4. bullish / bearish 且非 concept 的 mention 是否有 ticker。
+5. mention_returns.csv 是否只含正式回測候選資料或明確標記 sample。
+6. instruments.csv 是否能支援常見別名查找。
+

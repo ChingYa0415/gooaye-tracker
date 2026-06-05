@@ -1,0 +1,2 @@
+episode_id,source_name,source_type,title,published_at,url,duration_seconds,transcript_status,notes
+sample_ep_001,股癌 Gooaye,podcast,範例節目：AI Server 與台股觀察,2026-06-05,https://example.com/sample-episode-001,,manual,sample row for schema validation

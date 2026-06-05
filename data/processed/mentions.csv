@@ -1,0 +1,3 @@
+mention_id,episode_id,published_at,company_or_theme,ticker,market,mention_type,stance,conviction,time_horizon,evidence_text,rationale,review_status,reviewer_note
+sample_m_001,sample_ep_001,2026-06-05,台積電,2330,TWSE,company,bullish,medium,medium,我覺得台積電接下來還是會受惠 AI 需求，先進製程的能見度很高。,有明確正向未來理由與單一股票標的。,approved,sample row for schema validation
+sample_m_002,sample_ep_001,2026-06-05,AI Server,,concept,theme,watch,low,medium,AI Server 這條線可以先觀察，等下季財報確認。,屬於觀察名單，不納入主要回測。,approved,sample row for schema validation
