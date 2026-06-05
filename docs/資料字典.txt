@@ -20,6 +20,11 @@
 4. mention_returns.csv
    記錄每筆 approved mention 的報酬計算結果。
 
+輔助 CSV：
+
+1. transcript_inputs.csv
+   記錄待轉錄音檔、來源 episode 與預計逐字稿輸出路徑。
+
 第一版採 CSV，是為了快速建立可手動操作的 MVP。未來若資料量增加，可轉成 SQLite 或 PostgreSQL。
 
 
@@ -364,7 +369,66 @@
    說明：錯誤原因或補充說明。
 
 
-七、下一步檢查清單
+七、transcript_inputs.csv
+
+用途：
+記錄每一集節目的音檔來源與後續 ASR 應輸出的逐字稿路徑。這是逐字稿流程的工作清單，不代表逐字稿已經完成。
+
+欄位：
+
+1. episode_id
+   型別：string
+   必填：是
+   說明：對應 episodes.csv 的 episode_id。
+
+2. source_name
+   型別：string
+   必填：是
+   說明：來源節目名稱。
+
+3. title
+   型別：string
+   必填：是
+   說明：節目標題。
+
+4. published_at
+   型別：date
+   必填：是
+   說明：節目發布日期。
+
+5. episode_url
+   型別：string
+   必填：是
+   說明：節目播放頁 URL。
+
+6. audio_url
+   型別：string
+   必填：是
+   說明：RSS enclosure 音檔 URL。
+
+7. duration_seconds
+   型別：integer
+   必填：否
+   說明：節目長度秒數。
+
+8. transcript_path
+   型別：string
+   必填：是
+   說明：後續逐字稿應輸出的本機路徑。
+
+9. transcript_status
+   型別：enum
+   必填：是
+   允許值：missing / downloaded / generated / reviewed / error
+   說明：逐字稿處理狀態。
+
+10. notes
+   型別：string
+   必填：否
+   說明：補充說明。
+
+
+八、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -374,4 +438,4 @@
 4. bullish / bearish 且非 concept 的 mention 是否有 ticker。
 5. mention_returns.csv 是否只含正式回測候選資料或明確標記 sample。
 6. instruments.csv 是否能支援常見別名查找。
-
+7. transcript_inputs.csv 是否每筆都有 audio_url 與 transcript_path。
