@@ -1,3 +1,21 @@
 instrument_id,ticker,market,name,aliases,industry,benchmark,is_active,notes
-inst_tw_2330,2330,TWSE,台積電,"台積;TSMC;Taiwan Semiconductor",半導體,TAIEX,true,sample row for schema validation
-inst_concept_ai_server,,concept,AI Server,"AI伺服器;AI 伺服器",科技硬體,,true,concept sample; not a single tradable instrument
+inst_tw_2330,2330,TWSE,台積電,"台積;TSMC;Taiwan Semiconductor;台灣積體電路",半導體業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_2454,2454,TWSE,聯發科,"發哥;MediaTek;聯發科技",半導體業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_2317,2317,TWSE,鴻海,"富士康;Foxconn;鴻海精密",其他電子業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_2382,2382,TWSE,廣達,"Quanta;廣達電腦",電腦及週邊設備業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_3231,3231,TWSE,緯創,"Wistron;緯創資通",電腦及週邊設備業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_2356,2356,TWSE,英業達,"Inventec;英業達股份有限公司",電腦及週邊設備業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_6669,6669,TWSE,緯穎,"Wiwynn;緯穎科技",電腦及週邊設備業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_3443,3443,TWSE,創意,"GUC;創意電子",半導體業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_3661,3661,TWSE,世芯-KY,"世芯;Alchip;世芯電子",半導體業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_3035,3035,TWSE,智原,"Faraday;智原科技",半導體業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_3017,3017,TWSE,奇鋐,"Auras;奇鋐科技",電腦及週邊設備業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tp_3324,3324,TPEx,雙鴻,"Auras;雙鴻科技",其他電子業,TPEx,true,source TPEx mopsfin_t187ap03_O 2026-06-04
+inst_tp_3680,3680,TPEx,家登,"Gudeng;家登精密",半導體業,TPEx,true,source TPEx mopsfin_t187ap03_O 2026-06-04
+inst_tw_8081,8081,TWSE,致新,"GMT;致新科技",半導體業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_tw_8046,8046,TWSE,南電,"Nan Ya PCB;南亞電路板",電子零組件業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_concept_ai_server,,concept,AI Server,"AI伺服器;AI 伺服器;AI server",科技硬體,,true,concept sample not a single tradable instrument
+inst_concept_agentic_ai,,concept,Agentic AI,"AI Agent;代理型 AI;智能代理",人工智慧,,true,concept sample not a single tradable instrument
+inst_concept_pcb,,concept,PCB,"印刷電路板;電路板;載板",電子零組件,,true,concept sample not a single tradable instrument
+inst_concept_thermal,,concept,散熱,"水冷;液冷;散熱模組",電子零組件,,true,concept sample not a single tradable instrument
+inst_concept_memory,,concept,記憶體,"DRAM;NAND;HBM;高頻寬記憶體",半導體,,true,concept sample not a single tradable instrument

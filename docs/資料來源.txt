@@ -1,0 +1,76 @@
+股癌追蹤資料來源
+版本：0.1
+日期：2026-06-05
+
+一、Podcast 來源
+
+1. Gooaye 股癌 SoundOn RSS
+
+URL：
+https://feeds.soundon.fm/podcasts/954689a5-3096-43a4-a80b-7810b219cef3.xml
+
+用途：
+取得股癌節目的 episode metadata，包含標題、發布日期、SoundOn 播放頁 URL、guid 與節目長度。
+
+目前使用：
+已用於建立 data/processed/episodes.csv 第一批 10 集樣本。
+
+注意：
+RSS 只提供節目 metadata 與簡介，不等於完整逐字稿。正式 mention 標註仍需要逐字稿、音訊片段或人工摘錄的原文證據。
+
+
+二、台股上市公司資料
+
+1. TWSE 上市公司基本資料 OpenAPI
+
+URL：
+https://openapi.twse.com.tw/v1/opendata/t187ap03_L
+
+用途：
+取得上市公司代號、公司簡稱、公司全名與產業別等資料。
+
+目前使用：
+已用於補充 data/processed/instruments.csv 的 TWSE 標的與市場別。
+
+本次資料出表日期：
+1150604，也就是 2026-06-04。
+
+
+三、台股上櫃公司資料
+
+1. TPEx 上櫃公司基本資料 OpenAPI
+
+URL：
+https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O
+
+用途：
+取得上櫃公司代號、公司簡稱、公司全名與產業別等資料。
+
+目前使用：
+已用於補充 data/processed/instruments.csv 的 TPEx 標的與市場別。
+
+本次資料日期：
+1150604，也就是 2026-06-04。
+
+
+四、未來價格資料來源候選
+
+1. TWSE 每日收盤行情
+
+候選 URL：
+https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL
+
+用途：
+取得上市股票每日價格資料。
+
+2. TPEx 每日收盤行情
+
+候選 URL：
+https://www.tpex.org.tw/openapi/
+
+用途：
+取得上櫃股票每日價格資料。
+
+注意：
+價格資料來源與欄位會在 scripts/fetch_prices.py 實作時再正式確認。
+

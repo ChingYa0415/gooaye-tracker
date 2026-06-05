@@ -846,7 +846,7 @@ P4：Dashboard。
 
 十九之四、第一批節目樣本
 
-狀態：Todo
+狀態：Doing
 
 實作項目：
 
@@ -865,7 +865,7 @@ P4：Dashboard。
 
 十九之五、股票代號與別名解析
 
-狀態：Todo
+狀態：Review
 
 實作項目：
 
@@ -1050,6 +1050,9 @@ P4：Dashboard。
 13. 建立 data/processed/episodes.csv、mentions.csv、instruments.csv、mention_returns.csv。
 14. 建立 docs/資料字典.txt，定義核心 CSV 欄位、型別、允許值、空值規則與正式回測納入條件。
 15. 在核心 CSV 加入 sample_ 前綴範例資料，用於驗證欄位是否足夠。
+16. 從 SoundOn RSS 選定最近 10 集股癌內容，加入 data/processed/episodes.csv。
+17. 使用 TWSE / TPEx 官方 OpenAPI 查詢常見台股標的市場別與公司簡稱，補充 data/processed/instruments.csv。
+18. 建立 docs/資料來源.txt，記錄 RSS、TWSE 與 TPEx API 來源。
 
 修改或新增檔案：
 
@@ -1058,15 +1061,16 @@ P4：Dashboard。
 3. docs/.gitkeep
 4. docs/標註規則.txt
 5. docs/資料字典.txt
-6. data/raw/transcripts/.gitkeep
-7. data/processed/.gitkeep
-8. data/processed/episodes.csv
-9. data/processed/mentions.csv
-10. data/processed/instruments.csv
-11. data/processed/mention_returns.csv
-12. data/prices/.gitkeep
-13. scripts/.gitkeep
-14. reports/.gitkeep
+6. docs/資料來源.txt
+7. data/raw/transcripts/.gitkeep
+8. data/processed/.gitkeep
+9. data/processed/episodes.csv
+10. data/processed/mentions.csv
+11. data/processed/instruments.csv
+12. data/processed/mention_returns.csv
+13. data/prices/.gitkeep
+14. scripts/.gitkeep
+15. reports/.gitkeep
 
 重要決策：
 
@@ -1080,6 +1084,8 @@ P4：Dashboard。
 8. 第一版資料儲存採 CSV，以降低 MVP 實作成本；未來資料量增加後再轉 SQLite 或 PostgreSQL。
 9. sample_ 前綴資料只用於 schema 驗證，正式統計與報表必須排除。
 10. 日期欄位第一版只使用 YYYY-MM-DD；若未來需要盤中/盤後判斷，再新增時間欄位，不混入日期欄。
+11. 第一批 episodes 先以 SoundOn RSS metadata 建立，transcript_status 全部標為 missing；未取得逐字稿前，不做正式 bullish / bearish mention 標註。
+12. instruments.csv 先建立常見台股與概念初始表，市場別以 TWSE / TPEx 官方 API 查詢結果為準。
 
 遇到問題：
 
@@ -1098,13 +1104,16 @@ P4：Dashboard。
 7. 已確認 data/processed/ 下 4 個核心 CSV 已建立。
 8. 已確認 docs/資料字典.txt 已建立，並包含 CSV 欄位與正式回測納入條件。
 9. 已用欄位數檢查確認 4 個核心 CSV 每列欄位數一致。
+10. 已確認 episodes.csv 目前包含 sample row 加最近 10 集股癌正式 episode rows。
+11. 已確認 instruments.csv 包含 TWSE、TPEx 與 concept 初始標的。
+12. 已確認 docs/資料來源.txt 已建立。
 
 明日待辦：
 
-1. 選定第一批 10 集節目樣本。
-2. 建立第一批 episodes 正式資料。
-3. 開始人工標註第一批 mentions。
-4. 補充 instruments.csv 的常見台股與別名資料。
+1. 取得第一批 10 集節目的逐字稿或可引用片段。
+2. 至少完成 3 集人工初步標註。
+3. 累積至少 30 筆候選 mention。
+4. 開始撰寫價格資料抓取腳本 scripts/fetch_prices.py。
 
 備註：
 本日已從規劃進入第一步實作，尚未開始撰寫資料處理腳本。
