@@ -1,0 +1,512 @@
+股癌追蹤標註規則
+版本：0.1
+日期：2026-06-05
+
+一、文件目的
+
+本文件定義如何從 Podcast、YouTube、Threads 或文章內容中標註投資觀點。
+
+標註的目標不是把所有股票名稱都抓出來，而是判斷：
+
+1. 這段內容是否真的形成一個可追蹤的投資觀點。
+2. 這個觀點是看多、看空、中性、觀察、回顧，還是不明確。
+3. 是否應該納入後續報酬回測。
+4. 是否保留足夠原文證據，讓未來可以重新檢查判斷。
+
+第一版採保守標註。寧可少收錄，也不要把新聞轉述、玩笑、反諷、單純提到股票誤判成正式觀點。
+
+
+二、核心名詞
+
+1. episode
+   一集 Podcast、一支 YouTube 影片、一篇文章或一則社群貼文。
+
+2. segment
+   episode 中的一段文字。可以來自逐字稿時間段、人工摘錄段落，或社群貼文本文。
+
+3. mention
+   某段內容中出現一個公司、股票、產業、主題、指數或商品，且具備可記錄意義。
+
+4. approved mention
+   經人工確認後，可進入統計或回測的 mention。
+
+5. evidence_text
+   支持標註判斷的原文短句。沒有 evidence_text 的資料不得進入正式回測。
+
+6. stance
+   對標的的方向性判斷。第一版使用 bullish、bearish、neutral、watch、past_review、unclear。
+
+7. conviction
+   觀點強度。第一版使用 low、medium、high。
+
+8. time_horizon
+   推測觀點時間尺度。第一版使用 short、medium、long、unclear。
+
+
+三、標註欄位
+
+每筆 mention 至少應包含：
+
+1. episode_id
+   來源集數或文章 ID。
+
+2. published_at
+   來源發布日期。
+
+3. company_or_theme
+   公司、股票、產業、主題或指數名稱。
+
+4. ticker
+   股票代號。若是產業或概念，允許空白。
+
+5. market
+   TWSE、TPEx、US、HK、concept、unknown。
+
+6. stance
+   bullish、bearish、neutral、watch、past_review、unclear。
+
+7. conviction
+   low、medium、high。
+
+8. time_horizon
+   short、medium、long、unclear。
+
+9. evidence_text
+   支持標註的原文短句。
+
+10. rationale
+   用自己的話簡短說明為什麼這樣標。
+
+11. review_status
+   pending、approved、rejected、needs_context。
+
+12. reviewer_note
+   人工審核補充。
+
+
+四、stance 定義
+
+1. bullish
+
+明確看好公司、股票、產業或主題，且語意上暗示未來可能有正向表現。
+
+可標 bullish 的情況：
+
+1. 明確說看好、喜歡、受惠、成長性好。
+2. 說自己持有、加碼、想買，且不是單純回顧。
+3. 說估值合理、基本面改善、產業趨勢有利。
+4. 對某公司或產業給出正向未來理由。
+
+不得只因為以下情況就標 bullish：
+
+1. 只是念到公司名稱。
+2. 只是說股價上漲。
+3. 只是轉述新聞或別人的說法。
+4. 只是說「這家公司很有名」。
+
+
+2. bearish
+
+明確看壞公司、股票、產業或主題，且語意上暗示未來可能有負向表現。
+
+可標 bearish 的情況：
+
+1. 明確說不看好、避開、風險高、不要碰。
+2. 說需求下修、競爭惡化、估值過貴。
+3. 說自己賣出、減碼、放空，且不是單純回顧。
+4. 對某公司或產業給出負向未來理由。
+
+不得只因為以下情況就標 bearish：
+
+1. 只是說股價下跌。
+2. 只是說某公司出現新聞。
+3. 只是討論風險，但結論沒有方向。
+4. 只是引用別人看壞。
+
+
+3. neutral
+
+有分析或資訊，但沒有明確方向性。
+
+常見情況：
+
+1. 解釋財報、新聞、產業狀況。
+2. 同時列出正反因素，沒有結論。
+3. 說明公司業務，沒有表態。
+4. 討論已知市場事實。
+
+neutral 不納入正式報酬回測，但可保留作為資料庫搜尋。
+
+
+4. watch
+
+明確表示值得觀察，但尚未形成看多或看空。
+
+常見情況：
+
+1. 可以觀察。
+2. 放進 watchlist。
+3. 等某個財報、事件、價格或產業指標確認。
+4. 有潛力，但還不到買進或看多。
+
+watch 不與 bullish 混用。若沒有明確正向結論，就不要標 bullish。
+
+
+5. past_review
+
+回顧以前講過、以前買過、以前漲跌過，並非新的投資觀點。
+
+常見情況：
+
+1. 「之前講過的某某已經漲了。」
+2. 「去年那時候買是對的。」
+3. 「這檔前面漲很多，現在回頭看很強。」
+4. 「當初有提到，但現在不是新的推薦。」
+
+past_review 不納入新訊號回測，避免偷看未來。
+
+
+6. unclear
+
+上下文不足、語氣像玩笑或反諷、只是梗圖式留言、引用他人但無法判斷立場。
+
+常見情況：
+
+1. 玩笑、迷因、反串。
+2. 語氣不明確。
+3. 原文太短，沒有足夠證據。
+4. 引用別人觀點但不知道作者是否認同。
+5. 股票名稱與公司名稱可能混淆。
+
+unclear 不納入正式回測。
+
+
+五、conviction 定義
+
+1. low
+   輕度表態，語氣保留，或只是「可以看看」。
+
+2. medium
+   有明確方向與理由，但不是強烈押注。
+
+3. high
+   語氣強烈、理由完整、明確提到持有/加碼/避開/減碼，或用高度確定語氣描述。
+
+若無法判斷，預設 low，不要高估強度。
+
+
+六、time_horizon 定義
+
+1. short
+   約 1 個月內，事件交易、短線題材、財報前後。
+
+2. medium
+   約 1 到 6 個月，季度趨勢、產業循環、產品週期。
+
+3. long
+   超過 6 個月，長期成長、結構性趨勢。
+
+4. unclear
+   原文沒有時間尺度。
+
+若無明確線索，預設 unclear。
+
+
+七、是否納入回測
+
+可納入正式回測：
+
+1. review_status = approved。
+2. stance = bullish 或 bearish。
+3. 有明確 company_or_theme。
+4. 若是單一股票，需能解析 ticker。
+5. 有 evidence_text。
+6. 不是過去回顧，不是單純轉述，不是玩笑。
+
+不可納入正式回測：
+
+1. stance = neutral、watch、past_review、unclear。
+2. review_status 不是 approved。
+3. 沒有 evidence_text。
+4. 只有公司名稱，沒有觀點。
+5. 只有股價已經漲跌的描述。
+6. 明顯是反諷、玩笑、梗或留言敲碗。
+7. 只是引用他人觀點，作者沒有表態。
+
+可另行追蹤但不計入主要命中率：
+
+1. watch 類型。
+2. 產業或概念籃子。
+3. 主持人回顧自己過去觀點。
+
+
+八、去重規則
+
+同一 episode 中，同一個標的若多次出現：
+
+1. 如果只是重複同一個觀點，只保留一筆 mention。
+2. evidence_text 選最能代表觀點的一句。
+3. 若同一集先中性分析、後面明確看多，以最終明確結論為準。
+4. 若同一集同一標的有正反兩段且沒有結論，標 neutral 或 unclear。
+5. 若討論不同時間尺度，可以保留多筆，但 reviewer_note 要說明。
+
+跨 episode 重複提及：
+
+1. 不視為重複，可分別記錄。
+2. 每集以各自 published_at 作為回測起點。
+3. 若只是回顧前一集觀點，標 past_review。
+
+
+九、引用與轉述規則
+
+若內容是在引用別人：
+
+1. 作者明確認同，才可依作者立場標註。
+2. 作者只是轉述，標 neutral。
+3. 作者明確反駁，依作者反駁方向標註。
+4. 無法判斷是否認同，標 unclear。
+
+範例：
+
+1. 「某券商說台積電很便宜」：neutral。
+2. 「某券商說台積電很便宜，我也同意」：bullish。
+3. 「大家說這檔很便宜，但我覺得不要碰」：bearish。
+
+
+十、產業與概念規則
+
+若原文談的是產業或概念，不要硬配成單一股票。
+
+可記為 concept：
+
+1. AI Server。
+2. PCB。
+3. 散熱。
+4. 記憶體。
+5. CoWoS。
+6. 機器人。
+7. 軍工。
+
+產業或概念若要回測：
+
+1. 第一版先不納入主要命中率。
+2. 未來可建立代表股票籃子。
+3. 籃子成分必須事前定義，不能事後挑最強股票。
+
+
+十一、範例
+
+範例 1
+
+原文：
+「我覺得台積電接下來還是會受惠 AI 需求，先進製程的能見度很高。」
+
+標註：
+company_or_theme = 台積電
+ticker = 2330
+market = TWSE
+stance = bullish
+conviction = medium
+time_horizon = medium
+是否納入回測 = 是
+理由：
+有明確正向未來理由。
+
+
+範例 2
+
+原文：
+「這檔最近漲很多，大家都在討論。」
+
+標註：
+stance = neutral
+是否納入回測 = 否
+理由：
+只是描述市場現象，沒有作者方向性。
+
+
+範例 3
+
+原文：
+「我不太想碰這家，估值已經反映太多樂觀預期了。」
+
+標註：
+stance = bearish
+conviction = medium
+time_horizon = unclear
+是否納入回測 = 是
+理由：
+有明確避開與負向理由。
+
+
+範例 4
+
+原文：
+「可以先觀察看看，等下季財報出來再說。」
+
+標註：
+stance = watch
+conviction = low
+time_horizon = short
+是否納入回測 = 否
+理由：
+只是觀察，沒有形成看多或看空。
+
+
+範例 5
+
+原文：
+「之前講過的家登後來漲到 600，真的很快。」
+
+標註：
+stance = past_review
+是否納入回測 = 否
+理由：
+這是回顧，不是新的觀點。
+
+
+範例 6
+
+原文：
+「某券商報告說這家公司目標價上修。」
+
+標註：
+stance = neutral
+是否納入回測 = 否
+理由：
+只是轉述券商，沒有作者是否認同的證據。
+
+
+範例 7
+
+原文：
+「某券商報告說這家公司目標價上修，這個方向我覺得合理，需求確實有起來。」
+
+標註：
+stance = bullish
+conviction = medium
+是否納入回測 = 是
+理由：
+作者明確認同並補充正向理由。
+
+
+範例 8
+
+原文：
+「感覺可以出一個股癌概念股 ETF 笑死。」
+
+標註：
+stance = unclear
+是否納入回測 = 否
+理由：
+這是玩笑或社群梗，不是投資觀點。
+
+
+範例 9
+
+原文：
+「記憶體這一輪我覺得供需比去年健康，報價還有機會。」
+
+標註：
+company_or_theme = 記憶體
+market = concept
+stance = bullish
+conviction = medium
+time_horizon = medium
+是否納入主要回測 = 否
+理由：
+是產業觀點，可另行用事前定義的籃子追蹤。
+
+
+範例 10
+
+原文：
+「這家公司財報營收成長 20%，毛利率也比上季高。」
+
+標註：
+stance = neutral
+是否納入回測 = 否
+理由：
+只有財報資訊，沒有方向性結論。
+
+
+範例 11
+
+原文：
+「雖然營收成長，但我覺得市場期待太高，現在風險報酬不漂亮。」
+
+標註：
+stance = bearish
+conviction = medium
+是否納入回測 = 是
+理由：
+作者對未來風險報酬有明確負向判斷。
+
+
+範例 12
+
+原文：
+「我有買一點，主要是想押下半年 AI Server 拉貨。」
+
+標註：
+stance = bullish
+conviction = high
+time_horizon = medium
+是否納入回測 = 是
+理由：
+明確提到持有與投資理由。
+
+
+十二、人工審核流程
+
+每筆候選 mention 審核順序：
+
+1. 先確認是否真的有標的。
+2. 再確認是否有作者自己的方向性。
+3. 再確認 evidence_text 是否足夠。
+4. 判斷 stance。
+5. 判斷 conviction。
+6. 判斷 time_horizon。
+7. 判斷是否能解析 ticker 或是否屬於 concept。
+8. 設定 review_status。
+9. 補 reviewer_note。
+
+review_status 使用規則：
+
+1. pending
+   尚未人工審核。
+
+2. approved
+   可進入正式資料庫。只有 approved 且 stance 為 bullish / bearish 的資料會納入主要回測。
+
+3. rejected
+   明顯不符合 mention 或無追蹤價值。
+
+4. needs_context
+   需要查看前後文或整集內容才能判斷。
+
+
+十三、標註品質檢查
+
+每完成一批標註後，至少檢查：
+
+1. 是否有 evidence_text 空白但被 approved。
+2. 是否有 neutral / watch 被納入主要回測。
+3. 是否有同一 episode、同一 ticker、同一 stance 重複出現。
+4. 是否有 concept 被硬填成單一股票。
+5. 是否有 past_review 被誤當新訊號。
+6. 是否有引用他人觀點被誤當作者觀點。
+
+
+十四、第一版保守原則
+
+遇到模糊情況時：
+
+1. bullish 與 watch 不確定時，選 watch。
+2. bearish 與 neutral 不確定時，選 neutral。
+3. 新觀點與 past_review 不確定時，選 past_review 或 needs_context。
+4. 玩笑與真觀點不確定時，選 unclear。
+5. 公司與產業不確定時，先標 concept 或 needs_context。
+
+這套規則會降低收錄數量，但能提高回測可信度。
+
