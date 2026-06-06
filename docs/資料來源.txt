@@ -113,6 +113,7 @@ scripts/transcribe_openai.py 預設使用 gpt-4o-mini-transcribe，呼叫 /v1/au
 
 注意：
 不要把真實 API key 寫入 README、docs、CSV 或任何會 commit 的檔案。
+.env 裡的值必須是真正的 OpenAI API key，通常以 sk- 開頭；不要保留 .env.example 裡的範例文字。
 
 3. 合併逐字稿
 

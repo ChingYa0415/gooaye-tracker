@@ -1120,6 +1120,7 @@ P4：Dashboard。
 3. CSV 初版檢查時發現空白行與 mention_returns.csv 範例列欄位數不一致，已移除空白行並修正欄位數。
 4. 本機目前未設定 OPENAI_API_KEY，因此 ASR 轉錄腳本已建立但無法實際呼叫 OpenAI API。
 5. 使用者在另一個終端機執行 export OPENAI_API_KEY 不會自動傳入 Codex 命令環境，因此需改用本專案本機 .env 或在同一執行環境提供變數。
+6. 本機 .env 已建立，但目前內容仍是範例/占位文字，不是真正 OpenAI API key，因此尚無法呼叫 ASR。
 
 驗證方式：
 
@@ -1140,6 +1141,7 @@ P4：Dashboard。
 15. 已確認 EP667 切成 4 個 chunk，大小分別低於 25 MB，可供 ASR API 使用。
 16. 已確認 transcribe_openai.py 在未設定 OPENAI_API_KEY 時會明確報錯。
 17. 已確認 transcribe_openai.py 支援本機 .env 載入。
+18. 已新增 OPENAI_API_KEY 格式驗證，避免占位文字進入 HTTP request header 才失敗。
 
 明日待辦：
 

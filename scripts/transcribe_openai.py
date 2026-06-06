@@ -118,6 +118,13 @@ def transcribe(file_path: pathlib.Path, model: str, api_key: str) -> str:
         return response.read().decode("utf-8")
 
 
+def validate_api_key(api_key: str) -> None:
+    if not api_key.isascii():
+        raise RuntimeError("OPENAI_API_KEY contains non-ASCII characters. Replace the placeholder with the real key.")
+    if not api_key.startswith("sk-"):
+        raise RuntimeError("OPENAI_API_KEY should start with sk-. Replace the placeholder with the real key.")
+
+
 def append_run(path: pathlib.Path, row: dict[str, str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     exists = path.exists()
@@ -143,6 +150,7 @@ def main() -> int:
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not set. Set it in the shell or local .env file.")
+    validate_api_key(api_key)
 
     chunk = find_chunk(pathlib.Path(args.chunks_csv), args.episode_id, args.chunk_index)
     chunk_path = pathlib.Path(chunk["chunk_path"])
