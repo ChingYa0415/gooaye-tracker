@@ -984,7 +984,7 @@ P4：Dashboard。
 
 十九之十一、文件與操作說明
 
-狀態：Todo
+狀態：Review
 
 實作項目：
 
@@ -1207,6 +1207,10 @@ P4：Dashboard。
 38. 建立 scripts/build_return_report.py，彙整 approved company bullish / bearish mentions 的基準價與 horizon 報酬。
 39. 產生 reports/approved_company_bullish_returns.csv，共 5 筆第一批公司看多回測檢查資料。
 40. 更新 docs/資料來源.txt 與 docs/資料字典.txt，記錄報酬檢查報表的產生方式與欄位用途。
+41. 建立 scripts/validate_data.py，檢查核心 CSV schema、ID 關聯、approved mention、return rows、報表與價格檔一致性。
+42. 建立 scripts/run_daily_update.py，串接價格更新、報表重建與資料驗證，作為日常更新入口。
+43. 建立 docs/操作流程.txt，記錄日常更新、新增逐字稿、人工審核、報酬報表與提交前檢查流程。
+44. 更新 README.md 與 docs/資料來源.txt，補上日常更新與資料驗證命令。
 
 修改或新增檔案：
 
@@ -1237,7 +1241,11 @@ P4：Dashboard。
 25. data/prices/INDEX_TWII.csv
 26. scripts/build_return_report.py
 27. reports/approved_company_bullish_returns.csv
-28. 股癌追蹤系統規劃與設計.txt
+28. scripts/validate_data.py
+29. scripts/run_daily_update.py
+30. docs/操作流程.txt
+31. README.md
+32. 股癌追蹤系統規劃與設計.txt
 
 本機產物，不進 Git：
 
@@ -1275,6 +1283,8 @@ P4：Dashboard。
 15. 第一版報酬用 adj_close 計算；benchmark 暫用 TWSE -> ^TWII、US -> ^IXIC。
 16. reports/approved_company_bullish_returns.csv 是人工檢查視圖，不作為原始真相來源；正式判斷仍以 mentions.csv 與 mention_returns.csv 為準。
 17. 每次重跑 scripts/fetch_prices.py 後，應接著重跑 scripts/build_return_report.py 讓報表同步更新。
+18. scripts/validate_data.py 作為提交前與日常更新後的資料守門腳本；資料或派生報表未通過驗證時，不應視為落地完成。
+19. scripts/run_daily_update.py 是第一版資料層日常入口；完整價格更新、報表重建與驗證都應優先從此腳本執行。
 
 遇到問題：
 
@@ -1317,6 +1327,9 @@ P4：Dashboard。
 30. 已確認報表中 1 筆已有 7d return，4 筆尚無到期 horizon return。
 31. 已確認 m_20260527_001 台積電 7d return 為 3.92%，相對 ^TWII excess return 為 -0.76%。
 32. 已確認 scripts/build_return_report.py 與既有資料腳本語法檢查通過。
+33. 已確認 scripts/validate_data.py 可通過目前資料集，輸出 10 集正式 episodes、30 筆正式 mentions、24 筆正式 return rows、5 筆 return report rows。
+34. 已確認 scripts/run_daily_update.py --skip-price-fetch 可重建報表並通過資料驗證。
+35. 已確認新增腳本與既有腳本 py_compile 通過。
 
 明日待辦：
 
@@ -1325,6 +1338,7 @@ P4：Dashboard。
 3. 針對 6 筆 needs_context 回聽音檔或改用更大 whisper.cpp 模型補校對。
 4. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
 5. 設計 concept mention 的題材籃子或 ETF proxy，避免概念題材永遠只能 not_applicable。
+6. 補第一版 reports/summary.csv，彙總 mention 數、review 狀態、return 狀態與可得 horizon。
 
 備註：
-目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、第一版價格資料抓取與報酬檢查報表；接下來重點是等待價格 horizon 到期、補校對 needs_context，並改善價格來源穩定性。
+目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、第一版價格資料抓取、報酬檢查報表與日常資料驗證入口；資料與腳本層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、補校對 needs_context，並改善價格來源穩定性。

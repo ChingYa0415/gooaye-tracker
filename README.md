@@ -12,9 +12,23 @@
 主要文件：
 
 - `股癌追蹤系統規劃與設計.txt`：完整規劃、實作清單與每日實作紀錄。
-- `docs/`：標註規則、資料字典與操作流程。
+- `docs/操作流程.txt`：日常資料更新、驗證、逐字稿、審核與報表流程。
+- `docs/`：標註規則、資料字典與資料來源。
 - `data/processed/`：整理後的 CSV 資料。
 - `data/prices/`：價格資料。
 - `scripts/`：資料抓取、抽取與回測腳本。
 - `reports/`：統計報表與輸出結果。
 
+常用命令：
+
+```bash
+python3 scripts/run_daily_update.py --skip-price-fetch
+python3 scripts/validate_data.py
+python3 scripts/build_return_report.py
+```
+
+需要更新價格時：
+
+```bash
+python3 scripts/run_daily_update.py
+```

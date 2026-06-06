@@ -51,8 +51,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--end-date",
-        default="2027-01-31",
-        help="Fetch prices through this date.",
+        default=date.today().isoformat(),
+        help="Fetch prices through this date. Defaults to today.",
     )
     parser.add_argument(
         "--sleep-seconds",

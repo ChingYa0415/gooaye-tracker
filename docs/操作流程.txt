@@ -1,0 +1,149 @@
+股癌追蹤操作流程
+版本：0.1
+日期：2026-06-06
+
+一、文件目的
+
+本文件記錄資料與腳本層的固定操作方式。若只是要更新價格、重建報表或驗證資料，優先看本文件，不必從完整規劃文件重新推導流程。
+
+
+二、日常更新流程
+
+用途：
+更新價格、重算 mention_returns.csv、重建報酬檢查報表，並執行資料驗證。
+
+完整更新：
+
+python3 scripts/run_daily_update.py
+
+只重建報表與驗證現有資料：
+
+python3 scripts/run_daily_update.py --skip-price-fetch
+
+指定價格日期區間：
+
+python3 scripts/run_daily_update.py --start-date 2026-01-01 --end-date 2026-12-31
+
+此流程會依序執行：
+
+1. scripts/fetch_prices.py
+2. scripts/build_return_report.py
+3. scripts/validate_data.py
+
+輸出檔案：
+
+1. data/prices/*.csv
+2. data/processed/mention_returns.csv
+3. reports/approved_company_bullish_returns.csv
+
+
+三、資料驗證流程
+
+用途：
+檢查核心 CSV 欄位、ID 關聯、approved mention 規則、return rows、報表一致性與價格檔格式。
+
+命令：
+
+python3 scripts/validate_data.py
+
+目前驗證重點：
+
+1. data/processed/*.csv 欄位是否符合資料字典。
+2. reports/*.csv 欄位是否符合派生報表規則。
+3. episode_id、mention_id、instrument_id 是否重複。
+4. mentions.csv 是否引用存在的 episode_id。
+5. approved mention 是否有 evidence_text。
+6. 正式 approved mentions 是否都有 mention_returns.csv row。
+7. approved company bullish / bearish mentions 是否都有報表 row。
+8. calculated / pending_price rows 是否有 base_trade_date 與 base_price。
+9. data/prices/*.csv 是否有必要欄位與可解析的價格。
+
+若驗證失敗，先修正資料或重建派生檔，再重新執行。
+
+
+四、新增或更新節目逐字稿流程
+
+1. 更新 RSS transcript input manifest：
+
+python3 scripts/fetch_transcript_inputs.py
+
+2. 下載指定 episode 音檔：
+
+python3 scripts/download_audio.py --episode-id ep_YYYYMMDD_XXX
+
+3. 切分音檔：
+
+python3 scripts/split_audio.py --episode-id ep_YYYYMMDD_XXX
+
+4. 使用 OpenAI Speech-to-Text 轉錄：
+
+python3 scripts/transcribe_openai.py --episode-id ep_YYYYMMDD_XXX
+
+若 OpenAI API 額度不足，改用本機 whisper.cpp：
+
+python3 scripts/transcribe_whisper_cpp.py --episode-id ep_YYYYMMDD_XXX
+
+5. 合併逐字稿：
+
+python3 scripts/combine_transcripts.py --episode-id ep_YYYYMMDD_XXX
+
+6. 確認 episodes.csv 與 transcript_inputs.csv 的 transcript_status 已更新。
+
+注意：
+逐字稿原文、原始音檔、切段音檔與模型檔都是本機 raw artifacts，不進 Git。確認合併逐字稿與 metadata 完成後，原始音檔與切段音檔可刪除。
+
+
+五、候選 mention 與人工審核流程
+
+1. 掃描逐字稿中的標的別名：
+
+python3 scripts/search_transcript_mentions.py --episode-id ep_YYYYMMDD_XXX
+
+2. 人工將候選標的整理進 data/processed/mentions.csv，初始 review_status 使用 pending。
+
+3. 產生人工審核工作表：
+
+python3 scripts/build_review_queue.py
+
+4. 在 reports/pending_mentions_review.csv 填寫 review_decision 與必要的 corrected_* 欄位。
+
+5. 套用前先 dry-run：
+
+python3 scripts/apply_review_decisions.py --dry-run
+
+6. 正式套用：
+
+python3 scripts/apply_review_decisions.py
+
+7. 套用後重新驗證：
+
+python3 scripts/validate_data.py
+
+
+六、報酬與報表流程
+
+單獨更新價格與 mention_returns.csv：
+
+python3 scripts/fetch_prices.py
+
+單獨重建報酬檢查報表：
+
+python3 scripts/build_return_report.py
+
+單獨驗證：
+
+python3 scripts/validate_data.py
+
+建議日常使用 scripts/run_daily_update.py，避免忘記重建報表或驗證資料。
+
+
+七、Git 提交前檢查
+
+提交前至少執行：
+
+python3 -m py_compile scripts/*.py
+python3 scripts/run_daily_update.py --skip-price-fetch
+git diff --check
+git status --short
+
+確認大型 raw artifacts、.env、模型檔、音檔與逐字稿沒有進入 Git。

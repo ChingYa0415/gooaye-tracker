@@ -212,3 +212,32 @@ python3 scripts/build_return_report.py
 
 注意：
 此報表是 mention_returns.csv 的人工檢查視圖。每次重跑 scripts/fetch_prices.py 更新價格與報酬後，應再重跑 scripts/build_return_report.py，讓可讀報表同步反映最新 horizon return。
+
+8. 日常更新入口
+
+工具：
+scripts/run_daily_update.py
+
+用途：
+串接日常價格更新、報表重建與資料驗證。預設會執行 scripts/fetch_prices.py、scripts/build_return_report.py 與 scripts/validate_data.py。
+
+範例：
+python3 scripts/run_daily_update.py
+python3 scripts/run_daily_update.py --skip-price-fetch
+
+注意：
+若只是修改文件、review CSV 或想確認現有資料一致性，可使用 --skip-price-fetch 避免重新呼叫價格來源。
+
+9. 資料驗證
+
+工具：
+scripts/validate_data.py
+
+用途：
+檢查核心 CSV 欄位、ID 關聯、approved mention 規則、mention_returns rows、報表一致性與價格檔格式。
+
+範例：
+python3 scripts/validate_data.py
+
+注意：
+此工具是提交前與日常更新後的資料守門腳本。若驗證失敗，應先修正資料或重建派生檔，再提交或繼續下一步分析。
