@@ -1,2 +1,26 @@
 mention_id,ticker,market,stance,base_trade_date,base_price,return_7d,return_30d,return_90d,return_180d,benchmark_return_7d,benchmark_return_30d,benchmark_return_90d,benchmark_return_180d,excess_return_7d,excess_return_30d,excess_return_90d,excess_return_180d,calculation_status,notes
 sample_m_001,2330,TWSE,bullish,,,,,,,,,,,,,,,pending_price,sample row; returns not calculated yet
+m_20260603_002,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260603_003,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260603_004,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260603_005,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260603_006,2330,TWSE,bullish,2026-06-04,2385,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=2330.TW; 4 horizon target prices unavailable
+m_20260603_007,NVDA,US,bullish,2026-06-04,218.6600037,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=NVDA; 4 horizon target prices unavailable
+m_20260603_008,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260530_001,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260530_002,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260530_003,SNOW,US,bullish,2026-06-01,280.1600037,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=SNOW; 4 horizon target prices unavailable
+m_20260530_004,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260530_005,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260530_006,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260527_001,2330,TWSE,bullish,2026-05-28,2295,0.03921568627,,,,0.0467732809,,,,-0.007557594623,,,,pending_price,price source Yahoo chart symbol=2330.TW; 3 horizon target prices unavailable
+m_20260527_002,TSLA,US,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260527_003,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260527_004,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260527_005,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260527_006,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260603_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260530_008,NOW,US,bullish,2026-06-01,135.8600006,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=NOW; 4 horizon target prices unavailable
+m_20260530_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260527_007,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260527_008,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company

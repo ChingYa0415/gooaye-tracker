@@ -53,7 +53,21 @@ https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O
 1150604，也就是 2026-06-04。
 
 
-四、未來價格資料來源候選
+四、價格資料來源
+
+0. Yahoo Finance Chart API
+
+URL：
+https://query1.finance.yahoo.com/v8/finance/chart/{symbol}
+
+用途：
+第一版價格抓取腳本使用 Yahoo chart API 取得日線價格，輸出到 data/prices/，並計算 mention_returns.csv 的 7 / 30 / 90 / 180 天報酬。
+
+目前使用：
+已用 scripts/fetch_prices.py 抓取 2330.TW、NVDA、SNOW、NOW，以及 benchmark ^TWII、^IXIC。
+
+注意：
+Yahoo chart API 作為第一階段 MVP 資料來源。若後續要提高資料可靠度，台股價格應優先改接 TWSE / TPEx 官方資料，美股可再評估 Polygon、Nasdaq Data Link、Stooq 或券商 API。
 
 1. TWSE 每日收盤行情
 
@@ -72,7 +86,7 @@ https://www.tpex.org.tw/openapi/
 取得上櫃股票每日價格資料。
 
 注意：
-價格資料來源與欄位會在 scripts/fetch_prices.py 實作時再正式確認。
+台股官方價格資料來源與欄位會在後續替換 Yahoo MVP 來源時再正式確認。
 
 
 五、ASR 與音檔處理工具

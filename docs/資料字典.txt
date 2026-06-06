@@ -34,6 +34,9 @@
 4. transcription_runs.csv
    記錄 ASR 轉錄執行結果。逐字稿原文不進 Git。
 
+5. data/prices/*.csv
+   記錄 scripts/fetch_prices.py 抓取的每日價格資料。
+
 報表與人工工作表：
 
 1. reports/pending_mentions_review.csv
@@ -390,8 +393,52 @@
    必填：否
    說明：錯誤原因或補充說明。
 
+第一版計算規則：
 
-七、transcript_inputs.csv
+1. 只計算 review_status=approved 的 mention。
+2. 只有 mention_type=company、stance 為 bullish / bearish，且 ticker 不空白的 mention 會進入價格回測。
+3. concept、watch、past_review 等 mention 會在 mention_returns.csv 中標為 not_applicable。
+4. base_trade_date 使用 published_at 後第一個可取得的交易日。
+5. 7 / 30 / 90 / 180 天報酬使用 base_trade_date 加上日曆天後第一個可取得的交易日。
+6. 報酬使用 adj_close 計算；若來源沒有 adj_close，則使用 close。
+7. benchmark 第一版：TWSE 使用 ^TWII，US 使用 ^IXIC。
+8. 若未來 horizon 價格尚未出現，calculation_status 標為 pending_price。
+
+
+七、data/prices/*.csv
+
+用途：
+記錄 scripts/fetch_prices.py 從價格來源抓回的每日價格。每個 Yahoo symbol 輸出一個 CSV，例如 data/prices/NVDA.csv、data/prices/2330_TW.csv、data/prices/INDEX_IXIC.csv。
+
+欄位：
+
+1. symbol
+   型別：string
+   必填：是
+   說明：價格來源使用的 symbol。
+
+2. trade_date
+   型別：date
+   必填：是
+   說明：交易日期。
+
+3. close
+   型別：number
+   必填：是
+   說明：收盤價。
+
+4. adj_close
+   型別：number
+   必填：是
+   說明：調整後收盤價。mention_returns.csv 第一版使用此欄計算報酬。
+
+5. volume
+   型別：integer
+   必填：否
+   說明：成交量。指數可能為 0 或空值。
+
+
+八、transcript_inputs.csv
 
 用途：
 記錄每一集節目的音檔來源與後續 ASR 應輸出的逐字稿路徑。這是逐字稿流程的工作清單，不代表逐字稿已經完成。
@@ -450,7 +497,7 @@
    說明：補充說明。
 
 
-八、audio_downloads.csv
+九、audio_downloads.csv
 
 用途：
 記錄本機已下載音檔的 metadata。大型音檔儲存在 data/raw/audio/，並由 .gitignore 排除。
@@ -505,7 +552,7 @@
    說明：補充說明。
 
 
-九、audio_chunks.csv
+十、audio_chunks.csv
 
 用途：
 記錄長音檔切段後的 chunk metadata。OpenAI Speech-to-Text API 單檔上傳限制為 25 MB，因此長節目需先切段。
@@ -560,7 +607,7 @@
    說明：補充說明。
 
 
-十、transcription_runs.csv
+十一、transcription_runs.csv
 
 用途：
 記錄 ASR 轉錄執行結果。逐字稿文字檔儲存在 data/raw/transcripts/，並由 .gitignore 排除。
@@ -611,7 +658,7 @@
 4. 合併逐字稿確認存在後，原始音檔與切段音檔可視為可重建暫存檔，允許從本機刪除；Git 仍保留下載、切段與轉錄 metadata 供追蹤。
 
 
-十一、pending_mentions_review.csv
+十二、pending_mentions_review.csv
 
 用途：
 記錄由 scripts/build_review_queue.py 產生的人工審核清單。這是從 mentions.csv 派生出的工作表，用來填寫 review_decision 與修正欄位，再由 scripts/apply_review_decisions.py 回寫到 mentions.csv。
@@ -678,7 +725,7 @@
     說明：人工校對備註。套用時會追加到 mentions.csv 的 reviewer_note。
 
 
-十二、下一步檢查清單
+十三、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -691,3 +738,5 @@
 7. transcript_inputs.csv 是否每筆都有 audio_url 與 transcript_path。
 8. audio_chunks.csv 的 chunk_bytes 是否都低於 ASR 單檔上傳限制。
 9. pending_mentions_review.csv 若有 review_decision，是否皆為允許值。
+10. mention_returns.csv 中 calculated / pending_price rows 是否都有 base_trade_date 與 base_price。
+11. data/prices/*.csv 是否每列欄位數一致。

@@ -1199,6 +1199,11 @@ P4：Dashboard。
 30. 使用 scripts/apply_review_decisions.py --dry-run 驗證 30 筆審核決策皆合法。
 31. 正式回寫 data/processed/mentions.csv，將 24 筆標為 approved、6 筆標為 needs_context。
 32. 更新 scripts/apply_review_decisions.py，使重複執行時不會重複追加 reviewer_note。
+33. 建立 scripts/fetch_prices.py，使用 Yahoo Finance chart API 抓取第一版日線價格。
+34. 產生 data/prices/ 下 6 個價格檔：2330.TW、NVDA、SNOW、NOW、^IXIC、^TWII。
+35. 更新 data/processed/mention_returns.csv，針對 24 筆 approved mentions 產生第一版 return rows。
+36. 在 mention_returns.csv 中將 19 筆 concept / watch / 非回測項目標為 not_applicable，5 筆 company bullish 標為 pending_price。
+37. 更新 docs/資料來源.txt 與 docs/資料字典.txt，記錄 Yahoo MVP 價格來源、data/prices schema 與第一版回測規則。
 
 修改或新增檔案：
 
@@ -1219,7 +1224,15 @@ P4：Dashboard。
 15. scripts/build_review_queue.py
 16. scripts/apply_review_decisions.py
 17. reports/pending_mentions_review.csv
-18. 股癌追蹤系統規劃與設計.txt
+18. scripts/fetch_prices.py
+19. data/processed/mention_returns.csv
+20. data/prices/2330_TW.csv
+21. data/prices/NVDA.csv
+22. data/prices/SNOW.csv
+23. data/prices/NOW.csv
+24. data/prices/INDEX_IXIC.csv
+25. data/prices/INDEX_TWII.csv
+26. 股癌追蹤系統規劃與設計.txt
 
 本機產物，不進 Git：
 
@@ -1252,6 +1265,9 @@ P4：Dashboard。
 10. 套用審核結果前先執行 scripts/apply_review_decisions.py --dry-run，確認欄位值合法。
 11. 第一輪 review 採保守原則：公司名或 ASR 關鍵字仍不可靠者標為 needs_context，不強行 approved。
 12. approved 不等於一定進主要價格回測；concept、watch、past_review 仍需由 mention_returns 流程標為 not_applicable 或排除。
+13. 價格資料第一版使用 Yahoo Finance chart API 作為 MVP；後續若要提高穩定性，台股應優先改接 TWSE / TPEx 官方價格資料。
+14. 第一版 base_trade_date 採 published_at 後第一個可得交易日；7 / 30 / 90 / 180 天採日曆天後第一個可得交易日。
+15. 第一版報酬用 adj_close 計算；benchmark 暫用 TWSE -> ^TWII、US -> ^IXIC。
 
 遇到問題：
 
@@ -1286,14 +1302,18 @@ P4：Dashboard。
 22. 已確認第一輪 review 後正式 mentions 共 30 筆，其中 approved 24 筆、needs_context 6 筆。
 23. 已確認 approved company bullish mentions 目前有 5 筆，可作為第一批價格回測候選。
 24. 已確認第一輪回寫後再次執行 apply_review_decisions.py --dry-run 會顯示 would apply 0 updates，不會重複修改 reviewer_note。
+25. 已確認 scripts/fetch_prices.py 可抓取 2330.TW、NVDA、SNOW、NOW、^IXIC、^TWII 的日線價格。
+26. 已確認 data/prices/*.csv 欄位數一致。
+27. 已確認 mention_returns.csv 產生 24 筆正式 return rows，其中 19 筆 not_applicable、5 筆 pending_price。
+28. 已確認 5 筆 pending_price 都有 base_trade_date 與 base_price；因 7 / 30 / 90 / 180 天資料尚未全數到期，狀態先維持 pending_price。
 
 明日待辦：
 
-1. 建立 approved mention 的價格資料抓取腳本 scripts/fetch_prices.py。
-2. 設計 mention_returns.csv 的第一版計算流程。
-3. 先針對 approved、company、bullish 且 ticker 不空白的 5 筆 mention 產生價格樣本。
-4. 將 concept、watch、past_review mention 在回測流程中標為 not_applicable 或排除。
-5. 針對 6 筆 needs_context 回聽音檔或改用更大 whisper.cpp 模型補校對。
+1. 等待後續交易日資料到期後，重跑 scripts/fetch_prices.py 更新 7 / 30 / 90 / 180 天報酬。
+2. 建立報酬檢查報表，列出 approved company bullish mentions 的 base price、可得 horizon return 與 excess return。
+3. 針對 6 筆 needs_context 回聽音檔或改用更大 whisper.cpp 模型補校對。
+4. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
+5. 設計 concept mention 的題材籃子或 ETF proxy，避免概念題材永遠只能 not_applicable。
 
 備註：
-目前第一階段已跨過逐字稿取得、30 筆候選 mentions 與第一輪 review；接下來重點是價格資料抓取與 mention_returns 計算。
+目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review 與第一版價格資料抓取；接下來重點是等待價格 horizon 到期、補校對 needs_context，並建立回測檢查報表。
