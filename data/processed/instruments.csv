@@ -14,8 +14,14 @@ inst_tp_3324,3324,TPEx,雙鴻,"Auras;雙鴻科技",其他電子業,TPEx,true,sou
 inst_tp_3680,3680,TPEx,家登,"Gudeng;家登精密",半導體業,TPEx,true,source TPEx mopsfin_t187ap03_O 2026-06-04
 inst_tw_8081,8081,TWSE,致新,"GMT;致新科技",半導體業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
 inst_tw_8046,8046,TWSE,南電,"Nan Ya PCB;南亞電路板",電子零組件業,TAIEX,true,source TWSE t187ap03_L 2026-06-04
+inst_us_mrvl,MRVL,US,Marvell,"瑪維爾;瑪瑞爾;Marvell Technology;MRVL",半導體,NASDAQ,true,manually added from EP667 transcript review
+inst_us_nvda,NVDA,US,NVIDIA,"輝達;英偉達;Nvidia;NVDA",半導體,NASDAQ,true,manually added from EP667 transcript review
+inst_us_snow,SNOW,US,Snowflake,"SNOW;Snowflake Inc.",雲端軟體,NASDAQ,true,manually added from EP667 transcript review
 inst_concept_ai_server,,concept,AI Server,"AI伺服器;AI 伺服器;AI server",科技硬體,,true,concept sample not a single tradable instrument
 inst_concept_agentic_ai,,concept,Agentic AI,"AI Agent;代理型 AI;智能代理",人工智慧,,true,concept sample not a single tradable instrument
+inst_concept_ai_pc,,concept,AI PC,"AI筆電;AI PC;AIPC;Copilot PC",電腦及週邊,,true,concept sample not a single tradable instrument
+inst_concept_optical_comm,,concept,光通訊,"光通;矽光;CPO;光連線;optical interconnect",通訊與半導體,,true,concept sample not a single tradable instrument
+inst_concept_power_semiconductor,,concept,功率半導體,"功率元件;Power Semiconductor;PMIC;IDM",半導體,,true,concept sample not a single tradable instrument
 inst_concept_pcb,,concept,PCB,"印刷電路板;電路板;載板",電子零組件,,true,concept sample not a single tradable instrument
 inst_concept_thermal,,concept,散熱,"水冷;液冷;散熱模組",電子零組件,,true,concept sample not a single tradable instrument
 inst_concept_memory,,concept,記憶體,"DRAM;NAND;HBM;高頻寬記憶體",半導體,,true,concept sample not a single tradable instrument

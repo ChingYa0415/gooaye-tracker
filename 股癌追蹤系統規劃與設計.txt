@@ -1175,6 +1175,9 @@ P4：Dashboard。
 7. 使用 whisper.cpp 成功轉錄 EP667 的 4 個 chunks。
 8. 使用 scripts/combine_transcripts.py 合併 EP667 單集逐字稿。
 9. 更新 episodes.csv 與 transcript_inputs.csv，將 EP667 transcript_status 改為 generated。
+10. 搜尋 EP667 逐字稿中的公司、產業與主題關鍵字。
+11. 新增 8 筆 EP667 候選 mentions，狀態皆為 pending。
+12. 補充 instruments.csv 的 US 標的與概念項目，包含 Marvell、NVIDIA、Snowflake、AI PC、光通訊、功率半導體。
 
 修改或新增檔案：
 
@@ -1183,10 +1186,12 @@ P4：Dashboard。
 3. data/processed/episodes.csv
 4. data/processed/transcript_inputs.csv
 5. data/processed/transcription_runs.csv
-6. docs/資料來源.txt
-7. scripts/transcribe_openai.py
-8. scripts/transcribe_whisper_cpp.py
-9. 股癌追蹤系統規劃與設計.txt
+6. data/processed/mentions.csv
+7. data/processed/instruments.csv
+8. docs/資料來源.txt
+9. scripts/transcribe_openai.py
+10. scripts/transcribe_whisper_cpp.py
+11. 股癌追蹤系統規劃與設計.txt
 
 本機產物，不進 Git：
 
@@ -1202,11 +1207,13 @@ P4：Dashboard。
 1. OpenAI API 配額不足時，第一階段改用本機 whisper.cpp 繼續推進。
 2. 本機 Whisper 先使用 ggml-base.bin 模型；此模型能產生可用初稿，但中文與專有名詞仍需要人工校對。
 3. 逐字稿原文不進 Git，只追蹤 transcript metadata。
+4. EP667 第一輪 mention 先標 pending，不進正式回測；待人工聽音檔或校對逐字稿後再改為 approved / rejected。
 
 遇到問題：
 
 1. OpenAI API 回傳 insufficient_quota，無法使用雲端 Speech-to-Text。
 2. whisper.cpp 產生的中文初稿會有錯字，例如品牌、人名、公司名與英文專有名詞，需要人工校對後才能作為 evidence_text。
+3. EP667 部分專有名詞被 ASR 誤寫，例如 Marvell 可能被轉成 Mario 或瑪瑞爾；候選 mention 已在 reviewer_note 註記需人工確認。
 
 驗證方式：
 
@@ -1214,13 +1221,15 @@ P4：Dashboard。
 2. 已確認合併逐字稿 data/raw/transcripts/ep_20260603_667.txt 產生成功。
 3. 已確認 transcription_runs.csv 有 4 筆 generated 記錄。
 4. 已確認 episodes.csv 與 transcript_inputs.csv 中 EP667 的 transcript_status 為 generated。
+5. 已確認 mentions.csv 新增 8 筆 EP667 pending 候選 mentions。
+6. 已確認 instruments.csv 新增 US 與 concept 標的後 CSV 欄位數一致。
 
 明日待辦：
 
-1. 檢查 EP667 逐字稿中與投資觀點相關的片段。
-2. 人工標註 EP667 的候選 mentions。
-3. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
-4. 開始轉錄另外 2 集，以達成至少 3 集人工初步標註的第一階段目標。
+1. 人工校對 EP667 的 8 筆 pending mentions，決定 approved / rejected / needs_context。
+2. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
+3. 開始轉錄另外 2 集，以達成至少 3 集人工初步標註的第一階段目標。
+4. 累積候選 mentions 到至少 30 筆。
 
 備註：
 目前第一階段已跨過逐字稿取得的第一個門檻，接下來重點轉為人工校對與 mention 標註。
