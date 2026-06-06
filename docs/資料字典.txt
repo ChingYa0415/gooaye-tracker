@@ -25,6 +25,15 @@
 1. transcript_inputs.csv
    記錄待轉錄音檔、來源 episode 與預計逐字稿輸出路徑。
 
+2. audio_downloads.csv
+   記錄已下載到本機的音檔路徑、大小與 hash。音檔本身不進 Git。
+
+3. audio_chunks.csv
+   記錄已切分的音檔段落。chunk 檔案本身不進 Git。
+
+4. transcription_runs.csv
+   記錄 ASR 轉錄執行結果。逐字稿原文不進 Git。
+
 第一版採 CSV，是為了快速建立可手動操作的 MVP。未來若資料量增加，可轉成 SQLite 或 PostgreSQL。
 
 
@@ -428,7 +437,159 @@
    說明：補充說明。
 
 
-八、下一步檢查清單
+八、audio_downloads.csv
+
+用途：
+記錄本機已下載音檔的 metadata。大型音檔儲存在 data/raw/audio/，並由 .gitignore 排除。
+
+欄位：
+
+1. episode_id
+   型別：string
+   必填：是
+   說明：對應 episodes.csv 的 episode_id。
+
+2. title
+   型別：string
+   必填：是
+   說明：節目標題。
+
+3. audio_path
+   型別：string
+   必填：是
+   說明：本機音檔路徑。
+
+4. audio_bytes
+   型別：integer
+   必填：是
+   說明：音檔大小。
+
+5. sha256
+   型別：string
+   必填：是
+   說明：音檔 hash，用於確認檔案是否變動。
+
+6. duration_seconds
+   型別：integer
+   必填：否
+   說明：節目長度秒數。
+
+7. download_status
+   型別：enum
+   必填：是
+   允許值：downloaded / error
+   說明：下載狀態。
+
+8. downloaded_at
+   型別：datetime
+   必填：是
+   說明：下載時間，使用 UTC ISO 格式。
+
+9. notes
+   型別：string
+   必填：否
+   說明：補充說明。
+
+
+九、audio_chunks.csv
+
+用途：
+記錄長音檔切段後的 chunk metadata。OpenAI Speech-to-Text API 單檔上傳限制為 25 MB，因此長節目需先切段。
+
+欄位：
+
+1. episode_id
+   型別：string
+   必填：是
+   說明：對應 episodes.csv 的 episode_id。
+
+2. title
+   型別：string
+   必填：是
+   說明：節目標題。
+
+3. chunk_index
+   型別：integer
+   必填：是
+   說明：chunk 順序，從 0 開始。
+
+4. chunk_path
+   型別：string
+   必填：是
+   說明：本機 chunk 檔案路徑。
+
+5. chunk_bytes
+   型別：integer
+   必填：是
+   說明：chunk 檔案大小。
+
+6. split_seconds
+   型別：integer
+   必填：是
+   說明：切段設定秒數。
+
+7. chunk_status
+   型別：enum
+   必填：是
+   允許值：ready / error
+   說明：chunk 是否可供 ASR 使用。
+
+8. created_at
+   型別：datetime
+   必填：是
+   說明：建立時間，使用 UTC ISO 格式。
+
+9. notes
+   型別：string
+   必填：否
+   說明：補充說明。
+
+
+十、transcription_runs.csv
+
+用途：
+記錄 ASR 轉錄執行結果。逐字稿文字檔儲存在 data/raw/transcripts/，並由 .gitignore 排除。
+
+欄位：
+
+1. episode_id
+   型別：string
+   必填：是
+   說明：對應 episodes.csv 的 episode_id。
+
+2. chunk_index
+   型別：integer
+   必填：是
+   說明：對應 audio_chunks.csv 的 chunk_index。
+
+3. chunk_path
+   型別：string
+   必填：是
+   說明：送入 ASR 的本機 chunk 路徑。
+
+4. transcript_path
+   型別：string
+   必填：是
+   說明：ASR 產生逐字稿的本機路徑。
+
+5. model
+   型別：string
+   必填：是
+   說明：ASR 模型。OpenAI 路線預設 gpt-4o-mini-transcribe。
+
+6. transcription_status
+   型別：enum
+   必填：是
+   允許值：generated / error
+   說明：轉錄狀態。
+
+7. notes
+   型別：string
+   必填：否
+   說明：補充說明。
+
+
+十一、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -439,3 +600,4 @@
 5. mention_returns.csv 是否只含正式回測候選資料或明確標記 sample。
 6. instruments.csv 是否能支援常見別名查找。
 7. transcript_inputs.csv 是否每筆都有 audio_url 與 transcript_path。
+8. audio_chunks.csv 的 chunk_bytes 是否都低於 ASR 單檔上傳限制。

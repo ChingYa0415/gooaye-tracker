@@ -1,0 +1,2 @@
+episode_id,title,audio_path,audio_bytes,sha256,duration_seconds,download_status,downloaded_at,notes
+ep_20260603_667,EP667 | 🌍,data/raw/audio/ep_20260603_667.mp3,49975591,777c752f51d34268d3f68e666e96100fa1616bba7b30b601a05d52e9ef5e5ee8,3051,downloaded,2026-06-06T00:57:19+00:00,local audio file is gitignored

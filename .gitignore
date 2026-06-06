@@ -1,0 +1,11 @@
+# Local media and transcript artifacts.
+data/raw/audio/*
+!data/raw/audio/.gitkeep
+data/raw/audio_chunks/*
+!data/raw/audio_chunks/.gitkeep
+data/raw/transcripts/*.txt
+
+# Local caches.
+.DS_Store
+__pycache__/
+*.pyc

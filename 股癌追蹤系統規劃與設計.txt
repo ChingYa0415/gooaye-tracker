@@ -1055,6 +1055,11 @@ P4：Dashboard。
 18. 建立 docs/資料來源.txt，記錄 RSS、TWSE 與 TPEx API 來源。
 19. 建立 scripts/fetch_transcript_inputs.py，從 SoundOn RSS 產生逐字稿輸入清單。
 20. 產生 data/processed/transcript_inputs.csv，包含最新 10 集 episode 對應的音檔 URL 與預計逐字稿輸出路徑。
+21. 建立 .gitignore，排除本機音檔、音檔 chunk 與逐字稿原文，避免大型檔案與授權敏感內容進入 Git。
+22. 建立 scripts/download_audio.py，下載單集音檔並輸出 data/processed/audio_downloads.csv metadata。
+23. 成功下載 EP667 音檔到本機 data/raw/audio/，檔案大小約 50 MB。
+24. 安裝 ffmpeg，建立 scripts/split_audio.py，並將 EP667 切成 4 個低於 25 MB 的 audio chunks。
+25. 建立 scripts/transcribe_openai.py，支援使用 OpenAI Speech-to-Text API 對單一 chunk 轉錄。
 
 修改或新增檔案：
 
@@ -1074,7 +1079,15 @@ P4：Dashboard。
 14. data/prices/.gitkeep
 15. scripts/.gitkeep
 16. scripts/fetch_transcript_inputs.py
-17. reports/.gitkeep
+17. scripts/download_audio.py
+18. scripts/split_audio.py
+19. scripts/transcribe_openai.py
+20. data/processed/audio_downloads.csv
+21. data/processed/audio_chunks.csv
+22. data/raw/audio/.gitkeep
+23. data/raw/audio_chunks/.gitkeep
+24. .gitignore
+25. reports/.gitkeep
 
 重要決策：
 
@@ -1091,12 +1104,15 @@ P4：Dashboard。
 11. 第一批 episodes 先以 SoundOn RSS metadata 建立，transcript_status 全部標為 missing；未取得逐字稿前，不做正式 bullish / bearish mention 標註。
 12. instruments.csv 先建立常見台股與概念初始表，市場別以 TWSE / TPEx 官方 API 查詢結果為準。
 13. 逐字稿流程先建立 transcript input manifest，不直接下載大型音檔，避免 repository 納入媒體檔。
+14. 原始音檔、切段音檔與逐字稿原文只保留在本機並由 .gitignore 排除；Git 只追蹤 metadata。
+15. OpenAI Speech-to-Text 單檔上傳限制為 25 MB，因此長 Podcast 必須先切段。
 
 遇到問題：
 
 1. Apple Podcasts 與 YouTube 字幕不能假設穩定支援中文第三方內容，因此逐字稿流程要保留手動與 ASR 路線。
 2. 沙盒內 `.git` 目錄需要提權才能修改，因此 branch、remote、commit、push 需以允許 Git metadata 寫入的方式執行。
 3. CSV 初版檢查時發現空白行與 mention_returns.csv 範例列欄位數不一致，已移除空白行並修正欄位數。
+4. 本機目前未設定 OPENAI_API_KEY，因此 ASR 轉錄腳本已建立但無法實際呼叫 OpenAI API。
 
 驗證方式：
 
@@ -1113,14 +1129,18 @@ P4：Dashboard。
 11. 已確認 instruments.csv 包含 TWSE、TPEx 與 concept 初始標的。
 12. 已確認 docs/資料來源.txt 已建立。
 13. 已確認 transcript_inputs.csv 產生 10 筆資料，作為後續 ASR 工作清單。
+14. 已確認 EP667 音檔下載成功，並在 audio_downloads.csv 記錄大小與 sha256。
+15. 已確認 EP667 切成 4 個 chunk，大小分別低於 25 MB，可供 ASR API 使用。
+16. 已確認 transcribe_openai.py 在未設定 OPENAI_API_KEY 時會明確報錯。
 
 明日待辦：
 
-1. 決定 ASR 工具路線：OpenAI Speech-to-Text、Whisper / faster-whisper，或手動摘錄。
-2. 針對至少 3 集產生逐字稿或可引用片段。
-3. 至少完成 3 集人工初步標註。
-4. 累積至少 30 筆候選 mention。
-5. 開始撰寫價格資料抓取腳本 scripts/fetch_prices.py。
+1. 設定 OPENAI_API_KEY，或改採本機 Whisper / faster-whisper。
+2. 轉錄 EP667 的 4 個 chunks，合併成單集逐字稿。
+3. 針對至少 3 集產生逐字稿或可引用片段。
+4. 至少完成 3 集人工初步標註。
+5. 累積至少 30 筆候選 mention。
+6. 開始撰寫價格資料抓取腳本 scripts/fetch_prices.py。
 
 備註：
 本日已從規劃進入第一步實作，尚未開始撰寫資料處理腳本。
