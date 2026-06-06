@@ -1189,6 +1189,8 @@ P4：Dashboard。
 20. 補充 instruments.csv 的 US 標的與概念項目，包含 Tesla、Salesforce、ServiceNow、Okta、Cloudflare、CrowdStrike、Palantir、AI 軟體、ODM/OEM、被動元件、衛星 AI 運算、機器人。
 21. 建立 scripts/search_transcript_mentions.py，依 instruments aliases 掃描本機逐字稿並輸出命中上下文 CSV。
 22. 修正搜尋腳本對短美股 ticker 的誤命中問題，例如 NOW 不應命中 Snowflake。
+23. 再新增 10 筆 EP667 / EP666 / EP665 候選 mentions，讓第一階段正式候選累積到 30 筆。
+24. 補充 instruments.csv 的概念項目，包含筆電 OEM 與載板。
 
 修改或新增檔案：
 
@@ -1234,6 +1236,7 @@ P4：Dashboard。
 5. 音檔與切段音檔不是長期保存資料；只要合併逐字稿與 metadata 已完成，即可刪除本機音檔，日後需要時再依 audio_downloads.csv 與 transcript_inputs.csv 重新取得。
 6. EP666 與 EP665 的候選 mentions 同樣先標 pending；ASR 初稿有錯字，不能直接進入 approved 或主要回測。
 7. search_transcript_mentions.py 只作為人工初篩工具，不自動產生正式 mentions。
+8. 第一階段 30 筆候選 mentions 已達標，但全部仍為 pending；接下來要先校對與核准，不能直接進入報酬回測。
 
 遇到問題：
 
@@ -1257,14 +1260,17 @@ P4：Dashboard。
 11. 已確認 EP666 新增 6 筆候選 mentions，EP665 新增 6 筆候選 mentions。
 12. 已確認 instruments.csv 與 mentions.csv 欄位數一致。
 13. 已確認 search_transcript_mentions.py 可掃描 EP666 / EP665 並輸出 48 筆 alias hit。
+14. 已確認 mentions.csv 正式候選 mentions 達 30 筆，全部仍為 pending。
+15. 已確認三集候選分布為 EP667 10 筆、EP666 11 筆、EP665 9 筆。
+16. 已確認新增筆電 OEM 與載板概念後，data/processed 內所有 CSV 欄位數一致。
 
 明日待辦：
 
-1. 再從 EP667、EP666、EP665 中補至少 10 筆候選 mentions，讓正式候選累積到至少 30 筆。
-2. 人工校對 EP667 的 8 筆 pending mentions，決定 approved / rejected / needs_context。
-3. 人工校對 EP666、EP665 的 12 筆 pending mentions。
-4. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
-5. 開始設計 approved mention 的價格資料抓取與回測腳本。
+1. 人工校對 30 筆 pending mentions，先挑出可核准的 approved mention。
+2. 對 ASR 錯字較多或 evidence 不足的 mention 標為 needs_context 或 rejected。
+3. 建立 approved mention 的價格資料抓取腳本 scripts/fetch_prices.py。
+4. 設計 mention_returns.csv 的第一版計算流程。
+5. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
 
 備註：
-目前第一階段已跨過逐字稿取得的第一個門檻，並累積 20 筆 pending 候選 mentions；接下來重點是補足 30 筆候選與人工校對。
+目前第一階段已跨過逐字稿取得與 30 筆候選 mentions 的門檻；接下來重點是人工校對與價格回測腳本。
