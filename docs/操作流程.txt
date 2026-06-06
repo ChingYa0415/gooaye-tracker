@@ -122,6 +122,14 @@ python3 scripts/apply_review_decisions.py
 
 python3 scripts/validate_data.py
 
+needs_context 複核：
+
+1. 先查看 reports/pending_mentions_review.csv 的 transcript_line、transcript_context 與 reviewer_note。
+2. 若是 ASR 專有名詞錯誤，使用較大的 whisper.cpp 模型重轉相關 chunk，輸出到 /tmp 或其他不進 Git 的暫存路徑。
+3. 能確認標的與語氣時，在 review CSV 填入 approved、corrected_evidence_text 與 review_comment。
+4. 無法確認標的或上下文時，填入 rejected，不強行納入正式資料。
+5. 回寫後執行 scripts/run_daily_update.py，更新 mention_returns.csv、報表與 summary。
+
 
 六、報酬與報表流程
 

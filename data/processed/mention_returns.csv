@@ -1,5 +1,6 @@
 mention_id,ticker,market,stance,base_trade_date,base_price,return_7d,return_30d,return_90d,return_180d,benchmark_return_7d,benchmark_return_30d,benchmark_return_90d,benchmark_return_180d,excess_return_7d,excess_return_30d,excess_return_90d,excess_return_180d,calculation_status,notes
 sample_m_001,2330,TWSE,bullish,,,,,,,,,,,,,,,pending_price,sample row; returns not calculated yet
+m_20260603_001,MRVL,US,past_review,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
 m_20260603_002,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
 m_20260603_003,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
 m_20260603_004,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
@@ -20,7 +21,11 @@ m_20260527_004,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is
 m_20260527_005,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
 m_20260527_006,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
 m_20260603_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260603_010,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260530_007,CRM,US,bullish,2026-06-01,209.6000061,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=CRM; 4 horizon target prices unavailable
 m_20260530_008,NOW,US,bullish,2026-06-01,135.8600006,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=NOW; 4 horizon target prices unavailable
 m_20260530_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260530_010,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
+m_20260530_011,NET,US,past_review,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
 m_20260527_007,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company
 m_20260527_008,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved mention is not a single company

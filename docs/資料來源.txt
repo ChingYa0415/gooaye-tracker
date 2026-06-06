@@ -150,15 +150,18 @@ brew install whisper-cpp
 
 模型：
 data/models/ggml-base.bin
+data/models/ggml-small.bin
 
 模型來源：
 https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
 
 用途：
 在 OpenAI API 配額不足或不想使用雲端轉錄時，使用本機 Whisper 產生逐字稿。
 
 目前使用：
 已用 scripts/transcribe_whisper_cpp.py 將 EP667 的 4 個 audio chunks 轉成逐字稿，並用 scripts/combine_transcripts.py 合併成 data/raw/transcripts/ep_20260603_667.txt。
+已用 ggml-small.bin 針對 6 筆 needs_context mentions 的相關 chunks 做二次校對，將 5 筆更新為 approved、1 筆更新為 rejected。
 
 注意：
 模型檔、chunk transcript 與合併逐字稿皆為本機 raw artifact，由 .gitignore 排除，不進 Git。
@@ -195,6 +198,7 @@ python3 scripts/apply_review_decisions.py
 
 注意：
 review_decision 空白時不會回寫。正式套用前先跑 --dry-run，確認沒有不合法的 review_decision、stance、conviction 或 time_horizon。
+needs_context rows 應優先補上下文或用較大 Whisper 模型重轉相關 chunk；若仍無法確認標的或語氣，應改為 rejected，不強行 approved。
 
 7. 報酬檢查報表
 
