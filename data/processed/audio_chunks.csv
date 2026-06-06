@@ -1,4 +1,12 @@
 episode_id,title,chunk_index,chunk_path,chunk_bytes,split_seconds,chunk_status,created_at,notes
+ep_20260527_665,EP665 | 🌸,0,data/raw/audio_chunks/ep_20260527_665_000.mp3,14984653,900,ready,2026-06-06T01:26:54+00:00,local chunk file is gitignored
+ep_20260527_665,EP665 | 🌸,1,data/raw/audio_chunks/ep_20260527_665_001.mp3,14780267,900,ready,2026-06-06T01:26:54+00:00,local chunk file is gitignored
+ep_20260527_665,EP665 | 🌸,2,data/raw/audio_chunks/ep_20260527_665_002.mp3,14684623,900,ready,2026-06-06T01:26:54+00:00,local chunk file is gitignored
+ep_20260527_665,EP665 | 🌸,3,data/raw/audio_chunks/ep_20260527_665_003.mp3,4722714,900,ready,2026-06-06T01:26:54+00:00,local chunk file is gitignored
+ep_20260530_666,EP666 | 🍐,0,data/raw/audio_chunks/ep_20260530_666_000.mp3,15378620,900,ready,2026-06-06T01:26:47+00:00,local chunk file is gitignored
+ep_20260530_666,EP666 | 🍐,1,data/raw/audio_chunks/ep_20260530_666_001.mp3,15328817,900,ready,2026-06-06T01:26:47+00:00,local chunk file is gitignored
+ep_20260530_666,EP666 | 🍐,2,data/raw/audio_chunks/ep_20260530_666_002.mp3,15059849,900,ready,2026-06-06T01:26:47+00:00,local chunk file is gitignored
+ep_20260530_666,EP666 | 🍐,3,data/raw/audio_chunks/ep_20260530_666_003.mp3,10374743,900,ready,2026-06-06T01:26:47+00:00,local chunk file is gitignored
 ep_20260603_667,EP667 | 🌍,0,data/raw/audio_chunks/ep_20260603_667_000.mp3,14829598,900,ready,2026-06-06T00:58:56+00:00,local chunk file is gitignored
 ep_20260603_667,EP667 | 🌍,1,data/raw/audio_chunks/ep_20260603_667_001.mp3,14781008,900,ready,2026-06-06T00:58:56+00:00,local chunk file is gitignored
 ep_20260603_667,EP667 | 🌍,2,data/raw/audio_chunks/ep_20260603_667_002.mp3,14645420,900,ready,2026-06-06T00:58:56+00:00,local chunk file is gitignored

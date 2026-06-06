@@ -1,2 +1,4 @@
 episode_id,title,audio_path,audio_bytes,sha256,duration_seconds,download_status,downloaded_at,notes
+ep_20260527_665,EP665 | 🌸,data/raw/audio/ep_20260527_665.mp3,49170154,f71d6495fd30d5328b9dd626c49bc00ac38e7a3804aad2184f2f6896c406cb46,2991,downloaded,2026-06-06T01:26:53+00:00,local audio file is gitignored
+ep_20260530_666,EP666 | 🍐,data/raw/audio/ep_20260530_666.mp3,56139926,70445364d0c0163166c0114dfe33879bf2d9bcf89e3f97917724c456f5cfa83b,3315,downloaded,2026-06-06T01:26:47+00:00,local audio file is gitignored
 ep_20260603_667,EP667 | 🌍,data/raw/audio/ep_20260603_667.mp3,49975591,777c752f51d34268d3f68e666e96100fa1616bba7b30b601a05d52e9ef5e5ee8,3051,downloaded,2026-06-06T00:57:19+00:00,local audio file is gitignored

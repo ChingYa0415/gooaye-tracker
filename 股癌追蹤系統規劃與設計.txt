@@ -1178,6 +1178,10 @@ P4：Dashboard。
 10. 搜尋 EP667 逐字稿中的公司、產業與主題關鍵字。
 11. 新增 8 筆 EP667 候選 mentions，狀態皆為 pending。
 12. 補充 instruments.csv 的 US 標的與概念項目，包含 Marvell、NVIDIA、Snowflake、AI PC、光通訊、功率半導體。
+13. 下載並切分 EP666 與 EP665 音檔。
+14. 使用 whisper.cpp 轉錄 EP666 與 EP665，各 4 個 chunks。
+15. 合併 EP666 與 EP665 單集逐字稿。
+16. 更新 episodes.csv 與 transcript_inputs.csv，將 EP666、EP665 transcript_status 改為 generated。
 
 修改或新增檔案：
 
@@ -1188,10 +1192,12 @@ P4：Dashboard。
 5. data/processed/transcription_runs.csv
 6. data/processed/mentions.csv
 7. data/processed/instruments.csv
-8. docs/資料來源.txt
-9. scripts/transcribe_openai.py
-10. scripts/transcribe_whisper_cpp.py
-11. 股癌追蹤系統規劃與設計.txt
+8. data/processed/audio_downloads.csv
+9. data/processed/audio_chunks.csv
+10. docs/資料來源.txt
+11. scripts/transcribe_openai.py
+12. scripts/transcribe_whisper_cpp.py
+13. 股癌追蹤系統規劃與設計.txt
 
 本機產物，不進 Git：
 
@@ -1201,6 +1207,14 @@ P4：Dashboard。
 4. data/raw/transcripts/ep_20260603_667_002.txt
 5. data/raw/transcripts/ep_20260603_667_003.txt
 6. data/raw/transcripts/ep_20260603_667.txt
+7. data/raw/audio/ep_20260530_666.mp3
+8. data/raw/audio/ep_20260527_665.mp3
+9. data/raw/audio_chunks/ep_20260530_666_*.mp3
+10. data/raw/audio_chunks/ep_20260527_665_*.mp3
+11. data/raw/transcripts/ep_20260530_666_*.txt
+12. data/raw/transcripts/ep_20260527_665_*.txt
+13. data/raw/transcripts/ep_20260530_666.txt
+14. data/raw/transcripts/ep_20260527_665.txt
 
 重要決策：
 
@@ -1223,13 +1237,17 @@ P4：Dashboard。
 4. 已確認 episodes.csv 與 transcript_inputs.csv 中 EP667 的 transcript_status 為 generated。
 5. 已確認 mentions.csv 新增 8 筆 EP667 pending 候選 mentions。
 6. 已確認 instruments.csv 新增 US 與 concept 標的後 CSV 欄位數一致。
+7. 已確認 EP666 與 EP665 各有 4 筆 transcription_runs generated 記錄。
+8. 已確認 EP666 與 EP665 合併逐字稿產生成功。
+9. 已確認 EP667、EP666、EP665 三集 transcript_status 都是 generated。
 
 明日待辦：
 
-1. 人工校對 EP667 的 8 筆 pending mentions，決定 approved / rejected / needs_context。
-2. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
-3. 開始轉錄另外 2 集，以達成至少 3 集人工初步標註的第一階段目標。
-4. 累積候選 mentions 到至少 30 筆。
+1. 搜尋 EP666、EP665 逐字稿中的公司與產業關鍵字。
+2. 人工初步標註 EP666、EP665 候選 mentions。
+3. 人工校對 EP667 的 8 筆 pending mentions，決定 approved / rejected / needs_context。
+4. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
+5. 累積候選 mentions 到至少 30 筆。
 
 備註：
 目前第一階段已跨過逐字稿取得的第一個門檻，接下來重點轉為人工校對與 mention 標註。
