@@ -125,3 +125,26 @@ scripts/combine_transcripts.py
 
 注意：
 逐字稿原文仍屬本機 raw artifact，不進 Git。
+
+4. whisper.cpp
+
+工具：
+whisper-cli
+
+安裝方式：
+brew install whisper-cpp
+
+模型：
+data/models/ggml-base.bin
+
+模型來源：
+https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+
+用途：
+在 OpenAI API 配額不足或不想使用雲端轉錄時，使用本機 Whisper 產生逐字稿。
+
+目前使用：
+已用 scripts/transcribe_whisper_cpp.py 將 EP667 的 4 個 audio chunks 轉成逐字稿，並用 scripts/combine_transcripts.py 合併成 data/raw/transcripts/ep_20260603_667.txt。
+
+注意：
+模型檔、chunk transcript 與合併逐字稿皆為本機 raw artifact，由 .gitignore 排除，不進 Git。

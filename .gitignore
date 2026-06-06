@@ -4,6 +4,8 @@ data/raw/audio/*
 data/raw/audio_chunks/*
 !data/raw/audio_chunks/.gitkeep
 data/raw/transcripts/*.txt
+data/models/*
+!data/models/.gitkeep
 
 # Local caches.
 .DS_Store

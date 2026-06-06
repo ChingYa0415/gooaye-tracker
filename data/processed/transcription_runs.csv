@@ -1,0 +1,5 @@
+episode_id,chunk_index,chunk_path,transcript_path,model,transcription_status,notes
+ep_20260603_667,0,data/raw/audio_chunks/ep_20260603_667_000.mp3,data/raw/transcripts/ep_20260603_667_000.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260603_667,1,data/raw/audio_chunks/ep_20260603_667_001.mp3,data/raw/transcripts/ep_20260603_667_001.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260603_667,2,data/raw/audio_chunks/ep_20260603_667_002.mp3,data/raw/transcripts/ep_20260603_667_002.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260603_667,3,data/raw/audio_chunks/ep_20260603_667_003.mp3,data/raw/transcripts/ep_20260603_667_003.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored

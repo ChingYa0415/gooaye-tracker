@@ -1154,3 +1154,73 @@ P4：Dashboard。
 
 備註：
 本日已從規劃進入第一步實作，尚未開始撰寫資料處理腳本。
+
+
+二十之二、2026-06-06 實作紀錄
+
+日期：
+2026-06-06
+
+今日目標：
+完成 EP667 的逐字稿產生流程，讓第一批節目樣本至少有一集可進入人工標註。
+
+完成內容：
+
+1. 確認本機 .env 已更新為有效格式的 OPENAI_API_KEY。
+2. 嘗試使用 OpenAI Speech-to-Text 轉錄 EP667 chunk 0。
+3. 確認 OpenAI API 回傳 insufficient_quota，表示目前 key 的額度或帳務無法執行轉錄。
+4. 安裝 whisper-cpp。
+5. 下載 multilingual ggml-base.bin 模型到 data/models/。
+6. 建立 scripts/transcribe_whisper_cpp.py，支援使用 whisper-cli 本機轉錄單一 chunk。
+7. 使用 whisper.cpp 成功轉錄 EP667 的 4 個 chunks。
+8. 使用 scripts/combine_transcripts.py 合併 EP667 單集逐字稿。
+9. 更新 episodes.csv 與 transcript_inputs.csv，將 EP667 transcript_status 改為 generated。
+
+修改或新增檔案：
+
+1. .gitignore
+2. data/models/.gitkeep
+3. data/processed/episodes.csv
+4. data/processed/transcript_inputs.csv
+5. data/processed/transcription_runs.csv
+6. docs/資料來源.txt
+7. scripts/transcribe_openai.py
+8. scripts/transcribe_whisper_cpp.py
+9. 股癌追蹤系統規劃與設計.txt
+
+本機產物，不進 Git：
+
+1. data/models/ggml-base.bin
+2. data/raw/transcripts/ep_20260603_667_000.txt
+3. data/raw/transcripts/ep_20260603_667_001.txt
+4. data/raw/transcripts/ep_20260603_667_002.txt
+5. data/raw/transcripts/ep_20260603_667_003.txt
+6. data/raw/transcripts/ep_20260603_667.txt
+
+重要決策：
+
+1. OpenAI API 配額不足時，第一階段改用本機 whisper.cpp 繼續推進。
+2. 本機 Whisper 先使用 ggml-base.bin 模型；此模型能產生可用初稿，但中文與專有名詞仍需要人工校對。
+3. 逐字稿原文不進 Git，只追蹤 transcript metadata。
+
+遇到問題：
+
+1. OpenAI API 回傳 insufficient_quota，無法使用雲端 Speech-to-Text。
+2. whisper.cpp 產生的中文初稿會有錯字，例如品牌、人名、公司名與英文專有名詞，需要人工校對後才能作為 evidence_text。
+
+驗證方式：
+
+1. 已確認 EP667 的 4 個 chunks 都產生 chunk transcript。
+2. 已確認合併逐字稿 data/raw/transcripts/ep_20260603_667.txt 產生成功。
+3. 已確認 transcription_runs.csv 有 4 筆 generated 記錄。
+4. 已確認 episodes.csv 與 transcript_inputs.csv 中 EP667 的 transcript_status 為 generated。
+
+明日待辦：
+
+1. 檢查 EP667 逐字稿中與投資觀點相關的片段。
+2. 人工標註 EP667 的候選 mentions。
+3. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
+4. 開始轉錄另外 2 集，以達成至少 3 集人工初步標註的第一階段目標。
+
+備註：
+目前第一階段已跨過逐字稿取得的第一個門檻，接下來重點轉為人工校對與 mention 標註。

@@ -13,6 +13,7 @@ import json
 import os
 import pathlib
 import ssl
+from urllib.error import HTTPError
 import urllib.request
 import uuid
 
@@ -114,8 +115,12 @@ def transcribe(file_path: pathlib.Path, model: str, api_key: str) -> str:
         },
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=300, context=ssl.create_default_context()) as response:
-        return response.read().decode("utf-8")
+    try:
+        with urllib.request.urlopen(request, timeout=300, context=ssl.create_default_context()) as response:
+            return response.read().decode("utf-8")
+    except HTTPError as error:
+        body = error.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"OpenAI transcription request failed: HTTP {error.code} {body}") from error
 
 
 def validate_api_key(api_key: str) -> None:
