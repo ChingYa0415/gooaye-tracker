@@ -1191,6 +1191,10 @@ P4：Dashboard。
 22. 修正搜尋腳本對短美股 ticker 的誤命中問題，例如 NOW 不應命中 Snowflake。
 23. 再新增 10 筆 EP667 / EP666 / EP665 候選 mentions，讓第一階段正式候選累積到 30 筆。
 24. 補充 instruments.csv 的概念項目，包含筆電 OEM 與載板。
+25. 建立 scripts/build_review_queue.py，將 pending mentions 產生為人工審核工作表。
+26. 產生 reports/pending_mentions_review.csv，共 30 筆待審核 mention。
+27. 建立 scripts/apply_review_decisions.py，可將 review CSV 的決策回寫 mentions.csv。
+28. 更新 docs/資料字典.txt 與 docs/資料來源.txt，記錄 mention review workflow。
 
 修改或新增檔案：
 
@@ -1208,7 +1212,10 @@ P4：Dashboard。
 12. scripts/transcribe_whisper_cpp.py
 13. docs/資料字典.txt
 14. scripts/search_transcript_mentions.py
-15. 股癌追蹤系統規劃與設計.txt
+15. scripts/build_review_queue.py
+16. scripts/apply_review_decisions.py
+17. reports/pending_mentions_review.csv
+18. 股癌追蹤系統規劃與設計.txt
 
 本機產物，不進 Git：
 
@@ -1237,6 +1244,8 @@ P4：Dashboard。
 6. EP666 與 EP665 的候選 mentions 同樣先標 pending；ASR 初稿有錯字，不能直接進入 approved 或主要回測。
 7. search_transcript_mentions.py 只作為人工初篩工具，不自動產生正式 mentions。
 8. 第一階段 30 筆候選 mentions 已達標，但全部仍為 pending；接下來要先校對與核准，不能直接進入報酬回測。
+9. pending_mentions_review.csv 是人工工作表；review_decision 空白代表尚未審核，不會回寫 mentions.csv。
+10. 套用審核結果前先執行 scripts/apply_review_decisions.py --dry-run，確認欄位值合法。
 
 遇到問題：
 
@@ -1263,14 +1272,19 @@ P4：Dashboard。
 14. 已確認 mentions.csv 正式候選 mentions 達 30 筆，全部仍為 pending。
 15. 已確認三集候選分布為 EP667 10 筆、EP666 11 筆、EP665 9 筆。
 16. 已確認新增筆電 OEM 與載板概念後，data/processed 內所有 CSV 欄位數一致。
+17. 已確認 reports/pending_mentions_review.csv 產生 30 筆待審核列。
+18. 已確認 30 筆 review rows 皆有 transcript_line 與短 transcript_context。
+19. 已確認 apply_review_decisions.py --dry-run 在未填 review_decision 時套用 0 筆，不修改 mentions.csv。
+20. 已確認 build_review_queue.py、apply_review_decisions.py、search_transcript_mentions.py 語法檢查通過。
+21. 已使用暫存 review CSV 測試單筆 approved 回寫到 /tmp/mentions_review_test.csv，確認不會修改專案內 mentions.csv。
 
 明日待辦：
 
-1. 人工校對 30 筆 pending mentions，先挑出可核准的 approved mention。
+1. 在 reports/pending_mentions_review.csv 填寫 30 筆 review_decision。
 2. 對 ASR 錯字較多或 evidence 不足的 mention 標為 needs_context 或 rejected。
-3. 建立 approved mention 的價格資料抓取腳本 scripts/fetch_prices.py。
-4. 設計 mention_returns.csv 的第一版計算流程。
-5. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
+3. 使用 scripts/apply_review_decisions.py --dry-run 檢查審核表，再正式回寫 mentions.csv。
+4. 建立 approved mention 的價格資料抓取腳本 scripts/fetch_prices.py。
+5. 設計 mention_returns.csv 的第一版計算流程。
 
 備註：
-目前第一階段已跨過逐字稿取得與 30 筆候選 mentions 的門檻；接下來重點是人工校對與價格回測腳本。
+目前第一階段已跨過逐字稿取得與 30 筆候選 mentions 的門檻，並建立人工審核工作表；接下來重點是填寫 review_decision 並回寫 approved / rejected / needs_context。

@@ -34,6 +34,11 @@
 4. transcription_runs.csv
    記錄 ASR 轉錄執行結果。逐字稿原文不進 Git。
 
+報表與人工工作表：
+
+1. reports/pending_mentions_review.csv
+   記錄待人工校對的 pending mentions、短證據、逐字稿行號提示與審核決策欄位。
+
 本機設定檔：
 
 1. .env
@@ -606,7 +611,74 @@
 4. 合併逐字稿確認存在後，原始音檔與切段音檔可視為可重建暫存檔，允許從本機刪除；Git 仍保留下載、切段與轉錄 metadata 供追蹤。
 
 
-十一、下一步檢查清單
+十一、pending_mentions_review.csv
+
+用途：
+記錄由 scripts/build_review_queue.py 產生的人工審核清單。這是從 mentions.csv 派生出的工作表，用來填寫 review_decision 與修正欄位，再由 scripts/apply_review_decisions.py 回寫到 mentions.csv。
+
+欄位：
+
+1. mention_id
+   型別：string
+   必填：是
+   說明：對應 mentions.csv 的 mention_id。
+
+2. episode_id
+   型別：string
+   必填：是
+   說明：來源 episode。
+
+3. current_stance / current_conviction / current_time_horizon
+   型別：string
+   必填：是
+   說明：目前 mentions.csv 中的候選判斷。
+
+4. transcript_line
+   型別：integer
+   必填：否
+   說明：腳本在本機逐字稿中推測的 evidence 所在行號。
+
+5. transcript_context
+   型別：string
+   必填：否
+   說明：短上下文提示，不可取代人工校對。
+
+6. review_decision
+   型別：enum
+   必填：否
+   允許值：approved / rejected / needs_context / pending
+   說明：人工校對後要回寫到 mentions.csv 的 review_status。空白表示尚未審核。
+
+7. corrected_stance
+   型別：enum
+   必填：否
+   允許值：bullish / bearish / neutral / watch / past_review / unclear
+   說明：若原始 stance 判斷錯誤，在此填入修正值。
+
+8. corrected_conviction
+   型別：enum
+   必填：否
+   允許值：low / medium / high
+   說明：若原始 conviction 判斷錯誤，在此填入修正值。
+
+9. corrected_time_horizon
+   型別：enum
+   必填：否
+   允許值：short / medium / long / unclear
+   說明：若原始 time_horizon 判斷錯誤，在此填入修正值。
+
+10. corrected_evidence_text
+    型別：string
+    必填：否
+    說明：若 evidence_text 有 ASR 錯字或太短，在此填入校正後短句。
+
+11. review_comment
+    型別：string
+    必填：否
+    說明：人工校對備註。套用時會追加到 mentions.csv 的 reviewer_note。
+
+
+十二、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -618,3 +690,4 @@
 6. instruments.csv 是否能支援常見別名查找。
 7. transcript_inputs.csv 是否每筆都有 audio_url 與 transcript_path。
 8. audio_chunks.csv 的 chunk_bytes 是否都低於 ASR 單檔上傳限制。
+9. pending_mentions_review.csv 若有 review_decision，是否皆為允許值。

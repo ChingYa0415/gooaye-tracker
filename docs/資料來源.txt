@@ -163,3 +163,21 @@ python3 scripts/search_transcript_mentions.py --episode-id ep_20260530_666 --epi
 
 注意：
 此工具只用來加速人工初篩，不會自動新增 approved mention。正式進入回測前仍需人工校對 ASR 文字與上下文。
+
+6. mention 人工審核工作表
+
+工具：
+scripts/build_review_queue.py
+
+用途：
+讀取 data/processed/mentions.csv 中 review_status 為 pending 的正式 mention，產生 reports/pending_mentions_review.csv。輸出包含短 evidence、逐字稿行號提示、短上下文，以及人工要填寫的 review_decision 與 corrected_* 欄位。
+
+範例：
+python3 scripts/build_review_queue.py
+
+套用審核結果：
+python3 scripts/apply_review_decisions.py --dry-run
+python3 scripts/apply_review_decisions.py
+
+注意：
+review_decision 空白時不會回寫。正式套用前先跑 --dry-run，確認沒有不合法的 review_decision、stance、conviction 或 time_horizon。
