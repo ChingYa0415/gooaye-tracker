@@ -148,3 +148,4 @@ https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 
 注意：
 模型檔、chunk transcript 與合併逐字稿皆為本機 raw artifact，由 .gitignore 排除，不進 Git。
+原始音檔與切段音檔只作為轉錄暫存素材；確認合併逐字稿已產生、metadata 已更新後，即可刪除對應音檔與 chunks。

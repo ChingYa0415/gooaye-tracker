@@ -449,6 +449,7 @@
 
 用途：
 記錄本機已下載音檔的 metadata。大型音檔儲存在 data/raw/audio/，並由 .gitignore 排除。
+音檔只作為產生逐字稿的暫存素材；確認該集合併逐字稿已產生、episodes.csv 與 transcript_inputs.csv 狀態已更新後，即可刪除本機音檔以節省空間。
 
 欄位：
 
@@ -503,6 +504,7 @@
 
 用途：
 記錄長音檔切段後的 chunk metadata。OpenAI Speech-to-Text API 單檔上傳限制為 25 MB，因此長節目需先切段。
+切段音檔只作為 ASR 輸入暫存素材；確認 chunk transcript 與合併逐字稿已產生後，即可刪除 data/raw/audio_chunks/ 中對應 episode 的 chunk 檔。
 
 欄位：
 
@@ -601,6 +603,7 @@
 1. 每個 chunk 轉錄完成後，執行 scripts/combine_transcripts.py。
 2. 合併後輸出 data/raw/transcripts/{episode_id}.txt。
 3. 合併後逐字稿原文不進 Git，只作為人工標註與 AI 抽取的本機輸入。
+4. 合併逐字稿確認存在後，原始音檔與切段音檔可視為可重建暫存檔，允許從本機刪除；Git 仍保留下載、切段與轉錄 metadata 供追蹤。
 
 
 十一、下一步檢查清單

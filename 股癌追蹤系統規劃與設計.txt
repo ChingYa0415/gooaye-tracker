@@ -1110,8 +1110,9 @@ P4：Dashboard。
 12. instruments.csv 先建立常見台股與概念初始表，市場別以 TWSE / TPEx 官方 API 查詢結果為準。
 13. 逐字稿流程先建立 transcript input manifest，不直接下載大型音檔，避免 repository 納入媒體檔。
 14. 原始音檔、切段音檔與逐字稿原文只保留在本機並由 .gitignore 排除；Git 只追蹤 metadata。
-15. OpenAI Speech-to-Text 單檔上傳限制為 25 MB，因此長 Podcast 必須先切段。
-16. API key 不寫入 Git 追蹤檔案；若 Codex 執行環境讀不到 shell export，使用本機 .env 作為替代。
+15. 原始音檔與切段音檔只作為轉錄暫存素材；確認合併逐字稿已產生且 metadata 已更新後，可刪除本機音檔以節省空間。
+16. OpenAI Speech-to-Text 單檔上傳限制為 25 MB，因此長 Podcast 必須先切段。
+17. API key 不寫入 Git 追蹤檔案；若 Codex 執行環境讀不到 shell export，使用本機 .env 作為替代。
 
 遇到問題：
 
@@ -1182,6 +1183,7 @@ P4：Dashboard。
 14. 使用 whisper.cpp 轉錄 EP666 與 EP665，各 4 個 chunks。
 15. 合併 EP666 與 EP665 單集逐字稿。
 16. 更新 episodes.csv 與 transcript_inputs.csv，將 EP666、EP665 transcript_status 改為 generated。
+17. 新增音檔清理規範：逐字稿確認產生且 metadata 更新後，原始音檔與切段音檔可從本機刪除。
 
 修改或新增檔案：
 
@@ -1197,7 +1199,8 @@ P4：Dashboard。
 10. docs/資料來源.txt
 11. scripts/transcribe_openai.py
 12. scripts/transcribe_whisper_cpp.py
-13. 股癌追蹤系統規劃與設計.txt
+13. docs/資料字典.txt
+14. 股癌追蹤系統規劃與設計.txt
 
 本機產物，不進 Git：
 
@@ -1222,6 +1225,7 @@ P4：Dashboard。
 2. 本機 Whisper 先使用 ggml-base.bin 模型；此模型能產生可用初稿，但中文與專有名詞仍需要人工校對。
 3. 逐字稿原文不進 Git，只追蹤 transcript metadata。
 4. EP667 第一輪 mention 先標 pending，不進正式回測；待人工聽音檔或校對逐字稿後再改為 approved / rejected。
+5. 音檔與切段音檔不是長期保存資料；只要合併逐字稿與 metadata 已完成，即可刪除本機音檔，日後需要時再依 audio_downloads.csv 與 transcript_inputs.csv 重新取得。
 
 遇到問題：
 
