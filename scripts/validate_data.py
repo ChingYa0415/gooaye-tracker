@@ -276,6 +276,8 @@ def validate(root: pathlib.Path) -> list[str]:
     returns = tables["data/processed/mention_returns.csv"].rows
     report = read_table(root / "reports/approved_company_bullish_returns.csv")
     require_fields(root / "reports/approved_company_bullish_returns.csv", report, return_report_fields())
+    summary = read_table(root / "reports/summary.csv")
+    require_fields(root / "reports/summary.csv", summary, summary_fields())
 
     require_unique(episodes, "episode_id", "episodes.csv")
     require_unique(mentions, "mention_id", "mentions.csv")
@@ -347,6 +349,8 @@ def validate(root: pathlib.Path) -> list[str]:
         if row["calculation_status"] == "missing_return_row":
             raise ValidationError(f"return report:{row['mention_id']} is missing return row")
 
+    validate_summary(summary.rows)
+
     price_file_count = validate_price_files(root)
     formal_mentions = [row for row in mentions if is_formal(row, "mention_id")]
     review_counts = Counter(row["review_status"] for row in formal_mentions)
@@ -359,6 +363,7 @@ def validate(root: pathlib.Path) -> list[str]:
         f"mentions={len(formal_mentions)} formal review_status={dict(sorted(review_counts.items()))}",
         f"mention_returns={len(formal_return_ids)} formal calculation_status={dict(sorted(return_counts.items()))}",
         f"return_report={len(report.rows)} rows available_horizons={dict(sorted(available_counts.items()))}",
+        f"summary={len(summary.rows)} rows",
         f"price_files={price_file_count}",
     ]
 
@@ -394,6 +399,31 @@ def return_report_fields() -> list[str]:
             ]
         )
     return fields
+
+
+def summary_fields() -> list[str]:
+    return ["section", "metric", "value", "display_value", "notes"]
+
+
+def validate_summary(rows: list[dict[str, str]]) -> None:
+    required_metrics = {
+        "episodes.formal_total",
+        "mentions.formal_total",
+        "mentions.approved_total",
+        "mentions.needs_context_total",
+        "returns.formal_total",
+        "returns.company_return_candidates",
+        "reports.approved_company_bullish_returns_rows",
+    }
+    actual_metrics = {f"{row['section']}.{row['metric']}" for row in rows}
+    missing = sorted(required_metrics - actual_metrics)
+    if missing:
+        raise ValidationError(f"summary.csv missing metrics: {missing}")
+
+    for row in rows:
+        if not row["section"] or not row["metric"]:
+            raise ValidationError("summary.csv has blank section or metric")
+        validate_float(row["value"], f"summary.csv:{row['section']}.{row['metric']}")
 
 
 def main() -> int:

@@ -1,0 +1,27 @@
+section,metric,value,display_value,notes
+episodes,formal_total,10,10,
+mentions,formal_total,30,30,
+mentions,approved_total,24,24,
+mentions,needs_context_total,6,6,
+returns,formal_total,24,24,
+returns,company_return_candidates,5,5,
+reports,approved_company_bullish_returns_rows,5,5,
+mentions,review_status.approved,24,24,
+mentions,review_status.needs_context,6,6,
+mentions,mention_type.company,9,9,
+mentions,mention_type.theme,21,21,
+mentions,stance.bullish,21,21,
+mentions,stance.past_review,3,3,
+mentions,stance.watch,6,6,
+returns,calculation_status.not_applicable,19,19,
+returns,calculation_status.pending_price,5,5,
+reports,available_horizons.(none),4,4,
+reports,available_horizons.7d,1,1,
+performance,7d.available_count,1,1,rows with available mention return
+performance,7d.avg_return,0.03921568627,3.92%,stance-adjusted mention return
+performance,7d.hit_rate,1,100.00%,share of available returns above zero
+performance,7d.avg_benchmark_return,0.0467732809,4.68%,benchmark return over the same horizon
+performance,7d.avg_excess_return,-0.007557594623,-0.76%,mention return minus benchmark return
+performance,30d.available_count,0,0,rows with available mention return
+performance,90d.available_count,0,0,rows with available mention return
+performance,180d.available_count,0,0,rows with available mention return

@@ -10,7 +10,7 @@
 二、日常更新流程
 
 用途：
-更新價格、重算 mention_returns.csv、重建報酬檢查報表，並執行資料驗證。
+更新價格、重算 mention_returns.csv、重建報酬檢查報表、重建總覽報表，並執行資料驗證。
 
 完整更新：
 
@@ -28,19 +28,21 @@ python3 scripts/run_daily_update.py --start-date 2026-01-01 --end-date 2026-12-3
 
 1. scripts/fetch_prices.py
 2. scripts/build_return_report.py
-3. scripts/validate_data.py
+3. scripts/build_summary_report.py
+4. scripts/validate_data.py
 
 輸出檔案：
 
 1. data/prices/*.csv
 2. data/processed/mention_returns.csv
 3. reports/approved_company_bullish_returns.csv
+4. reports/summary.csv
 
 
 三、資料驗證流程
 
 用途：
-檢查核心 CSV 欄位、ID 關聯、approved mention 規則、return rows、報表一致性與價格檔格式。
+檢查核心 CSV 欄位、ID 關聯、approved mention 規則、return rows、報表一致性、summary 核心指標與價格檔格式。
 
 命令：
 
@@ -57,6 +59,7 @@ python3 scripts/validate_data.py
 7. approved company bullish / bearish mentions 是否都有報表 row。
 8. calculated / pending_price rows 是否有 base_trade_date 與 base_price。
 9. data/prices/*.csv 是否有必要欄位與可解析的價格。
+10. reports/summary.csv 是否包含必要總覽指標。
 
 若驗證失敗，先修正資料或重建派生檔，再重新執行。
 
@@ -129,6 +132,10 @@ python3 scripts/fetch_prices.py
 單獨重建報酬檢查報表：
 
 python3 scripts/build_return_report.py
+
+單獨重建總覽報表：
+
+python3 scripts/build_summary_report.py
 
 單獨驗證：
 

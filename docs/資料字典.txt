@@ -45,6 +45,9 @@
 2. reports/approved_company_bullish_returns.csv
    記錄已審核、可回測的單一公司 bullish / bearish mentions，以及目前可取得的報酬結果。
 
+3. reports/summary.csv
+   記錄目前資料管線的總覽指標，例如 episode 數、mention review 狀態、return 狀態、可得 horizon 與平均報酬。
+
 本機設定檔：
 
 1. .env
@@ -766,7 +769,46 @@
 3. 每次重跑 scripts/fetch_prices.py 更新 mention_returns.csv 後，應再重跑 scripts/build_return_report.py。
 
 
-十四、下一步檢查清單
+十四、summary.csv
+
+用途：
+記錄由 scripts/build_summary_report.py 產生的資料管線總覽。此報表用於快速回答目前有多少資料、審核狀態如何、多少 mention 可回測、目前已可計算哪些 horizon，以及目前可得報酬的平均表現。
+
+欄位：
+
+1. section
+   型別：string
+   必填：是
+   說明：指標群組，例如 episodes、mentions、returns、reports、performance。
+
+2. metric
+   型別：string
+   必填：是
+   說明：指標名稱，例如 formal_total、review_status.approved、7d.avg_return。
+
+3. value
+   型別：number
+   必填：是
+   說明：機器可讀的原始數值。百分比以小數表示，例如 0.0392 代表 3.92%。
+
+4. display_value
+   型別：string
+   必填：是
+   說明：人工閱讀用顯示值，例如 3.92% 或 24。
+
+5. notes
+   型別：string
+   必填：否
+   說明：指標補充說明。
+
+使用規則：
+
+1. 此報表是派生檔，可由 scripts/build_summary_report.py 重建。
+2. 每次更新 mention_returns.csv 或 approved_company_bullish_returns.csv 後，應重建 summary.csv。
+3. Dashboard 或後續分析可直接讀取 section + metric 作為穩定指標鍵。
+
+
+十五、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -783,3 +825,4 @@
 11. data/prices/*.csv 是否每列欄位數一致。
 12. approved_company_bullish_returns.csv 是否只包含 approved、company、bullish / bearish 且有 ticker 的正式 mentions。
 13. 每次更新價格後，是否已同步重建 approved_company_bullish_returns.csv。
+14. summary.csv 是否包含 episodes.formal_total、mentions.formal_total、returns.formal_total 與 reports.approved_company_bullish_returns_rows 等核心指標。

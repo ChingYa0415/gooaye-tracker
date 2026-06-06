@@ -25,6 +25,7 @@
 python3 scripts/run_daily_update.py --skip-price-fetch
 python3 scripts/validate_data.py
 python3 scripts/build_return_report.py
+python3 scripts/build_summary_report.py
 ```
 
 需要更新價格時：
