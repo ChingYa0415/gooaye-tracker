@@ -1195,6 +1195,10 @@ P4：Dashboard。
 26. 產生 reports/pending_mentions_review.csv，共 30 筆待審核 mention。
 27. 建立 scripts/apply_review_decisions.py，可將 review CSV 的決策回寫 mentions.csv。
 28. 更新 docs/資料字典.txt 與 docs/資料來源.txt，記錄 mention review workflow。
+29. 在 reports/pending_mentions_review.csv 填寫第一輪 review_decision。
+30. 使用 scripts/apply_review_decisions.py --dry-run 驗證 30 筆審核決策皆合法。
+31. 正式回寫 data/processed/mentions.csv，將 24 筆標為 approved、6 筆標為 needs_context。
+32. 更新 scripts/apply_review_decisions.py，使重複執行時不會重複追加 reviewer_note。
 
 修改或新增檔案：
 
@@ -1246,6 +1250,8 @@ P4：Dashboard。
 8. 第一階段 30 筆候選 mentions 已達標，但全部仍為 pending；接下來要先校對與核准，不能直接進入報酬回測。
 9. pending_mentions_review.csv 是人工工作表；review_decision 空白代表尚未審核，不會回寫 mentions.csv。
 10. 套用審核結果前先執行 scripts/apply_review_decisions.py --dry-run，確認欄位值合法。
+11. 第一輪 review 採保守原則：公司名或 ASR 關鍵字仍不可靠者標為 needs_context，不強行 approved。
+12. approved 不等於一定進主要價格回測；concept、watch、past_review 仍需由 mention_returns 流程標為 not_applicable 或排除。
 
 遇到問題：
 
@@ -1277,14 +1283,17 @@ P4：Dashboard。
 19. 已確認 apply_review_decisions.py --dry-run 在未填 review_decision 時套用 0 筆，不修改 mentions.csv。
 20. 已確認 build_review_queue.py、apply_review_decisions.py、search_transcript_mentions.py 語法檢查通過。
 21. 已使用暫存 review CSV 測試單筆 approved 回寫到 /tmp/mentions_review_test.csv，確認不會修改專案內 mentions.csv。
+22. 已確認第一輪 review 後正式 mentions 共 30 筆，其中 approved 24 筆、needs_context 6 筆。
+23. 已確認 approved company bullish mentions 目前有 5 筆，可作為第一批價格回測候選。
+24. 已確認第一輪回寫後再次執行 apply_review_decisions.py --dry-run 會顯示 would apply 0 updates，不會重複修改 reviewer_note。
 
 明日待辦：
 
-1. 在 reports/pending_mentions_review.csv 填寫 30 筆 review_decision。
-2. 對 ASR 錯字較多或 evidence 不足的 mention 標為 needs_context 或 rejected。
-3. 使用 scripts/apply_review_decisions.py --dry-run 檢查審核表，再正式回寫 mentions.csv。
-4. 建立 approved mention 的價格資料抓取腳本 scripts/fetch_prices.py。
-5. 設計 mention_returns.csv 的第一版計算流程。
+1. 建立 approved mention 的價格資料抓取腳本 scripts/fetch_prices.py。
+2. 設計 mention_returns.csv 的第一版計算流程。
+3. 先針對 approved、company、bullish 且 ticker 不空白的 5 筆 mention 產生價格樣本。
+4. 將 concept、watch、past_review mention 在回測流程中標為 not_applicable 或排除。
+5. 針對 6 筆 needs_context 回聽音檔或改用更大 whisper.cpp 模型補校對。
 
 備註：
-目前第一階段已跨過逐字稿取得與 30 筆候選 mentions 的門檻，並建立人工審核工作表；接下來重點是填寫 review_decision 並回寫 approved / rejected / needs_context。
+目前第一階段已跨過逐字稿取得、30 筆候選 mentions 與第一輪 review；接下來重點是價格資料抓取與 mention_returns 計算。

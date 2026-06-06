@@ -82,6 +82,8 @@ def append_note(existing: str, addition: str) -> str:
     addition = addition.strip()
     if not addition:
         return existing
+    if addition in existing:
+        return existing
     if not existing:
         return addition
     return f"{existing}; review: {addition}"
@@ -118,9 +120,10 @@ def apply_reviews(
             review.get("review_comment", ""),
         )
 
-        updated_rows.append(updated)
+        if updated != mention:
+            applied += 1
         seen.add(mention_id)
-        applied += 1
+        updated_rows.append(updated)
 
     missing = sorted(set(reviews) - seen)
     if missing:
