@@ -1060,6 +1060,9 @@ P4：Dashboard。
 23. 成功下載 EP667 音檔到本機 data/raw/audio/，檔案大小約 50 MB。
 24. 安裝 ffmpeg，建立 scripts/split_audio.py，並將 EP667 切成 4 個低於 25 MB 的 audio chunks。
 25. 建立 scripts/transcribe_openai.py，支援使用 OpenAI Speech-to-Text API 對單一 chunk 轉錄。
+26. 更新 scripts/transcribe_openai.py，支援讀取本機 .env，但不覆蓋已存在的環境變數。
+27. 新增 .env.example，示範 OPENAI_API_KEY 格式；真實 .env 已由 .gitignore 排除。
+28. 建立 scripts/combine_transcripts.py，可將多個 chunk transcript 合併為單集逐字稿。
 
 修改或新增檔案：
 
@@ -1087,7 +1090,9 @@ P4：Dashboard。
 22. data/raw/audio/.gitkeep
 23. data/raw/audio_chunks/.gitkeep
 24. .gitignore
-25. reports/.gitkeep
+25. .env.example
+26. scripts/combine_transcripts.py
+27. reports/.gitkeep
 
 重要決策：
 
@@ -1106,6 +1111,7 @@ P4：Dashboard。
 13. 逐字稿流程先建立 transcript input manifest，不直接下載大型音檔，避免 repository 納入媒體檔。
 14. 原始音檔、切段音檔與逐字稿原文只保留在本機並由 .gitignore 排除；Git 只追蹤 metadata。
 15. OpenAI Speech-to-Text 單檔上傳限制為 25 MB，因此長 Podcast 必須先切段。
+16. API key 不寫入 Git 追蹤檔案；若 Codex 執行環境讀不到 shell export，使用本機 .env 作為替代。
 
 遇到問題：
 
@@ -1113,6 +1119,7 @@ P4：Dashboard。
 2. 沙盒內 `.git` 目錄需要提權才能修改，因此 branch、remote、commit、push 需以允許 Git metadata 寫入的方式執行。
 3. CSV 初版檢查時發現空白行與 mention_returns.csv 範例列欄位數不一致，已移除空白行並修正欄位數。
 4. 本機目前未設定 OPENAI_API_KEY，因此 ASR 轉錄腳本已建立但無法實際呼叫 OpenAI API。
+5. 使用者在另一個終端機執行 export OPENAI_API_KEY 不會自動傳入 Codex 命令環境，因此需改用本專案本機 .env 或在同一執行環境提供變數。
 
 驗證方式：
 
@@ -1132,10 +1139,11 @@ P4：Dashboard。
 14. 已確認 EP667 音檔下載成功，並在 audio_downloads.csv 記錄大小與 sha256。
 15. 已確認 EP667 切成 4 個 chunk，大小分別低於 25 MB，可供 ASR API 使用。
 16. 已確認 transcribe_openai.py 在未設定 OPENAI_API_KEY 時會明確報錯。
+17. 已確認 transcribe_openai.py 支援本機 .env 載入。
 
 明日待辦：
 
-1. 設定 OPENAI_API_KEY，或改採本機 Whisper / faster-whisper。
+1. 在專案根目錄建立本機 .env，寫入 OPENAI_API_KEY。
 2. 轉錄 EP667 的 4 個 chunks，合併成單集逐字稿。
 3. 針對至少 3 集產生逐字稿或可引用片段。
 4. 至少完成 3 集人工初步標註。

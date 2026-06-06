@@ -9,3 +9,6 @@ data/raw/transcripts/*.txt
 .DS_Store
 __pycache__/
 *.pyc
+
+# Local secrets.
+.env

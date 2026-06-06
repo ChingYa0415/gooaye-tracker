@@ -34,6 +34,14 @@
 4. transcription_runs.csv
    記錄 ASR 轉錄執行結果。逐字稿原文不進 Git。
 
+本機設定檔：
+
+1. .env
+   用於儲存 OPENAI_API_KEY 等本機密鑰。此檔案已被 .gitignore 排除。
+
+2. .env.example
+   範例格式，可 commit，但不得包含真實 key。
+
 第一版採 CSV，是為了快速建立可手動操作的 MVP。未來若資料量增加，可轉成 SQLite 或 PostgreSQL。
 
 
@@ -587,6 +595,12 @@
    型別：string
    必填：否
    說明：補充說明。
+
+合併規則：
+
+1. 每個 chunk 轉錄完成後，執行 scripts/combine_transcripts.py。
+2. 合併後輸出 data/raw/transcripts/{episode_id}.txt。
+3. 合併後逐字稿原文不進 Git，只作為人工標註與 AI 抽取的本機輸入。
 
 
 十一、下一步檢查清單

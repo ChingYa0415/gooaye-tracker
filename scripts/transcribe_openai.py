@@ -21,6 +21,21 @@ OPENAI_TRANSCRIPTIONS_URL = "https://api.openai.com/v1/audio/transcriptions"
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 
 
+def load_dotenv(path: pathlib.Path = pathlib.Path(".env")) -> None:
+    """Load simple KEY=VALUE lines from .env without overriding the environment."""
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Transcribe one audio chunk via OpenAI.")
     parser.add_argument("--episode-id", required=True)
@@ -124,9 +139,10 @@ def append_run(path: pathlib.Path, row: dict[str, str]) -> None:
 
 def main() -> int:
     args = parse_args()
+    load_dotenv()
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        raise RuntimeError("OPENAI_API_KEY is not set")
+        raise RuntimeError("OPENAI_API_KEY is not set. Set it in the shell or local .env file.")
 
     chunk = find_chunk(pathlib.Path(args.chunks_csv), args.episode_id, args.chunk_index)
     chunk_path = pathlib.Path(chunk["chunk_path"])
@@ -154,4 +170,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

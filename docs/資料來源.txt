@@ -101,3 +101,26 @@ scripts/transcribe_openai.py 預設使用 gpt-4o-mini-transcribe，呼叫 /v1/au
 
 目前狀態：
 轉錄腳本已建立，但本機尚未設定 OPENAI_API_KEY，因此尚未執行實際 ASR。
+
+本機設定方式：
+
+1. 建立 .env 檔案。
+2. 寫入 OPENAI_API_KEY=你的 key。
+3. .env 已由 .gitignore 排除，不會推到 GitHub。
+
+範例：
+可參考專案根目錄的 .env.example。
+
+注意：
+不要把真實 API key 寫入 README、docs、CSV 或任何會 commit 的檔案。
+
+3. 合併逐字稿
+
+工具：
+scripts/combine_transcripts.py
+
+用途：
+把同一集的多個 chunk transcript 合併為 data/raw/transcripts/{episode_id}.txt。
+
+注意：
+逐字稿原文仍屬本機 raw artifact，不進 Git。
