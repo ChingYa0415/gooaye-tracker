@@ -195,3 +195,20 @@ python3 scripts/apply_review_decisions.py
 
 注意：
 review_decision 空白時不會回寫。正式套用前先跑 --dry-run，確認沒有不合法的 review_decision、stance、conviction 或 time_horizon。
+
+7. 報酬檢查報表
+
+工具：
+scripts/build_return_report.py
+
+用途：
+讀取 data/processed/mentions.csv、data/processed/episodes.csv 與 data/processed/mention_returns.csv，輸出 reports/approved_company_bullish_returns.csv。此報表只列出已 approved、mention_type=company、stance 為 bullish / bearish、且 ticker 不空白的正式 mentions。
+
+範例：
+python3 scripts/build_return_report.py
+
+目前使用：
+已產生第一版 reports/approved_company_bullish_returns.csv，共 5 筆 approved company bullish mentions。其中 1 筆已有 7d return，其餘因 horizon 價格尚未到期而維持 pending_price。
+
+注意：
+此報表是 mention_returns.csv 的人工檢查視圖。每次重跑 scripts/fetch_prices.py 更新價格與報酬後，應再重跑 scripts/build_return_report.py，讓可讀報表同步反映最新 horizon return。

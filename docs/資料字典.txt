@@ -42,6 +42,9 @@
 1. reports/pending_mentions_review.csv
    記錄待人工校對的 pending mentions、短證據、逐字稿行號提示與審核決策欄位。
 
+2. reports/approved_company_bullish_returns.csv
+   記錄已審核、可回測的單一公司 bullish / bearish mentions，以及目前可取得的報酬結果。
+
 本機設定檔：
 
 1. .env
@@ -725,7 +728,45 @@
     說明：人工校對備註。套用時會追加到 mentions.csv 的 reviewer_note。
 
 
-十三、下一步檢查清單
+十三、approved_company_bullish_returns.csv
+
+用途：
+記錄由 scripts/build_return_report.py 產生的第一版報酬檢查報表。此報表從 mentions.csv、episodes.csv 與 mention_returns.csv 派生，用來人工檢查 approved company bullish / bearish mentions 的基準價、可得 horizon 報酬與相對 benchmark 超額報酬。
+
+欄位群組：
+
+1. mention 與 episode 欄位
+   欄位：mention_id、episode_id、episode_title、published_at、company_or_theme、ticker、market、stance、conviction、time_horizon
+   說明：用於追溯來源與原始標註。
+
+2. 基準價欄位
+   欄位：base_trade_date、base_price
+   說明：發布後第一個可得交易日與該日價格。
+
+3. 報酬狀態欄位
+   欄位：available_horizons、calculation_status、return_notes
+   說明：列出目前已可計算的 horizon，例如 7d；若後續價格尚未到期，calculation_status 會維持 pending_price。
+
+4. 證據欄位
+   欄位：evidence_text
+   說明：保留原始短證據，方便人工檢查該 mention 是否真的值得納入回測。
+
+5. horizon 報酬欄位
+   欄位：return_7d、return_30d、return_90d、return_180d，以及對應的 _pct 欄位
+   說明：標的自身報酬；小數欄用於後續程式計算，_pct 欄用於人工閱讀。
+
+6. benchmark 與超額報酬欄位
+   欄位：benchmark_return_*、excess_return_*，以及對應的 _pct 欄位
+   說明：benchmark 報酬與標的相對 benchmark 的超額報酬。
+
+使用規則：
+
+1. 此報表是派生檔，可由 scripts/build_return_report.py 重建。
+2. 不在此報表中手動修改 mention 判斷；若要修正，應回到 mentions.csv 或 review workflow。
+3. 每次重跑 scripts/fetch_prices.py 更新 mention_returns.csv 後，應再重跑 scripts/build_return_report.py。
+
+
+十四、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -740,3 +781,5 @@
 9. pending_mentions_review.csv 若有 review_decision，是否皆為允許值。
 10. mention_returns.csv 中 calculated / pending_price rows 是否都有 base_trade_date 與 base_price。
 11. data/prices/*.csv 是否每列欄位數一致。
+12. approved_company_bullish_returns.csv 是否只包含 approved、company、bullish / bearish 且有 ticker 的正式 mentions。
+13. 每次更新價格後，是否已同步重建 approved_company_bullish_returns.csv。
