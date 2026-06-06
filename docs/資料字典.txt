@@ -51,6 +51,9 @@
 3. reports/summary.csv
    記錄目前資料管線的總覽指標，例如 episode 數、mention review 狀態、return 狀態、可得 horizon 與平均報酬。
 
+4. reports/concept_proxy_review.csv
+   記錄概念 proxy baskets 的人工審核工作表，協助檢查代理成分、權重與待修正項目。
+
 本機設定檔：
 
 1. .env
@@ -875,7 +878,53 @@
 3. Dashboard 或後續分析可直接讀取 section + metric 作為穩定指標鍵。
 
 
-十六、下一步檢查清單
+十六、concept_proxy_review.csv
+
+用途：
+記錄由 scripts/build_concept_proxy_review.py 產生的概念 proxy 人工審核工作表。此報表從 concept_proxies.csv、mentions.csv 與 mention_returns.csv 派生，用來檢查概念籃子是否合理、是否有單一代理、是否有提及但不能追蹤、權重是否正常，以及目前 proxy 回測狀態。
+
+欄位：
+
+1. concept_name
+   型別：string
+   必填：是
+   說明：概念名稱，對應 concept_proxies.csv 的 concept_name。
+
+2. concept_issue
+   型別：string
+   必填：是
+   說明：系統標示的審核提示，例如 ok、single_name_proxy、no_active_proxy、mixed_component_markets、mentioned_but_not_trackable。
+
+3. directional_mention_count
+   型別：integer
+   必填：是
+   說明：該概念目前 approved 且 bullish / bearish 的正式 mention 數。
+
+4. active_proxy_count
+   型別：integer
+   必填：是
+   說明：該概念目前啟用的 proxy 成分數。
+
+5. active_weight_total
+   型別：number
+   必填：是
+   說明：啟用 proxy 成分權重加總。
+
+6. return_status_counts
+   型別：string
+   必填：否
+   說明：概念 proxy 回測 rows 的 calculation_status 統計。
+
+7. proxy 欄位
+   欄位：proxy_id、ticker、market、name、weight、benchmark_market、is_active、current_notes
+   說明：從 concept_proxies.csv 帶出的目前設定。
+
+8. 人工審核欄位
+   欄位：review_decision、corrected_weight、corrected_benchmark_market、corrected_is_active、replacement_ticker、replacement_market、replacement_name、review_comment
+   說明：人工填寫的調整建議。第一版尚不自動回寫，正式修改仍需更新 concept_proxies.csv。
+
+
+十七、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -890,6 +939,7 @@
 9. pending_mentions_review.csv 若有 review_decision，是否皆為允許值。
 10. mention_returns.csv 中 calculated / pending_price rows 是否都有 base_trade_date 與 base_price。
 11. data/prices/*.csv 是否每列欄位數一致。
-12. approved_company_bullish_returns.csv 是否只包含 approved、company、bullish / bearish 且有 ticker 的正式 mentions。
+12. approved_company_bullish_returns.csv 是否只包含 approved、bullish / bearish，且可回測的公司或概念 proxy 正式 mentions。
 13. 每次更新價格後，是否已同步重建 approved_company_bullish_returns.csv。
 14. summary.csv 是否包含 episodes.formal_total、mentions.formal_total、returns.formal_total 與 reports.approved_company_bullish_returns_rows 等核心指標。
+15. concept_proxy_review.csv 是否與 concept_proxies.csv 的 proxy_id 完全一致。

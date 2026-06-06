@@ -29,7 +29,8 @@ python3 scripts/run_daily_update.py --start-date 2026-01-01 --end-date 2026-12-3
 1. scripts/fetch_prices.py
 2. scripts/build_return_report.py
 3. scripts/build_summary_report.py
-4. scripts/validate_data.py
+4. scripts/build_concept_proxy_review.py
+5. scripts/validate_data.py
 
 輸出檔案：
 
@@ -37,6 +38,7 @@ python3 scripts/run_daily_update.py --start-date 2026-01-01 --end-date 2026-12-3
 2. data/processed/mention_returns.csv
 3. reports/approved_company_bullish_returns.csv
 4. reports/summary.csv
+5. reports/concept_proxy_review.csv
 
 
 三、資料驗證流程
@@ -164,6 +166,18 @@ python3 scripts/run_daily_update.py
 
 6. 概念型回測結果會寫入 mention_returns.csv，ticker 會標示為 concept_proxy:{概念名稱}。
 7. reports/approved_company_bullish_returns.csv 會同時列出公司候選與已啟用 proxy 的概念候選。
+
+概念 proxy 人工審核工作表：
+
+python3 scripts/build_concept_proxy_review.py
+
+輸出：
+
+reports/concept_proxy_review.csv
+
+此工作表會列出每個概念 proxy 成分、權重、benchmark_market、目前 directional mention 數、active proxy 數、權重加總與 concept_issue。人工審核時優先看 concept_issue 不是 ok 的列，例如 single_name_proxy、no_active_proxy、mixed_component_markets 或 mentioned_but_not_trackable。
+
+目前 review_decision、corrected_weight、corrected_benchmark_market、corrected_is_active、replacement_* 與 review_comment 是人工填寫欄位。正式套用前仍需回到 data/processed/concept_proxies.csv 修改，或後續再建立 apply_concept_proxy_review.py。
 
 
 七、Git 提交前檢查

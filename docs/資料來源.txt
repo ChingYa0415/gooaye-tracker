@@ -262,3 +262,20 @@ python3 scripts/validate_data.py
 
 注意：
 此工具是提交前與日常更新後的資料守門腳本。若驗證失敗，應先修正資料或重建派生檔，再提交或繼續下一步分析。
+
+11. 概念 proxy 審核工作表
+
+工具：
+scripts/build_concept_proxy_review.py
+
+用途：
+讀取 data/processed/concept_proxies.csv、data/processed/mentions.csv 與 data/processed/mention_returns.csv，輸出 reports/concept_proxy_review.csv。此工作表用來檢查概念 proxy 的成分、權重、benchmark_market、目前 directional mention 數、回測狀態，以及需要人工優先處理的 concept_issue。
+
+範例：
+python3 scripts/build_concept_proxy_review.py
+
+目前使用：
+已產生 reports/concept_proxy_review.csv，共 35 列，涵蓋 11 個概念。優先審核項目包含功率元件、功率半導體、衛星 AI 運算，以及跨 TWSE / TPEx 的散熱與被動元件 proxy。
+
+注意：
+此工作表第一版只產生審核建議欄位，不會自動回寫 concept_proxies.csv。正式調整 proxy 前仍需人工確認代表性、權重與資料來源。

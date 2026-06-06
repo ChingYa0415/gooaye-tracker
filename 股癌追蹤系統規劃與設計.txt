@@ -1231,6 +1231,11 @@ P4：Dashboard。
 62. 重跑 scripts/run_daily_update.py，新增概念 proxy 所需價格資料，data/prices 目前共有 25 個價格檔。
 63. reports/approved_company_bullish_returns.csv 目前共有 19 筆可追蹤候選，其中 6 筆公司候選、13 筆概念 proxy 候選。
 64. reports/summary.csv 目前共有 28 筆總覽指標，並記錄 4 筆已有 7d return。
+65. 建立 scripts/build_concept_proxy_review.py，產生概念 proxy 人工審核工作表。
+66. 產生 reports/concept_proxy_review.csv，共 35 列，涵蓋 11 個概念與所有 proxy 成分。
+67. 更新 scripts/run_daily_update.py，將 concept proxy review report 納入日常更新流程。
+68. 更新 scripts/validate_data.py，將 reports/concept_proxy_review.csv 欄位與 proxy_id 一致性納入驗證。
+69. 更新 README.md、docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄概念 proxy 審核工作表流程。
 
 修改或新增檔案：
 
@@ -1288,6 +1293,8 @@ P4：Dashboard。
 52. data/prices/NET.csv
 53. data/prices/OKTA.csv
 54. data/prices/PLTR.csv
+55. scripts/build_concept_proxy_review.py
+56. reports/concept_proxy_review.csv
 
 本機產物，不進 Git：
 
@@ -1347,6 +1354,7 @@ P4：Dashboard。
 5. EP665 載板候選在 small 模型二次轉錄後仍無法明確確認標的，因此改為 rejected。
 6. 第一次加入光通訊 proxy 時，4979 的 Yahoo 市場後綴設錯導致 404；已修正為 TPEx / 4979.TWO。
 7. 概念 proxy 第一版仍需後續人工研究與調整，尤其單一成分 proxy 的功率元件、功率半導體不應直接視為完整產業代表。
+8. concept_proxy_review.csv 第一版只產生人工審核欄位，不自動回寫 concept_proxies.csv，避免尚未確認的籃子調整直接影響回測。
 
 驗證方式：
 
@@ -1403,14 +1411,19 @@ P4：Dashboard。
 51. 已確認目前 4 筆候選已有 7d return：台積電、散熱 proxy、功率元件 proxy、被動元件 proxy。
 52. 已確認 7d available_count 為 4、7d avg_return 為 3.18%、7d hit_rate 為 50.00%、7d avg_excess_return 為 -1.49%。
 53. 已確認 scripts/run_daily_update.py 完整更新後資料驗證通過，price_files=25。
+54. 已確認 scripts/build_concept_proxy_review.py 產生 35 筆審核列。
+55. 已確認 concept_proxy_review.csv 涵蓋 11 個概念，且 proxy_id 與 concept_proxies.csv 完全一致。
+56. 已確認 concept_issue 標出功率元件與功率半導體為 single_name_proxy / needs_sector_expansion。
+57. 已確認 concept_issue 標出衛星 AI 運算為 no_active_proxy / mentioned_but_not_trackable。
+58. 已確認 scripts/run_daily_update.py --skip-price-fetch 可重建 return report、summary report、concept proxy review report 並通過資料驗證。
 
 明日待辦：
 
 1. 等待後續交易日資料到期後，重跑 scripts/run_daily_update.py 更新 7 / 30 / 90 / 180 天報酬。
-2. 人工檢查 concept_proxies.csv 的 proxy baskets，特別是單一成分 proxy 與主觀性較高的概念。
+2. 依 reports/concept_proxy_review.csv 人工檢查 concept proxy baskets，特別是功率元件、功率半導體與衛星 AI 運算。
 3. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
 4. 規劃第一版 dashboard.html 或更完整的 reports/summary.md，讓非工程視角也能快速閱讀結果。
-5. 評估是否將 reports/approved_company_bullish_returns.csv 重新命名為更中性的 approved_signal_returns.csv。
+5. 視人工審核需求，建立 apply_concept_proxy_review.py，將已確認的 proxy review 決策安全回寫 concept_proxies.csv。
 
 備註：
 目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、needs_context 二次校對、第一版價格資料抓取、公司與概念 proxy 報酬檢查報表、summary 總覽報表與日常資料驗證入口；資料與腳本層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、人工校準 concept proxy baskets，並改善價格來源穩定性。

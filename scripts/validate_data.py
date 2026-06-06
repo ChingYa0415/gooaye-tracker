@@ -152,6 +152,30 @@ EXPECTED_FIELDS = {
         "corrected_evidence_text",
         "review_comment",
     ],
+    "reports/concept_proxy_review.csv": [
+        "concept_name",
+        "concept_issue",
+        "directional_mention_count",
+        "active_proxy_count",
+        "active_weight_total",
+        "return_status_counts",
+        "proxy_id",
+        "ticker",
+        "market",
+        "name",
+        "weight",
+        "benchmark_market",
+        "is_active",
+        "current_notes",
+        "review_decision",
+        "corrected_weight",
+        "corrected_benchmark_market",
+        "corrected_is_active",
+        "replacement_ticker",
+        "replacement_market",
+        "replacement_name",
+        "review_comment",
+    ],
 }
 
 
@@ -298,6 +322,7 @@ def validate(root: pathlib.Path) -> list[str]:
     returns = tables["data/processed/mention_returns.csv"].rows
     report = read_table(root / "reports/approved_company_bullish_returns.csv")
     require_fields(root / "reports/approved_company_bullish_returns.csv", report, return_report_fields())
+    concept_proxy_review = tables["reports/concept_proxy_review.csv"].rows
     summary = read_table(root / "reports/summary.csv")
     require_fields(root / "reports/summary.csv", summary, summary_fields())
 
@@ -339,6 +364,18 @@ def validate(root: pathlib.Path) -> list[str]:
                 raise ValidationError(f"concept_proxies.csv:{row['proxy_id']} unsupported benchmark_market")
             if float(row["weight"]) <= 0:
                 raise ValidationError(f"concept_proxies.csv:{row['proxy_id']} active weight must be positive")
+
+    proxy_ids = {row["proxy_id"] for row in concept_proxies}
+    review_proxy_ids = {row["proxy_id"] for row in concept_proxy_review}
+    if review_proxy_ids != proxy_ids:
+        missing = sorted(proxy_ids - review_proxy_ids)
+        extra = sorted(review_proxy_ids - proxy_ids)
+        raise ValidationError(f"concept_proxy_review.csv mismatch: missing={missing}, extra={extra}")
+    for row in concept_proxy_review:
+        validate_float(row["directional_mention_count"], f"concept_proxy_review.csv:{row['proxy_id']}:directional_mention_count")
+        validate_float(row["active_proxy_count"], f"concept_proxy_review.csv:{row['proxy_id']}:active_proxy_count")
+        validate_float(row["active_weight_total"], f"concept_proxy_review.csv:{row['proxy_id']}:active_weight_total")
+        validate_float(row["weight"], f"concept_proxy_review.csv:{row['proxy_id']}:weight")
 
     for row in episodes:
         validate_date(row["published_at"], f"episodes.csv:{row['episode_id']}")

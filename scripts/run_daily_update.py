@@ -70,6 +70,7 @@ def main() -> int:
 
     run([python, "scripts/build_return_report.py"], root)
     run([python, "scripts/build_summary_report.py"], root)
+    run([python, "scripts/build_concept_proxy_review.py"], root)
 
     if not args.no_validate:
         run([python, "scripts/validate_data.py"], root)
