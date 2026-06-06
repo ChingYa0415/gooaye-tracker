@@ -17,7 +17,10 @@
 3. instruments.csv
    記錄股票、指數、產業概念或其他可追蹤標的。
 
-4. mention_returns.csv
+4. concept_proxies.csv
+   記錄概念型 mention 對應的可交易代理籃子。
+
+5. mention_returns.csv
    記錄每筆 approved mention 的報酬計算結果。
 
 輔助 CSV：
@@ -43,7 +46,7 @@
    記錄待人工校對的 pending mentions、短證據、逐字稿行號提示與審核決策欄位。
 
 2. reports/approved_company_bullish_returns.csv
-   記錄已審核、可回測的單一公司 bullish / bearish mentions，以及目前可取得的報酬結果。
+   記錄已審核、可回測的公司 bullish / bearish mentions，以及已定義 proxy 的概念型 bullish / bearish mentions。
 
 3. reports/summary.csv
    記錄目前資料管線的總覽指標，例如 episode 數、mention review 狀態、return 狀態、可得 horizon 與平均報酬。
@@ -290,7 +293,70 @@
    說明：補充說明。
 
 
-六、mention_returns.csv
+六、concept_proxies.csv
+
+用途：
+記錄概念型 mention 的代理籃子。每一列是一個概念中的一個成分股；同一個 concept_name 可以有多列。第一版以人工 v0.1 等權籃子為主，目的是讓概念題材可以先進入追蹤，不代表投資建議。
+
+欄位：
+
+1. concept_name
+   型別：string
+   必填：是
+   說明：對應 mentions.csv 的 company_or_theme。
+
+2. proxy_id
+   型別：string
+   必填：是
+   說明：代理成分唯一 ID。
+
+3. ticker
+   型別：string
+   必填：啟用列必填
+   說明：代理成分股票代號。
+
+4. market
+   型別：enum
+   必填：啟用列必填
+   允許值：TWSE / TPEx / US / concept
+   說明：代理成分市場。is_active=true 時必須是 TWSE / TPEx / US。
+
+5. name
+   型別：string
+   必填：啟用列必填
+   說明：代理成分名稱。
+
+6. weight
+   型別：number
+   必填：是
+   說明：代理成分權重。同一概念的啟用權重第一版應加總為 1。
+
+7. benchmark_market
+   型別：enum
+   必填：啟用列必填
+   允許值：TWSE / TPEx / US
+   說明：概念籃子用來比較的 benchmark 市場。
+
+8. is_active
+   型別：boolean
+   必填：是
+   說明：是否納入概念 proxy 計算。
+
+9. notes
+   型別：string
+   必填：否
+   說明：代理籃子的人工備註、版本或限制。
+
+第一版計算規則：
+
+1. 只有 review_status=approved、stance 為 bullish / bearish，且 concept_name 有啟用 proxy 的概念 mention 會進入 proxy 回測。
+2. 概念 proxy 使用各成分股的 adj_close 計算報酬，再依 weight 做加權平均。
+3. concept mention 的 base_price 在 mention_returns.csv 中記為 1，代表合成籃子基準淨值。
+4. benchmark 依 benchmark_market 決定，目前 TWSE 使用 ^TWII，US 使用 ^IXIC。
+5. 若概念沒有明確上市代理，應保留 is_active=false，不強行計算。
+
+
+七、mention_returns.csv
 
 用途：
 記錄每筆 mention 在指定期間的報酬與相對 benchmark 表現。
@@ -305,7 +371,7 @@
 2. ticker
    型別：string
    必填：否
-   說明：股票代號。概念型 mention 可留空。
+   說明：股票代號。概念型 proxy mention 會記為 concept_proxy:{概念名稱}。
 
 3. market
    型別：enum
@@ -402,8 +468,9 @@
 第一版計算規則：
 
 1. 只計算 review_status=approved 的 mention。
-2. 只有 mention_type=company、stance 為 bullish / bearish，且 ticker 不空白的 mention 會進入價格回測。
-3. concept、watch、past_review 等 mention 會在 mention_returns.csv 中標為 not_applicable。
+2. mention_type=company、stance 為 bullish / bearish，且 ticker 不空白的 mention 會進入單一公司價格回測。
+3. concept / industry / theme 若有啟用 concept_proxies.csv proxy，且 stance 為 bullish / bearish，會進入概念 proxy 回測。
+4. watch、past_review、沒有 proxy 的概念等 mention 會在 mention_returns.csv 中標為 not_applicable。
 4. base_trade_date 使用 published_at 後第一個可取得的交易日。
 5. 7 / 30 / 90 / 180 天報酬使用 base_trade_date 加上日曆天後第一個可取得的交易日。
 6. 報酬使用 adj_close 計算；若來源沒有 adj_close，則使用 close。
@@ -411,7 +478,7 @@
 8. 若未來 horizon 價格尚未出現，calculation_status 標為 pending_price。
 
 
-七、data/prices/*.csv
+八、data/prices/*.csv
 
 用途：
 記錄 scripts/fetch_prices.py 從價格來源抓回的每日價格。每個 Yahoo symbol 輸出一個 CSV，例如 data/prices/NVDA.csv、data/prices/2330_TW.csv、data/prices/INDEX_IXIC.csv。
@@ -444,7 +511,7 @@
    說明：成交量。指數可能為 0 或空值。
 
 
-八、transcript_inputs.csv
+九、transcript_inputs.csv
 
 用途：
 記錄每一集節目的音檔來源與後續 ASR 應輸出的逐字稿路徑。這是逐字稿流程的工作清單，不代表逐字稿已經完成。
@@ -503,7 +570,7 @@
    說明：補充說明。
 
 
-九、audio_downloads.csv
+十、audio_downloads.csv
 
 用途：
 記錄本機已下載音檔的 metadata。大型音檔儲存在 data/raw/audio/，並由 .gitignore 排除。
@@ -558,7 +625,7 @@
    說明：補充說明。
 
 
-十、audio_chunks.csv
+十一、audio_chunks.csv
 
 用途：
 記錄長音檔切段後的 chunk metadata。OpenAI Speech-to-Text API 單檔上傳限制為 25 MB，因此長節目需先切段。
@@ -613,7 +680,7 @@
    說明：補充說明。
 
 
-十一、transcription_runs.csv
+十二、transcription_runs.csv
 
 用途：
 記錄 ASR 轉錄執行結果。逐字稿文字檔儲存在 data/raw/transcripts/，並由 .gitignore 排除。
@@ -664,7 +731,7 @@
 4. 合併逐字稿確認存在後，原始音檔與切段音檔可視為可重建暫存檔，允許從本機刪除；Git 仍保留下載、切段與轉錄 metadata 供追蹤。
 
 
-十二、pending_mentions_review.csv
+十三、pending_mentions_review.csv
 
 用途：
 記錄由 scripts/build_review_queue.py 產生的人工審核清單。這是從 mentions.csv 派生出的工作表，用來填寫 review_decision 與修正欄位，再由 scripts/apply_review_decisions.py 回寫到 mentions.csv。
@@ -731,10 +798,10 @@
     說明：人工校對備註。套用時會追加到 mentions.csv 的 reviewer_note。
 
 
-十三、approved_company_bullish_returns.csv
+十四、approved_company_bullish_returns.csv
 
 用途：
-記錄由 scripts/build_return_report.py 產生的第一版報酬檢查報表。此報表從 mentions.csv、episodes.csv 與 mention_returns.csv 派生，用來人工檢查 approved company bullish / bearish mentions 的基準價、可得 horizon 報酬與相對 benchmark 超額報酬。
+記錄由 scripts/build_return_report.py 產生的第一版報酬檢查報表。此報表從 mentions.csv、episodes.csv、concept_proxies.csv 與 mention_returns.csv 派生，用來人工檢查 approved company bullish / bearish mentions，以及已啟用 proxy 的概念型 bullish / bearish mentions 的基準價、可得 horizon 報酬與相對 benchmark 超額報酬。
 
 欄位群組：
 
@@ -769,7 +836,7 @@
 3. 每次重跑 scripts/fetch_prices.py 更新 mention_returns.csv 後，應再重跑 scripts/build_return_report.py。
 
 
-十四、summary.csv
+十五、summary.csv
 
 用途：
 記錄由 scripts/build_summary_report.py 產生的資料管線總覽。此報表用於快速回答目前有多少資料、審核狀態如何、多少 mention 可回測、目前已可計算哪些 horizon，以及目前可得報酬的平均表現。
@@ -808,7 +875,7 @@
 3. Dashboard 或後續分析可直接讀取 section + metric 作為穩定指標鍵。
 
 
-十五、下一步檢查清單
+十六、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 

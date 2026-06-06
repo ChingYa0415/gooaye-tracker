@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Create reports/summary.csv.")
     parser.add_argument("--episodes-csv", default="data/processed/episodes.csv")
     parser.add_argument("--mentions-csv", default="data/processed/mentions.csv")
+    parser.add_argument("--concept-proxies-csv", default="data/processed/concept_proxies.csv")
     parser.add_argument("--returns-csv", default="data/processed/mention_returns.csv")
     parser.add_argument(
         "--return-report",
@@ -77,9 +78,18 @@ def add_counter_rows(
         rows.append(count_row(section, f"{prefix}.{label}", counter[key], notes))
 
 
+def active_proxy_concepts(rows: list[dict[str, str]]) -> set[str]:
+    return {
+        row["concept_name"]
+        for row in rows
+        if row.get("is_active") == "true" and row.get("ticker") and row.get("market")
+    }
+
+
 def build_summary(
     episodes: list[dict[str, str]],
     mentions: list[dict[str, str]],
+    concept_proxies: list[dict[str, str]],
     returns: list[dict[str, str]],
     return_report: list[dict[str, str]],
 ) -> list[SummaryRow]:
@@ -98,6 +108,14 @@ def build_summary(
         and row["stance"] in {"bullish", "bearish"}
         and bool(row["ticker"])
     ]
+    proxy_concepts = active_proxy_concepts(concept_proxies)
+    concept_proxy_return_candidates = [
+        row
+        for row in approved_mentions
+        if row["mention_type"] != "company"
+        and row["stance"] in {"bullish", "bearish"}
+        and row["company_or_theme"] in proxy_concepts
+    ]
     needs_context = [
         row for row in formal_mentions if row["review_status"] == "needs_context"
     ]
@@ -110,6 +128,12 @@ def build_summary(
             count_row("mentions", "needs_context_total", len(needs_context)),
             count_row("returns", "formal_total", len(formal_returns)),
             count_row("returns", "company_return_candidates", len(return_candidates)),
+            count_row("returns", "concept_proxy_return_candidates", len(concept_proxy_return_candidates)),
+            count_row(
+                "returns",
+                "total_return_candidates",
+                len(return_candidates) + len(concept_proxy_return_candidates),
+            ),
             count_row("reports", "approved_company_bullish_returns_rows", len(return_report)),
         ]
     )
@@ -222,6 +246,7 @@ def main() -> int:
     rows = build_summary(
         episodes=load_csv(pathlib.Path(args.episodes_csv)),
         mentions=load_csv(pathlib.Path(args.mentions_csv)),
+        concept_proxies=load_csv(pathlib.Path(args.concept_proxies_csv)),
         returns=load_csv(pathlib.Path(args.returns_csv)),
         return_report=load_csv(pathlib.Path(args.return_report)),
     )

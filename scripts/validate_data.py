@@ -52,6 +52,17 @@ EXPECTED_FIELDS = {
         "is_active",
         "notes",
     ],
+    "data/processed/concept_proxies.csv": [
+        "concept_name",
+        "proxy_id",
+        "ticker",
+        "market",
+        "name",
+        "weight",
+        "benchmark_market",
+        "is_active",
+        "notes",
+    ],
     "data/processed/mention_returns.csv": [
         "mention_id",
         "ticker",
@@ -237,14 +248,24 @@ def is_formal(row: dict[str, str], id_field: str) -> bool:
     return not row[id_field].startswith("sample_")
 
 
-def is_return_candidate(mention: dict[str, str]) -> bool:
-    return (
-        is_formal(mention, "mention_id")
-        and mention["review_status"] == "approved"
-        and mention["mention_type"] == "company"
-        and mention["stance"] in {"bullish", "bearish"}
-        and bool(mention["ticker"])
-    )
+def active_proxy_concepts(rows: list[dict[str, str]]) -> set[str]:
+    return {
+        row["concept_name"]
+        for row in rows
+        if row.get("is_active") == "true" and row.get("ticker") and row.get("market") in {"TWSE", "TPEx", "US"}
+    }
+
+
+def is_return_candidate(mention: dict[str, str], proxy_concepts: set[str]) -> bool:
+    if (
+        not is_formal(mention, "mention_id")
+        or mention["review_status"] != "approved"
+        or mention["stance"] not in {"bullish", "bearish"}
+    ):
+        return False
+    if mention["mention_type"] == "company":
+        return bool(mention["ticker"])
+    return mention["company_or_theme"] in proxy_concepts
 
 
 def validate_price_files(root: pathlib.Path) -> int:
@@ -273,6 +294,7 @@ def validate(root: pathlib.Path) -> list[str]:
     episodes = tables["data/processed/episodes.csv"].rows
     mentions = tables["data/processed/mentions.csv"].rows
     instruments = tables["data/processed/instruments.csv"].rows
+    concept_proxies = tables["data/processed/concept_proxies.csv"].rows
     returns = tables["data/processed/mention_returns.csv"].rows
     report = read_table(root / "reports/approved_company_bullish_returns.csv")
     require_fields(root / "reports/approved_company_bullish_returns.csv", report, return_report_fields())
@@ -282,6 +304,7 @@ def validate(root: pathlib.Path) -> list[str]:
     require_unique(episodes, "episode_id", "episodes.csv")
     require_unique(mentions, "mention_id", "mentions.csv")
     require_unique(instruments, "instrument_id", "instruments.csv")
+    require_unique(concept_proxies, "proxy_id", "concept_proxies.csv")
     require_unique(returns, "mention_id", "mention_returns.csv")
 
     validate_allowed(episodes, "source_type", ALLOWED["source_type"], "episodes.csv")
@@ -295,12 +318,27 @@ def validate(root: pathlib.Path) -> list[str]:
 
     episode_ids = {row["episode_id"] for row in episodes}
     mention_ids = {row["mention_id"] for row in mentions}
+    proxy_concepts = active_proxy_concepts(concept_proxies)
     approved_ids = {
         row["mention_id"]
         for row in mentions
         if is_formal(row, "mention_id") and row["review_status"] == "approved"
     }
-    candidate_ids = {row["mention_id"] for row in mentions if is_return_candidate(row)}
+    candidate_ids = {row["mention_id"] for row in mentions if is_return_candidate(row, proxy_concepts)}
+
+    for row in concept_proxies:
+        if row["is_active"] not in {"true", "false"}:
+            raise ValidationError(f"concept_proxies.csv:{row['proxy_id']} invalid is_active")
+        validate_float(row["weight"], f"concept_proxies.csv:{row['proxy_id']}:weight")
+        if row["is_active"] == "true":
+            if not row["concept_name"] or not row["ticker"] or not row["name"]:
+                raise ValidationError(f"concept_proxies.csv:{row['proxy_id']} active row is incomplete")
+            if row["market"] not in {"TWSE", "TPEx", "US"}:
+                raise ValidationError(f"concept_proxies.csv:{row['proxy_id']} unsupported market")
+            if row["benchmark_market"] not in {"TWSE", "TPEx", "US"}:
+                raise ValidationError(f"concept_proxies.csv:{row['proxy_id']} unsupported benchmark_market")
+            if float(row["weight"]) <= 0:
+                raise ValidationError(f"concept_proxies.csv:{row['proxy_id']} active weight must be positive")
 
     for row in episodes:
         validate_date(row["published_at"], f"episodes.csv:{row['episode_id']}")
@@ -413,6 +451,8 @@ def validate_summary(rows: list[dict[str, str]]) -> None:
         "mentions.needs_context_total",
         "returns.formal_total",
         "returns.company_return_candidates",
+        "returns.concept_proxy_return_candidates",
+        "returns.total_return_candidates",
         "reports.approved_company_bullish_returns_rows",
     }
     actual_metrics = {f"{row['section']}.{row['metric']}" for row in rows}

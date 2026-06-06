@@ -37,11 +37,23 @@ class PriceRow:
     volume: int
 
 
+@dataclass(frozen=True)
+class ConceptProxy:
+    concept_name: str
+    proxy_id: str
+    ticker: str
+    market: str
+    name: str
+    weight: float
+    benchmark_market: str
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Fetch Yahoo daily prices and update mention_returns.csv."
     )
     parser.add_argument("--mentions-csv", default="data/processed/mentions.csv")
+    parser.add_argument("--concept-proxies-csv", default="data/processed/concept_proxies.csv")
     parser.add_argument("--returns-csv", default="data/processed/mention_returns.csv")
     parser.add_argument("--prices-dir", default="data/prices")
     parser.add_argument(
@@ -67,6 +79,29 @@ def load_csv(path: pathlib.Path) -> tuple[list[str], list[dict[str, str]]]:
     with path.open("r", encoding="utf-8", newline="") as handle:
         reader = csv.DictReader(handle)
         return list(reader.fieldnames or []), list(reader)
+
+
+def load_concept_proxies(path: pathlib.Path) -> dict[str, list[ConceptProxy]]:
+    if not path.exists():
+        return {}
+    _, rows = load_csv(path)
+    proxies_by_concept: dict[str, list[ConceptProxy]] = {}
+    for row in rows:
+        if row.get("is_active") != "true":
+            continue
+        if not row.get("ticker") or row.get("market") not in YAHOO_SYMBOLS:
+            continue
+        proxy = ConceptProxy(
+            concept_name=row["concept_name"],
+            proxy_id=row["proxy_id"],
+            ticker=row["ticker"],
+            market=row["market"],
+            name=row["name"],
+            weight=float(row["weight"]),
+            benchmark_market=row["benchmark_market"],
+        )
+        proxies_by_concept.setdefault(proxy.concept_name, []).append(proxy)
+    return proxies_by_concept
 
 
 def yahoo_symbol(ticker: str, market: str) -> str:
@@ -173,22 +208,40 @@ def approved_mentions(mentions: list[dict[str, str]]) -> list[dict[str, str]]:
     ]
 
 
-def needed_symbols(mentions: list[dict[str, str]]) -> set[str]:
+def needed_symbols(
+    mentions: list[dict[str, str]],
+    concept_proxies: dict[str, list[ConceptProxy]],
+) -> set[str]:
     symbols: set[str] = set()
     for mention in mentions:
         ticker = mention.get("ticker", "")
         market = mention.get("market", "")
-        if mention.get("mention_type") != "company":
-            continue
         if mention.get("stance") not in {"bullish", "bearish"}:
             continue
-        if not ticker or market not in YAHOO_SYMBOLS:
+        if mention.get("mention_type") == "company":
+            if not ticker or market not in YAHOO_SYMBOLS:
+                continue
+            symbols.add(yahoo_symbol(ticker, market))
+            benchmark_symbol = BENCHMARK_SYMBOLS.get(market)
+            if benchmark_symbol:
+                symbols.add(benchmark_symbol)
             continue
-        symbols.add(yahoo_symbol(ticker, market))
-        benchmark_symbol = BENCHMARK_SYMBOLS.get(market)
+
+        proxies = concept_proxies.get(mention.get("company_or_theme", ""), [])
+        for proxy in proxies:
+            symbols.add(yahoo_symbol(proxy.ticker, proxy.market))
+        benchmark_market = concept_benchmark_market(proxies)
+        benchmark_symbol = BENCHMARK_SYMBOLS.get(benchmark_market, "")
         if benchmark_symbol:
             symbols.add(benchmark_symbol)
     return symbols
+
+
+def concept_benchmark_market(proxies: list[ConceptProxy]) -> str:
+    for proxy in proxies:
+        if proxy.benchmark_market:
+            return proxy.benchmark_market
+    return ""
 
 
 def load_price_map(rows: list[PriceRow]) -> dict[date, float]:
@@ -209,6 +262,13 @@ def calc_return(base_price: float, target_price: float, stance: str) -> float:
     return raw_return
 
 
+def weighted_average(values: list[tuple[float, float]]) -> float:
+    total_weight = sum(weight for weight, _ in values)
+    if total_weight <= 0:
+        raise ValueError("Cannot calculate weighted average with non-positive total weight")
+    return sum(weight * value for weight, value in values) / total_weight
+
+
 def empty_return_row(mention: dict[str, str], status: str, notes: str) -> dict[str, str]:
     row = {
         "mention_id": mention["mention_id"],
@@ -227,16 +287,12 @@ def empty_return_row(mention: dict[str, str], status: str, notes: str) -> dict[s
     return row
 
 
-def calculate_return_row(
+def calculate_company_return_row(
     mention: dict[str, str],
     prices_by_symbol: dict[str, dict[date, float]],
 ) -> dict[str, str]:
-    if mention["stance"] not in {"bullish", "bearish"}:
-        return empty_return_row(mention, "not_applicable", "approved mention stance is not bullish/bearish")
-    if mention["mention_type"] != "company":
-        return empty_return_row(mention, "not_applicable", "approved mention is not a single company")
     if not mention["ticker"]:
-        return empty_return_row(mention, "not_applicable", "approved mention has no ticker")
+        return empty_return_row(mention, "not_applicable", "approved company mention has no ticker")
     if mention["market"] not in YAHOO_SYMBOLS:
         return empty_return_row(mention, "not_applicable", "market is not supported by first price fetcher")
 
@@ -281,6 +337,111 @@ def calculate_return_row(
     return row
 
 
+def calculate_concept_return_row(
+    mention: dict[str, str],
+    prices_by_symbol: dict[str, dict[date, float]],
+    proxies: list[ConceptProxy],
+) -> dict[str, str]:
+    if not proxies:
+        return empty_return_row(mention, "not_applicable", "approved concept mention has no active proxy basket")
+
+    published_at = date.fromisoformat(mention["published_at"])
+    base_target = published_at + timedelta(days=1)
+    component_bases: list[tuple[ConceptProxy, date, float]] = []
+    missing_base_symbols: list[str] = []
+    for proxy in proxies:
+        symbol = yahoo_symbol(proxy.ticker, proxy.market)
+        base = first_trade_on_or_after(prices_by_symbol.get(symbol, {}), base_target)
+        if base is None:
+            missing_base_symbols.append(symbol)
+            continue
+        base_date, base_price = base
+        component_bases.append((proxy, base_date, base_price))
+
+    if missing_base_symbols:
+        return empty_return_row(
+            mention,
+            "missing_price",
+            f"missing concept proxy base prices: {';'.join(sorted(missing_base_symbols))}",
+        )
+    if not component_bases:
+        return empty_return_row(mention, "missing_price", "missing all concept proxy base prices")
+
+    base_date = min(component_base[1] for component_base in component_bases)
+    benchmark_market = concept_benchmark_market(proxies)
+    benchmark_symbol = BENCHMARK_SYMBOLS.get(benchmark_market, "")
+    benchmark_prices = prices_by_symbol.get(benchmark_symbol, {}) if benchmark_symbol else {}
+    benchmark_base = first_trade_on_or_after(benchmark_prices, base_date) if benchmark_prices else None
+
+    proxy_symbols = [yahoo_symbol(proxy.ticker, proxy.market) for proxy, _, _ in component_bases]
+    row = empty_return_row(
+        mention,
+        "calculated",
+        f"concept proxy basket={mention['company_or_theme']}; symbols={';'.join(proxy_symbols)}",
+    )
+    row["ticker"] = f"concept_proxy:{mention['company_or_theme']}"
+    row["market"] = "concept"
+    row["base_trade_date"] = base_date.isoformat()
+    row["base_price"] = "1"
+    pending_targets = 0
+
+    for horizon in HORIZONS:
+        component_returns: list[tuple[float, float]] = []
+        missing_target = False
+        for proxy, component_base_date, component_base_price in component_bases:
+            symbol = yahoo_symbol(proxy.ticker, proxy.market)
+            target = first_trade_on_or_after(
+                prices_by_symbol.get(symbol, {}),
+                component_base_date + timedelta(days=horizon),
+            )
+            if target is None:
+                missing_target = True
+                break
+            _, target_price = target
+            component_returns.append(
+                (proxy.weight, calc_return(component_base_price, target_price, mention["stance"]))
+            )
+        if missing_target:
+            pending_targets += 1
+            continue
+
+        mention_return = weighted_average(component_returns)
+        row[f"return_{horizon}d"] = format_number(mention_return)
+
+        if benchmark_base is None:
+            continue
+        benchmark_target = first_trade_on_or_after(benchmark_prices, base_date + timedelta(days=horizon))
+        if benchmark_target is None:
+            continue
+        benchmark_return = benchmark_target[1] / benchmark_base[1] - 1
+        row[f"benchmark_return_{horizon}d"] = format_number(benchmark_return)
+        row[f"excess_return_{horizon}d"] = format_number(mention_return - benchmark_return)
+
+    if pending_targets:
+        row["calculation_status"] = "pending_price"
+        row["notes"] = (
+            f"concept proxy basket={mention['company_or_theme']}; "
+            f"symbols={';'.join(proxy_symbols)}; {pending_targets} horizon target prices unavailable"
+        )
+    return row
+
+
+def calculate_return_row(
+    mention: dict[str, str],
+    prices_by_symbol: dict[str, dict[date, float]],
+    concept_proxies: dict[str, list[ConceptProxy]],
+) -> dict[str, str]:
+    if mention["stance"] not in {"bullish", "bearish"}:
+        return empty_return_row(mention, "not_applicable", "approved mention stance is not bullish/bearish")
+    if mention["mention_type"] == "company":
+        return calculate_company_return_row(mention, prices_by_symbol)
+    return calculate_concept_return_row(
+        mention,
+        prices_by_symbol,
+        concept_proxies.get(mention.get("company_or_theme", ""), []),
+    )
+
+
 def output_fieldnames(existing_fieldnames: list[str]) -> list[str]:
     if existing_fieldnames:
         return existing_fieldnames
@@ -321,10 +482,11 @@ def main() -> int:
     start_date = date.fromisoformat(args.start_date)
     end_date = date.fromisoformat(args.end_date)
     _, mentions = load_csv(pathlib.Path(args.mentions_csv))
+    concept_proxies = load_concept_proxies(pathlib.Path(args.concept_proxies_csv))
     return_fieldnames, existing_returns = load_csv(pathlib.Path(args.returns_csv))
 
     mentions_to_process = approved_mentions(mentions)
-    symbols = sorted(needed_symbols(mentions_to_process))
+    symbols = sorted(needed_symbols(mentions_to_process, concept_proxies))
     prices_dir = pathlib.Path(args.prices_dir)
     price_rows_by_symbol: dict[str, list[PriceRow]] = {}
 
@@ -344,7 +506,7 @@ def main() -> int:
         row for row in existing_returns if row.get("mention_id", "").startswith("sample_")
     ]
     calculated_rows = [
-        calculate_return_row(mention, prices_by_symbol)
+        calculate_return_row(mention, prices_by_symbol, concept_proxies)
         for mention in mentions_to_process
     ]
     write_returns(

@@ -60,6 +60,7 @@ python3 scripts/validate_data.py
 8. calculated / pending_price rows 是否有 base_trade_date 與 base_price。
 9. data/prices/*.csv 是否有必要欄位與可解析的價格。
 10. reports/summary.csv 是否包含必要總覽指標。
+11. data/processed/concept_proxies.csv 的啟用代理成分是否有可抓價格的 ticker、market、權重與 benchmark_market。
 
 若驗證失敗，先修正資料或重建派生檔，再重新執行。
 
@@ -150,6 +151,19 @@ python3 scripts/build_summary_report.py
 python3 scripts/validate_data.py
 
 建議日常使用 scripts/run_daily_update.py，避免忘記重建報表或驗證資料。
+
+概念 proxy 回測：
+
+1. 在 data/processed/concept_proxies.csv 為概念型 mention 定義代理籃子。
+2. concept_name 必須對應 mentions.csv 的 company_or_theme。
+3. 每個啟用成分需填 ticker、market、name、weight、benchmark_market、is_active=true。
+4. 第一版使用 manual v0.1 proxy；若沒有明確上市代理，保留 is_active=false。
+5. 更新 proxy 後執行：
+
+python3 scripts/run_daily_update.py
+
+6. 概念型回測結果會寫入 mention_returns.csv，ticker 會標示為 concept_proxy:{概念名稱}。
+7. reports/approved_company_bullish_returns.csv 會同時列出公司候選與已啟用 proxy 的概念候選。
 
 
 七、Git 提交前檢查

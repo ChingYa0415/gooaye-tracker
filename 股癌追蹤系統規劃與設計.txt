@@ -1221,6 +1221,16 @@ P4：Dashboard。
 52. 透過 reports/pending_mentions_review.csv 回寫 6 筆 needs_context 複核結果：5 筆 approved、1 筆 rejected。
 53. 更新 data/processed/mentions.csv，正式 mentions 目前為 29 筆 approved、1 筆 rejected、0 筆 needs_context。
 54. 重跑 scripts/run_daily_update.py，新增 CRM 價格資料並更新 mention_returns、return report 與 summary。
+55. 建立 data/processed/concept_proxies.csv，為概念型 mentions 定義第一版 manual v0.1 proxy baskets。
+56. 已啟用 proxy 的概念包含 AI Server、AI PC、AI 軟體、ODM/OEM、光通訊、功率元件、功率半導體、散熱、筆電 OEM、被動元件。
+57. 衛星 AI 運算暫無明確上市 pure-play proxy，保留 is_active=false，不強行納入回測。
+58. 更新 scripts/fetch_prices.py，支援概念 proxy basket 的等權或加權平均報酬計算。
+59. 更新 scripts/build_return_report.py，讓報表同時列出公司候選與已啟用 proxy 的概念候選。
+60. 更新 scripts/build_summary_report.py，新增 company_return_candidates、concept_proxy_return_candidates 與 total_return_candidates 指標。
+61. 更新 scripts/validate_data.py，將 concept_proxies.csv schema、權重、啟用代理與報表一致性納入驗證。
+62. 重跑 scripts/run_daily_update.py，新增概念 proxy 所需價格資料，data/prices 目前共有 25 個價格檔。
+63. reports/approved_company_bullish_returns.csv 目前共有 19 筆可追蹤候選，其中 6 筆公司候選、13 筆概念 proxy 候選。
+64. reports/summary.csv 目前共有 28 筆總覽指標，並記錄 4 筆已有 7d return。
 
 修改或新增檔案：
 
@@ -1259,6 +1269,25 @@ P4：Dashboard。
 33. reports/summary.csv
 34. data/prices/CRM.csv
 35. 股癌追蹤系統規劃與設計.txt
+36. data/processed/concept_proxies.csv
+37. data/prices/2317_TW.csv
+38. data/prices/2327_TW.csv
+39. data/prices/2356_TW.csv
+40. data/prices/2382_TW.csv
+41. data/prices/2492_TW.csv
+42. data/prices/3017_TW.csv
+43. data/prices/3081_TWO.csv
+44. data/prices/3163_TWO.csv
+45. data/prices/3231_TW.csv
+46. data/prices/3324_TWO.csv
+47. data/prices/4979_TWO.csv
+48. data/prices/6173_TWO.csv
+49. data/prices/6669_TW.csv
+50. data/prices/8081_TW.csv
+51. data/prices/CRWD.csv
+52. data/prices/NET.csv
+53. data/prices/OKTA.csv
+54. data/prices/PLTR.csv
 
 本機產物，不進 Git：
 
@@ -1304,6 +1333,10 @@ P4：Dashboard。
 21. summary report 是 dashboard 前的資料總覽層，不取代明細報表；明細仍以 mentions.csv、mention_returns.csv 與 approved_company_bullish_returns.csv 為準。
 22. needs_context 複核時，能確認標的與語氣才改為 approved；若二次轉錄仍無法確認，改為 rejected，不保留模糊候選。
 23. ggml-small.bin 只作為本機校對輔助模型，模型檔不進 Git。
+24. 概念型 mentions 可透過 concept_proxies.csv 進入回測，但第一版 proxy baskets 為人工定義，不代表投資建議。
+25. 概念 proxy 的 base_price 在 mention_returns.csv 中記為 1，代表合成籃子基準淨值。
+26. 沒有明確上市 proxy 的概念不強行計算；例如衛星 AI 運算第一版維持停用。
+27. reports/approved_company_bullish_returns.csv 檔名暫時沿用舊名以維持流程相容，但內容已包含可回測的概念 proxy mentions。
 
 遇到問題：
 
@@ -1312,6 +1345,8 @@ P4：Dashboard。
 3. EP667 部分專有名詞被 ASR 誤寫，例如 Marvell 可能被轉成 Mario 或瑪瑞爾；候選 mention 已在 reviewer_note 註記需人工確認。
 4. 逐字稿 alias 搜尋時發現短 ticker 可能誤命中一般英文單字，例如 NOW 命中 Snowflake；已改成 ASCII 代號字邊界匹配。
 5. EP665 載板候選在 small 模型二次轉錄後仍無法明確確認標的，因此改為 rejected。
+6. 第一次加入光通訊 proxy 時，4979 的 Yahoo 市場後綴設錯導致 404；已修正為 TPEx / 4979.TWO。
+7. 概念 proxy 第一版仍需後續人工研究與調整，尤其單一成分 proxy 的功率元件、功率半導體不應直接視為完整產業代表。
 
 驗證方式：
 
@@ -1360,14 +1395,22 @@ P4：Dashboard。
 43. 已確認 reports/approved_company_bullish_returns.csv 更新為 6 筆，新增 Salesforce / CRM。
 44. 已確認 data/prices/CRM.csv 產生 107 筆價格資料列。
 45. 已確認 scripts/run_daily_update.py 完整更新後資料驗證通過。
+46. 已確認 data/processed/concept_proxies.csv 共 35 列，其中 34 列啟用、10 個概念具備 active proxy。
+47. 已確認每個啟用概念 proxy 的權重加總為 1。
+48. 已確認 scripts/run_daily_update.py 可抓取概念 proxy 所需價格，包含 2317.TW、2327.TW、2356.TW、2382.TW、2492.TW、3017.TW、3081.TWO、3163.TWO、3231.TW、3324.TWO、4979.TWO、6173.TWO、6669.TW、8081.TW、CRWD、NET、OKTA、PLTR 等新增價格檔。
+49. 已確認 mention_returns.csv 產生 29 筆正式 return rows，其中 10 筆 not_applicable、19 筆 pending_price。
+50. 已確認 reports/approved_company_bullish_returns.csv 產生 19 筆可追蹤候選，其中 13 筆為 concept proxy。
+51. 已確認目前 4 筆候選已有 7d return：台積電、散熱 proxy、功率元件 proxy、被動元件 proxy。
+52. 已確認 7d available_count 為 4、7d avg_return 為 3.18%、7d hit_rate 為 50.00%、7d avg_excess_return 為 -1.49%。
+53. 已確認 scripts/run_daily_update.py 完整更新後資料驗證通過，price_files=25。
 
 明日待辦：
 
-1. 等待後續交易日資料到期後，重跑 scripts/fetch_prices.py 更新 7 / 30 / 90 / 180 天報酬。
-2. 每次更新價格後，重跑 scripts/build_return_report.py 更新 approved company bullish returns 報表。
+1. 等待後續交易日資料到期後，重跑 scripts/run_daily_update.py 更新 7 / 30 / 90 / 180 天報酬。
+2. 人工檢查 concept_proxies.csv 的 proxy baskets，特別是單一成分 proxy 與主觀性較高的概念。
 3. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
-4. 設計 concept mention 的題材籃子或 ETF proxy，避免概念題材永遠只能 not_applicable。
-5. 規劃第一版 dashboard.html 或更完整的 reports/summary.md，讓非工程視角也能快速閱讀結果。
+4. 規劃第一版 dashboard.html 或更完整的 reports/summary.md，讓非工程視角也能快速閱讀結果。
+5. 評估是否將 reports/approved_company_bullish_returns.csv 重新命名為更中性的 approved_signal_returns.csv。
 
 備註：
-目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、needs_context 二次校對、第一版價格資料抓取、報酬檢查報表、summary 總覽報表與日常資料驗證入口；資料與腳本層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、設計 concept 題材代理，並改善價格來源穩定性。
+目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、needs_context 二次校對、第一版價格資料抓取、公司與概念 proxy 報酬檢查報表、summary 總覽報表與日常資料驗證入口；資料與腳本層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、人工校準 concept proxy baskets，並改善價格來源穩定性。

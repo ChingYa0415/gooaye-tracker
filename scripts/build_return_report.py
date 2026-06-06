@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a readable report for approved company mention returns."""
+"""Build a readable report for approved company and concept-proxy returns."""
 
 from __future__ import annotations
 
@@ -13,10 +13,11 @@ HORIZONS = [7, 30, 90, 180]
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Create a report for approved single-company mention returns."
+        description="Create a report for approved company and concept-proxy mention returns."
     )
     parser.add_argument("--mentions-csv", default="data/processed/mentions.csv")
     parser.add_argument("--episodes-csv", default="data/processed/episodes.csv")
+    parser.add_argument("--concept-proxies-csv", default="data/processed/concept_proxies.csv")
     parser.add_argument("--returns-csv", default="data/processed/mention_returns.csv")
     parser.add_argument(
         "--output",
@@ -46,24 +47,35 @@ def available_horizons(return_row: dict[str, str]) -> str:
     return ";".join(horizons)
 
 
-def is_report_candidate(mention: dict[str, str]) -> bool:
-    return (
-        not mention["mention_id"].startswith("sample_")
-        and mention["review_status"] == "approved"
-        and mention["mention_type"] == "company"
-        and mention["stance"] in {"bullish", "bearish"}
-        and bool(mention["ticker"])
-    )
+def active_proxy_concepts(rows: list[dict[str, str]]) -> set[str]:
+    return {
+        row["concept_name"]
+        for row in rows
+        if row.get("is_active") == "true" and row.get("ticker") and row.get("market")
+    }
+
+
+def is_report_candidate(mention: dict[str, str], proxy_concepts: set[str]) -> bool:
+    if (
+        mention["mention_id"].startswith("sample_")
+        or mention["review_status"] != "approved"
+        or mention["stance"] not in {"bullish", "bearish"}
+    ):
+        return False
+    if mention["mention_type"] == "company":
+        return bool(mention["ticker"])
+    return mention["company_or_theme"] in proxy_concepts
 
 
 def build_rows(
     mentions: list[dict[str, str]],
     episodes_by_id: dict[str, dict[str, str]],
     returns_by_mention_id: dict[str, dict[str, str]],
+    proxy_concepts: set[str],
 ) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     for mention in mentions:
-        if not is_report_candidate(mention):
+        if not is_report_candidate(mention, proxy_concepts):
             continue
 
         return_row = returns_by_mention_id.get(mention["mention_id"], {})
@@ -74,8 +86,8 @@ def build_rows(
             "episode_title": episode.get("title", ""),
             "published_at": mention["published_at"],
             "company_or_theme": mention["company_or_theme"],
-            "ticker": mention["ticker"],
-            "market": mention["market"],
+            "ticker": return_row.get("ticker", mention["ticker"]),
+            "market": return_row.get("market", mention["market"]),
             "stance": mention["stance"],
             "conviction": mention["conviction"],
             "time_horizon": mention["time_horizon"],
@@ -144,11 +156,12 @@ def main() -> int:
     args = parse_args()
     mentions = load_csv(pathlib.Path(args.mentions_csv))
     episodes = {row["episode_id"]: row for row in load_csv(pathlib.Path(args.episodes_csv))}
+    proxy_concepts = active_proxy_concepts(load_csv(pathlib.Path(args.concept_proxies_csv)))
     returns = {
         row["mention_id"]: row
         for row in load_csv(pathlib.Path(args.returns_csv))
     }
-    rows = build_rows(mentions, episodes, returns)
+    rows = build_rows(mentions, episodes, returns, proxy_concepts)
     write_report(pathlib.Path(args.output), rows)
     print(f"Wrote {len(rows)} return report rows to {args.output}")
     return 0
