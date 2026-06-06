@@ -100,7 +100,7 @@ scripts/transcribe_openai.py 預設使用 gpt-4o-mini-transcribe，呼叫 /v1/au
 單檔上傳限制為 25 MB，因此長音檔需先透過 scripts/split_audio.py 切段。
 
 目前狀態：
-轉錄腳本已建立，但本機尚未設定 OPENAI_API_KEY，因此尚未執行實際 ASR。
+轉錄腳本已建立；本機曾嘗試使用 OPENAI_API_KEY 呼叫 API，但回傳 insufficient_quota。第一階段目前改以 whisper.cpp 本機轉錄為主要路線。
 
 本機設定方式：
 
@@ -149,3 +149,17 @@ https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 注意：
 模型檔、chunk transcript 與合併逐字稿皆為本機 raw artifact，由 .gitignore 排除，不進 Git。
 原始音檔與切段音檔只作為轉錄暫存素材；確認合併逐字稿已產生、metadata 已更新後，即可刪除對應音檔與 chunks。
+
+5. 逐字稿候選標的搜尋
+
+工具：
+scripts/search_transcript_mentions.py
+
+用途：
+讀取 data/processed/instruments.csv 的 name、ticker 與 aliases，掃描 data/raw/transcripts/ 下的合併逐字稿，輸出命中的 episode、行號、標的與上下文片段。
+
+範例：
+python3 scripts/search_transcript_mentions.py --episode-id ep_20260530_666 --episode-id ep_20260527_665 --limit-per-alias 2
+
+注意：
+此工具只用來加速人工初篩，不會自動新增 approved mention。正式進入回測前仍需人工校對 ASR 文字與上下文。

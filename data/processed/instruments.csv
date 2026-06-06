@@ -25,3 +25,15 @@ inst_concept_power_semiconductor,,concept,功率半導體,"功率元件;Power Se
 inst_concept_pcb,,concept,PCB,"印刷電路板;電路板;載板",電子零組件,,true,concept sample not a single tradable instrument
 inst_concept_thermal,,concept,散熱,"水冷;液冷;散熱模組",電子零組件,,true,concept sample not a single tradable instrument
 inst_concept_memory,,concept,記憶體,"DRAM;NAND;HBM;高頻寬記憶體",半導體,,true,concept sample not a single tradable instrument
+inst_us_tsla,TSLA,US,Tesla,"特斯拉;Tesla;TSLA",電動車與能源,NASDAQ,true,manually added from EP665 transcript review
+inst_us_crm,CRM,US,Salesforce,"Salesforce;CRM",雲端軟體,NYSE,true,manually added from EP666 transcript review
+inst_us_now,NOW,US,ServiceNow,"ServiceNow;NOW",雲端軟體,NYSE,true,manually added from EP666 transcript review
+inst_us_okta,OKTA,US,Okta,"Okta;OKTA",雲端軟體,NASDAQ,true,manually added from EP666 transcript review
+inst_us_net,NET,US,Cloudflare,"Cloudflare;NET",雲端軟體,NYSE,true,manually added from EP666 transcript review
+inst_us_crwd,CRWD,US,CrowdStrike,"CrowdStrike;CRWD",資安軟體,NASDAQ,true,manually added from EP666 transcript review
+inst_us_pltr,PLTR,US,Palantir,"Palantir;Piantia;PLTR",資料分析軟體,NASDAQ,true,manually added from EP666 transcript review
+inst_concept_ai_software,,concept,AI 軟體,"AI software;軟體股;雲端軟體;AI應用軟體",雲端軟體,,true,concept added from EP666 transcript review
+inst_concept_odm_oem,,concept,ODM/OEM,"老AI;OD and OEM;ODM;OEM;EMS;代工;伺服器代工",科技硬體,,true,concept added from EP666 transcript review
+inst_concept_passive_components,,concept,被動元件,"MLCC;鋁電容;旅電容;電容;功率元件;被動元件",電子零組件,,true,concept added from EP666 transcript review
+inst_concept_satellite_ai_compute,,concept,衛星 AI 運算,"衛星AI運算;軌道AI伺服器;SpaceX;Starlink;NeoCloud;AI Center",太空與雲端基礎設施,,true,concept added from EP665 transcript review
+inst_concept_robotics,,concept,機器人,"Robot;Robotics;機器人類股",自動化,,true,concept added from EP665 transcript review

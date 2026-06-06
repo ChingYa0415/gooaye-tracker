@@ -1184,6 +1184,11 @@ P4：Dashboard。
 15. 合併 EP666 與 EP665 單集逐字稿。
 16. 更新 episodes.csv 與 transcript_inputs.csv，將 EP666、EP665 transcript_status 改為 generated。
 17. 新增音檔清理規範：逐字稿確認產生且 metadata 更新後，原始音檔與切段音檔可從本機刪除。
+18. 搜尋 EP666 與 EP665 逐字稿中的公司、產業與主題關鍵字。
+19. 新增 12 筆 EP666 / EP665 候選 mentions，狀態皆為 pending。
+20. 補充 instruments.csv 的 US 標的與概念項目，包含 Tesla、Salesforce、ServiceNow、Okta、Cloudflare、CrowdStrike、Palantir、AI 軟體、ODM/OEM、被動元件、衛星 AI 運算、機器人。
+21. 建立 scripts/search_transcript_mentions.py，依 instruments aliases 掃描本機逐字稿並輸出命中上下文 CSV。
+22. 修正搜尋腳本對短美股 ticker 的誤命中問題，例如 NOW 不應命中 Snowflake。
 
 修改或新增檔案：
 
@@ -1200,7 +1205,8 @@ P4：Dashboard。
 11. scripts/transcribe_openai.py
 12. scripts/transcribe_whisper_cpp.py
 13. docs/資料字典.txt
-14. 股癌追蹤系統規劃與設計.txt
+14. scripts/search_transcript_mentions.py
+15. 股癌追蹤系統規劃與設計.txt
 
 本機產物，不進 Git：
 
@@ -1226,12 +1232,15 @@ P4：Dashboard。
 3. 逐字稿原文不進 Git，只追蹤 transcript metadata。
 4. EP667 第一輪 mention 先標 pending，不進正式回測；待人工聽音檔或校對逐字稿後再改為 approved / rejected。
 5. 音檔與切段音檔不是長期保存資料；只要合併逐字稿與 metadata 已完成，即可刪除本機音檔，日後需要時再依 audio_downloads.csv 與 transcript_inputs.csv 重新取得。
+6. EP666 與 EP665 的候選 mentions 同樣先標 pending；ASR 初稿有錯字，不能直接進入 approved 或主要回測。
+7. search_transcript_mentions.py 只作為人工初篩工具，不自動產生正式 mentions。
 
 遇到問題：
 
 1. OpenAI API 回傳 insufficient_quota，無法使用雲端 Speech-to-Text。
 2. whisper.cpp 產生的中文初稿會有錯字，例如品牌、人名、公司名與英文專有名詞，需要人工校對後才能作為 evidence_text。
 3. EP667 部分專有名詞被 ASR 誤寫，例如 Marvell 可能被轉成 Mario 或瑪瑞爾；候選 mention 已在 reviewer_note 註記需人工確認。
+4. 逐字稿 alias 搜尋時發現短 ticker 可能誤命中一般英文單字，例如 NOW 命中 Snowflake；已改成 ASCII 代號字邊界匹配。
 
 驗證方式：
 
@@ -1244,14 +1253,18 @@ P4：Dashboard。
 7. 已確認 EP666 與 EP665 各有 4 筆 transcription_runs generated 記錄。
 8. 已確認 EP666 與 EP665 合併逐字稿產生成功。
 9. 已確認 EP667、EP666、EP665 三集 transcript_status 都是 generated。
+10. 已確認 mentions.csv 正式候選 mentions 達 20 筆，全部仍為 pending。
+11. 已確認 EP666 新增 6 筆候選 mentions，EP665 新增 6 筆候選 mentions。
+12. 已確認 instruments.csv 與 mentions.csv 欄位數一致。
+13. 已確認 search_transcript_mentions.py 可掃描 EP666 / EP665 並輸出 48 筆 alias hit。
 
 明日待辦：
 
-1. 搜尋 EP666、EP665 逐字稿中的公司與產業關鍵字。
-2. 人工初步標註 EP666、EP665 候選 mentions。
-3. 人工校對 EP667 的 8 筆 pending mentions，決定 approved / rejected / needs_context。
+1. 再從 EP667、EP666、EP665 中補至少 10 筆候選 mentions，讓正式候選累積到至少 30 筆。
+2. 人工校對 EP667 的 8 筆 pending mentions，決定 approved / rejected / needs_context。
+3. 人工校對 EP666、EP665 的 12 筆 pending mentions。
 4. 視品質決定是否改用更大的 whisper.cpp 模型，例如 small 或 medium。
-5. 累積候選 mentions 到至少 30 筆。
+5. 開始設計 approved mention 的價格資料抓取與回測腳本。
 
 備註：
-目前第一階段已跨過逐字稿取得的第一個門檻，接下來重點轉為人工校對與 mention 標註。
+目前第一階段已跨過逐字稿取得的第一個門檻，並累積 20 筆 pending 候選 mentions；接下來重點是補足 30 筆候選與人工校對。
