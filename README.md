@@ -18,6 +18,7 @@
 - `data/prices/`：價格資料。
 - `scripts/`：資料抓取、抽取與回測腳本。
 - `reports/`：統計報表與輸出結果。
+- `reports/dashboard.html`：靜態測試版 Dashboard，可直接用瀏覽器開啟。
 
 常用命令：
 
@@ -27,6 +28,7 @@ python3 scripts/validate_data.py
 python3 scripts/build_return_report.py
 python3 scripts/build_summary_report.py
 python3 scripts/build_concept_proxy_review.py
+python3 scripts/build_dashboard.py
 ```
 
 需要更新價格時：

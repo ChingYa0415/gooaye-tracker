@@ -1236,6 +1236,11 @@ P4：Dashboard。
 67. 更新 scripts/run_daily_update.py，將 concept proxy review report 納入日常更新流程。
 68. 更新 scripts/validate_data.py，將 reports/concept_proxy_review.csv 欄位與 proxy_id 一致性納入驗證。
 69. 更新 README.md、docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄概念 proxy 審核工作表流程。
+70. 建立 scripts/build_dashboard.py，將 summary、return report 與 concept proxy review 組成靜態 Dashboard。
+71. 產生 reports/dashboard.html 測試版，支援總覽卡片、追蹤明細、7d 報酬條圖、公司 / 概念 proxy 篩選、狀態篩選與 proxy 審核表。
+72. 更新 scripts/run_daily_update.py，將 dashboard 產生納入日常更新流程。
+73. 更新 scripts/validate_data.py，檢查 reports/dashboard.html 是否存在且包含必要資料掛載點。
+74. 完成 dashboard 瀏覽器測試：桌面 1280px 與手機 390px 寬度皆無頁面級水平溢出，互動篩選與清除篩選可正常運作。
 
 修改或新增檔案：
 
@@ -1295,6 +1300,8 @@ P4：Dashboard。
 54. data/prices/PLTR.csv
 55. scripts/build_concept_proxy_review.py
 56. reports/concept_proxy_review.csv
+57. scripts/build_dashboard.py
+58. reports/dashboard.html
 
 本機產物，不進 Git：
 
@@ -1355,6 +1362,8 @@ P4：Dashboard。
 6. 第一次加入光通訊 proxy 時，4979 的 Yahoo 市場後綴設錯導致 404；已修正為 TPEx / 4979.TWO。
 7. 概念 proxy 第一版仍需後續人工研究與調整，尤其單一成分 proxy 的功率元件、功率半導體不應直接視為完整產業代表。
 8. concept_proxy_review.csv 第一版只產生人工審核欄位，不自動回寫 concept_proxies.csv，避免尚未確認的籃子調整直接影響回測。
+9. Dashboard 測試版採靜態 HTML，不引入後端或前端框架，先以最低維護成本提供可讀入口。
+10. Dashboard 是派生視圖，不取代 CSV 真相來源；正式資料仍以 data/processed/*.csv 與 reports/*.csv 為準。
 
 驗證方式：
 
@@ -1416,14 +1425,24 @@ P4：Dashboard。
 56. 已確認 concept_issue 標出功率元件與功率半導體為 single_name_proxy / needs_sector_expansion。
 57. 已確認 concept_issue 標出衛星 AI 運算為 no_active_proxy / mentioned_but_not_trackable。
 58. 已確認 scripts/run_daily_update.py --skip-price-fetch 可重建 return report、summary report、concept proxy review report 並通過資料驗證。
+59. 已確認 scripts/build_dashboard.py 可產生 reports/dashboard.html。
+60. 已確認 Dashboard 首屏顯示 6 個 summary cards，數值包含 10 episodes、30 mentions、19 trackable、4 筆 7d ready、7d avg return 3.18%、7d avg excess -1.49%。
+61. 已確認 Dashboard 追蹤明細表渲染 19 筆，proxy 審核表渲染 35 筆。
+62. 已確認搜尋「台積電」會將追蹤明細縮小為 2 筆。
+63. 已確認類型篩選「概念 proxy」會將追蹤明細縮小為 13 筆。
+64. 已確認 proxy 優先度篩選「優先」會將 proxy 審核表縮小為 3 筆。
+65. 已確認清除篩選按鈕可恢復追蹤明細 19 筆與 proxy 審核表 35 筆。
+66. 已確認瀏覽器 console 無 error logs。
+67. 已確認桌面 1280px 與手機 390px 寬度下 document scroll width 不超出 viewport。
+68. 已確認 scripts/run_daily_update.py --skip-price-fetch 會重建 dashboard 並通過資料驗證。
 
 明日待辦：
 
 1. 等待後續交易日資料到期後，重跑 scripts/run_daily_update.py 更新 7 / 30 / 90 / 180 天報酬。
 2. 依 reports/concept_proxy_review.csv 人工檢查 concept proxy baskets，特別是功率元件、功率半導體與衛星 AI 運算。
 3. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
-4. 規劃第一版 dashboard.html 或更完整的 reports/summary.md，讓非工程視角也能快速閱讀結果。
+4. 人工檢查 Dashboard 測試版的資訊密度與欄位優先順序，決定是否需要加上排序、匯出或更多 horizon 視覺化。
 5. 視人工審核需求，建立 apply_concept_proxy_review.py，將已確認的 proxy review 決策安全回寫 concept_proxies.csv。
 
 備註：
-目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、needs_context 二次校對、第一版價格資料抓取、公司與概念 proxy 報酬檢查報表、summary 總覽報表與日常資料驗證入口；資料與腳本層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、人工校準 concept proxy baskets，並改善價格來源穩定性。
+目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、needs_context 二次校對、第一版價格資料抓取、公司與概念 proxy 報酬檢查報表、summary 總覽報表、concept proxy review 工作表、Dashboard 測試版與日常資料驗證入口；資料、腳本與可讀報表層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、人工校準 concept proxy baskets，並改善價格來源穩定性。

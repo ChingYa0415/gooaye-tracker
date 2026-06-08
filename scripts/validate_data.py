@@ -307,6 +307,23 @@ def validate_price_files(root: pathlib.Path) -> int:
     return len(price_paths)
 
 
+def validate_dashboard(root: pathlib.Path) -> None:
+    path = root / "reports/dashboard.html"
+    if not path.exists():
+        raise ValidationError("Missing dashboard report: reports/dashboard.html")
+    text = path.read_text(encoding="utf-8")
+    required_fragments = [
+        "<title>股癌追蹤 Dashboard</title>",
+        'id="return-data"',
+        'id="proxy-data"',
+        'id="signalsBody"',
+        'id="proxyBody"',
+    ]
+    missing = [fragment for fragment in required_fragments if fragment not in text]
+    if missing:
+        raise ValidationError(f"reports/dashboard.html missing fragments: {missing}")
+
+
 def validate(root: pathlib.Path) -> list[str]:
     tables: dict[str, Table] = {}
     for relative_path, expected_fields in EXPECTED_FIELDS.items():
@@ -427,6 +444,7 @@ def validate(root: pathlib.Path) -> list[str]:
     validate_summary(summary.rows)
 
     price_file_count = validate_price_files(root)
+    validate_dashboard(root)
     formal_mentions = [row for row in mentions if is_formal(row, "mention_id")]
     review_counts = Counter(row["review_status"] for row in formal_mentions)
     return_counts = Counter(row["calculation_status"] for row in returns if is_formal(row, "mention_id"))
@@ -439,6 +457,7 @@ def validate(root: pathlib.Path) -> list[str]:
         f"mention_returns={len(formal_return_ids)} formal calculation_status={dict(sorted(return_counts.items()))}",
         f"return_report={len(report.rows)} rows available_horizons={dict(sorted(available_counts.items()))}",
         f"summary={len(summary.rows)} rows",
+        "dashboard=reports/dashboard.html",
         f"price_files={price_file_count}",
     ]
 

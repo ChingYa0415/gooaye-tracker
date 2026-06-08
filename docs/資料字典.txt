@@ -54,6 +54,9 @@
 4. reports/concept_proxy_review.csv
    記錄概念 proxy baskets 的人工審核工作表，協助檢查代理成分、權重與待修正項目。
 
+5. reports/dashboard.html
+   靜態測試版 Dashboard，整合 summary、return report 與 concept proxy review 的可讀視圖。
+
 本機設定檔：
 
 1. .env
@@ -924,7 +927,20 @@
    說明：人工填寫的調整建議。第一版尚不自動回寫，正式修改仍需更新 concept_proxies.csv。
 
 
-十七、下一步檢查清單
+十七、dashboard.html
+
+用途：
+記錄由 scripts/build_dashboard.py 產生的靜態 Dashboard。此檔案從 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv 派生，提供總覽、追蹤明細、篩選、7d 報酬條圖與 proxy 審核表。
+
+使用規則：
+
+1. 此檔案是派生檔，可由 scripts/build_dashboard.py 重建。
+2. Dashboard 不作為原始真相來源；資料仍以 data/processed/*.csv 與 reports/*.csv 為準。
+3. 每次更新價格、mention review 或 concept proxy review 後，應重建 dashboard.html。
+4. validate_data.py 會檢查 dashboard.html 是否存在，並確認必要資料掛載點存在。
+
+
+十八、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -943,3 +959,4 @@
 13. 每次更新價格後，是否已同步重建 approved_company_bullish_returns.csv。
 14. summary.csv 是否包含 episodes.formal_total、mentions.formal_total、returns.formal_total 與 reports.approved_company_bullish_returns_rows 等核心指標。
 15. concept_proxy_review.csv 是否與 concept_proxies.csv 的 proxy_id 完全一致。
+16. dashboard.html 是否已由最新 reports/*.csv 重建。

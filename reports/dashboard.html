@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>股癌追蹤 Dashboard</title>
+  <style>
+    :root {
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --panel-soft: #f0f3ef;
+      --ink: #1c2420;
+      --muted: #66716a;
+      --line: #dce2dc;
+      --accent: #0f766e;
+      --accent-weak: #d7f0eb;
+      --amber: #b7791f;
+      --amber-weak: #f7e8c8;
+      --rose: #b42318;
+      --rose-weak: #f8d8d4;
+      --green: #147a43;
+      --green-weak: #d9f1df;
+      --shadow: 0 1px 2px rgba(28, 36, 32, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .shell {
+      width: min(1440px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    .subtle { color: var(--muted); font-size: 13px; }
+    .generated { text-align: right; min-width: 220px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .stat, .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    .stat { padding: 12px 14px; min-height: 92px; }
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+    .stat-value {
+      margin-top: 8px;
+      font-size: 26px;
+      font-weight: 720;
+      line-height: 1;
+      letter-spacing: 0;
+    }
+    .stat-note { margin-top: 8px; color: var(--muted); font-size: 12px; }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(320px, 0.95fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .panel { overflow: hidden; }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-soft);
+    }
+    h2 { margin: 0; font-size: 16px; letter-spacing: 0; }
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(120px, 0.8fr)) 40px;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfa;
+    }
+    input, select, button {
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }
+    button {
+      display: grid;
+      place-items: center;
+      padding: 0;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    button:hover { border-color: #b8c4bc; color: var(--ink); }
+    .table-wrap { overflow: auto; max-height: 690px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #eef2ec;
+      color: #334139;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    td.wrap { white-space: normal; min-width: 260px; max-width: 420px; }
+    .name-cell strong { display: block; font-size: 14px; }
+    .name-cell span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 650;
+      border: 1px solid transparent;
+    }
+    .badge-company { color: #075985; background: #dff0fb; border-color: #bee3f8; }
+    .badge-concept { color: #6b4e00; background: var(--amber-weak); border-color: #efd08f; }
+    .badge-status { color: #445047; background: #edf1ed; border-color: var(--line); }
+    .badge-ready { color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }
+    .badge-high { color: var(--rose); background: var(--rose-weak); border-color: #efb5ad; }
+    .badge-watch { color: var(--amber); background: var(--amber-weak); border-color: #efd08f; }
+    .badge-ok { color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }
+    .bar-cell { min-width: 170px; }
+    .bar-track {
+      position: relative;
+      height: 24px;
+      width: 150px;
+      background: #edf0eb;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .bar-zero {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: #a9b2aa;
+    }
+    .bar-fill {
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      border-radius: 3px;
+      min-width: 2px;
+    }
+    .bar-fill.pos { left: 50%; background: var(--green); }
+    .bar-fill.neg { right: 50%; background: var(--rose); }
+    .bar-label {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .empty {
+      display: none;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .proxy-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfa;
+    }
+    .issue-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: #eef2ec;
+      color: #334139;
+      font-size: 12px;
+      border: 1px solid var(--line);
+    }
+    .proxy-table table { min-width: 760px; }
+    .proxy-table .table-wrap { max-height: 520px; }
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    @media (max-width: 1100px) {
+      .stats { grid-template-columns: repeat(3, minmax(120px, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+      .generated { text-align: left; }
+      header { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 720px) {
+      .shell { width: min(100vw - 20px, 1440px); padding-top: 14px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .filters { grid-template-columns: 1fr; }
+      .stat-value { font-size: 22px; }
+      h1 { font-size: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>股癌追蹤 Dashboard</h1>
+        <div class="subtle">公司訊號、概念 proxy、回測進度與代理籃子審核</div>
+      </div>
+      <div class="generated subtle">Generated<br>2026-06-08 16:51:24 CST</div>
+    </header>
+
+    <main>
+      <section class="stats" aria-label="summary">
+        
+        <section class="stat">
+          <div class="stat-label">Episodes</div>
+          <div class="stat-value">10</div>
+          <div class="stat-note">formal sources</div>
+        </section>
+        
+
+        <section class="stat">
+          <div class="stat-label">Mentions</div>
+          <div class="stat-value">30</div>
+          <div class="stat-note">29 approved</div>
+        </section>
+        
+
+        <section class="stat">
+          <div class="stat-label">Trackable</div>
+          <div class="stat-value">19</div>
+          <div class="stat-note">13 concept proxy</div>
+        </section>
+        
+
+        <section class="stat">
+          <div class="stat-label">7d Ready</div>
+          <div class="stat-value">4</div>
+          <div class="stat-note">50.00% hit rate</div>
+        </section>
+        
+
+        <section class="stat">
+          <div class="stat-label">7d Avg</div>
+          <div class="stat-value">3.18%</div>
+          <div class="stat-note">stance-adjusted</div>
+        </section>
+        
+
+        <section class="stat">
+          <div class="stat-label">7d Excess</div>
+          <div class="stat-value">-1.49%</div>
+          <div class="stat-note">vs benchmark</div>
+        </section>
+        
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>追蹤明細</h2>
+            <span class="subtle" id="signalCount"></span>
+          </div>
+          <div class="filters">
+            <input id="searchInput" type="search" placeholder="搜尋標的、ticker、episode">
+            <select id="kindFilter" aria-label="kind">
+              <option value="">全部類型</option>
+              <option value="company">公司</option>
+              <option value="concept">概念 proxy</option>
+            </select>
+            <select id="marketFilter" aria-label="market">
+              <option value="">全部市場</option>
+            </select>
+            <select id="statusFilter" aria-label="status">
+              <option value="">全部狀態</option>
+            </select>
+            <select id="horizonFilter" aria-label="horizon">
+              <option value="">全部 horizon</option>
+              <option value="7d">已有 7d</option>
+              <option value="pending">等待價格</option>
+            </select>
+            <button id="clearSignalFilters" type="button" aria-label="清除篩選" title="清除篩選">×</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>標的</th>
+                  <th>類型</th>
+                  <th>發布</th>
+                  <th>基準日</th>
+                  <th>狀態</th>
+                  <th>7d 報酬</th>
+                  <th>7d 超額</th>
+                  <th>證據</th>
+                </tr>
+              </thead>
+              <tbody id="signalsBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="signalsEmpty">沒有符合篩選條件的追蹤項目。</div>
+        </div>
+
+        <aside class="panel proxy-table">
+          <div class="panel-head">
+            <h2>Proxy 審核</h2>
+            <span class="subtle" id="proxyCount"></span>
+          </div>
+          <div class="proxy-summary"><span class="issue-chip">ok <strong>19</strong></span>
+<span class="issue-chip">proxy_defined_before_mentions <strong>8</strong></span>
+<span class="issue-chip">mixed_component_markets <strong>5</strong></span>
+<span class="issue-chip">single_name_proxy;needs_sector_expansion <strong>2</strong></span>
+<span class="issue-chip">no_active_proxy;mentioned_but_not_trackable;has_inactive_rows <strong>1</strong></span></div>
+          <div class="filters" style="grid-template-columns: minmax(160px, 1fr) minmax(120px, .7fr) 40px;">
+            <input id="proxySearchInput" type="search" placeholder="搜尋概念、成分股、issue">
+            <select id="proxyPriorityFilter" aria-label="priority">
+              <option value="">全部</option>
+              <option value="high">優先</option>
+              <option value="watch">檢查</option>
+              <option value="ok">OK</option>
+            </select>
+            <button id="clearProxyFilters" type="button" aria-label="清除 proxy 篩選" title="清除篩選">×</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>概念</th>
+                  <th>優先度</th>
+                  <th>成分</th>
+                  <th>權重</th>
+                  <th>Issue</th>
+                </tr>
+              </thead>
+              <tbody id="proxyBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="proxyEmpty">沒有符合篩選條件的 proxy 成分。</div>
+        </aside>
+      </section>
+
+      <div class="footer-note">資料來源：reports/summary.csv、reports/approved_company_bullish_returns.csv、reports/concept_proxy_review.csv。更新請執行 python3 scripts/run_daily_update.py。</div>
+    </main>
+  </div>
+
+  <script id="return-data" type="application/json">[{"mention_id": "m_20260527_001", "episode_id": "ep_20260527_665", "episode_title": "EP665 | 🌸", "published_at": "2026-05-27", "company_or_theme": "台積電", "ticker": "2330", "market": "TWSE", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-05-28", "base_price": "2295", "available_horizons": "7d", "calculation_status": "pending_price", "evidence_text": "在台灣的話好像也沒有什麼別的更好的選擇 所以他台積電拿到的配已經超級好 後面會越來越好。", "return_notes": "price source Yahoo chart symbol=2330.TW; 3 horizon target prices unavailable", "return_7d": "0.03921568627", "return_7d_pct": "3.92%", "benchmark_return_7d": "0.0467732809", "benchmark_return_7d_pct": "4.68%", "excess_return_7d": "-0.007557594623", "excess_return_7d_pct": "-0.76%", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "company", "kind_label": "公司", "best_horizon": "7d", "return_7d_display": "3.92%", "excess_7d_display": "-0.76%", "return_7d_value": 0.03921568627, "excess_return_7d_value": -0.007557594623}, {"mention_id": "m_20260527_004", "episode_id": "ep_20260527_665", "episode_title": "EP665 | 🌸", "published_at": "2026-05-27", "company_or_theme": "散熱", "ticker": "concept_proxy:散熱", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "long", "base_trade_date": "2026-05-28", "base_price": "1", "available_horizons": "7d", "calculation_status": "pending_price", "evidence_text": "如果說軌道衛星的AI伺服器是真的可以推起來的話 散熱這邊可能到後面都會帶來非常具有的一個收入。", "return_notes": "concept proxy basket=散熱; symbols=3017.TW;3324.TWO; 3 horizon target prices unavailable", "return_7d": "0.1147460373", "return_7d_pct": "11.47%", "benchmark_return_7d": "0.0467732809", "benchmark_return_7d_pct": "4.68%", "excess_return_7d": "0.06797275636", "excess_return_7d_pct": "6.80%", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "7d", "return_7d_display": "11.47%", "excess_7d_display": "6.80%", "return_7d_value": 0.1147460373, "excess_return_7d_value": 0.06797275636}, {"mention_id": "m_20260527_005", "episode_id": "ep_20260527_665", "episode_title": "EP665 | 🌸", "published_at": "2026-05-27", "company_or_theme": "功率元件", "ticker": "concept_proxy:功率元件", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-05-28", "base_price": "1", "available_horizons": "7d", "calculation_status": "pending_price", "evidence_text": "有一些元件在缺貨，這些功率元件開始在漲價。", "return_notes": "concept proxy basket=功率元件; symbols=8081.TW; 3 horizon target prices unavailable", "return_7d": "-0.02268760908", "return_7d_pct": "-2.27%", "benchmark_return_7d": "0.0467732809", "benchmark_return_7d_pct": "4.68%", "excess_return_7d": "-0.06946088997", "excess_return_7d_pct": "-6.95%", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "7d", "return_7d_display": "-2.27%", "excess_7d_display": "-6.95%", "return_7d_value": -0.02268760908, "excess_return_7d_value": -0.06946088997}, {"mention_id": "m_20260527_007", "episode_id": "ep_20260527_665", "episode_title": "EP665 | 🌸", "published_at": "2026-05-27", "company_or_theme": "被動元件", "ticker": "concept_proxy:被動元件", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-05-28", "base_price": "1", "available_horizons": "7d", "calculation_status": "pending_price", "evidence_text": "整體趨勢都是在往上，所以其實像前面去看被動元件的時候，有時候你當然也會懷疑。", "return_notes": "concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 3 horizon target prices unavailable", "return_7d": "-0.003915773534", "return_7d_pct": "-0.39%", "benchmark_return_7d": "0.0467732809", "benchmark_return_7d_pct": "4.68%", "excess_return_7d": "-0.05068905443", "excess_return_7d_pct": "-5.07%", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "7d", "return_7d_display": "-0.39%", "excess_7d_display": "-5.07%", "return_7d_value": -0.003915773534, "excess_return_7d_value": -0.05068905443}, {"mention_id": "m_20260530_001", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "被動元件", "ticker": "concept_proxy:被動元件", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-01", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "全球缺口大概是高達20幾%左右 所有人的產能加起來都是不夠的 後面都會持續發酵 持續的漲價。", "return_notes": "concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260530_002", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "AI 軟體", "ticker": "concept_proxy:AI 軟體", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-06-01", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "其實AI是幫這些軟體去做加分 他不是一個扣分項。", "return_notes": "concept proxy basket=AI 軟體; symbols=CRM;CRWD;NET;NOW;OKTA;PLTR;SNOW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260530_003", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "Snowflake", "ticker": "SNOW", "market": "US", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-01", "base_price": "280.1600037", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "最近像是 Okta 或是 Snowflake 都是開出極好的成績。", "return_notes": "price source Yahoo chart symbol=SNOW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "company", "kind_label": "公司", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260530_004", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "ODM/OEM", "ticker": "concept_proxy:ODM/OEM", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-01", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "讓老AI再一次的全部跑回來 重新動回去這些老AI的話 當然對很多人來講它是一個很大的刺激。", "return_notes": "concept proxy basket=ODM/OEM; symbols=2317.TW;2356.TW;2382.TW;3231.TW;6669.TW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260530_005", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "AI 軟體", "ticker": "concept_proxy:AI 軟體", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-06-01", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "後面就是有可能這個資金會往這個軟體的方向去跑。", "return_notes": "concept proxy basket=AI 軟體; symbols=CRM;CRWD;NET;NOW;OKTA;PLTR;SNOW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260530_007", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "Salesforce", "ticker": "CRM", "market": "US", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-01", "base_price": "209.6000061", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "像 Salesforce 他搞了一個 record high 的 buyback，他就狂買股票；你們覺得我公司很爛，我就用行動證明給你看。", "return_notes": "price source Yahoo chart symbol=CRM; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "company", "kind_label": "公司", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260530_008", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "ServiceNow", "ticker": "NOW", "market": "US", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-06-01", "base_price": "135.8600006", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "ServiceNow的老闆也是跟大家講說 外面的那些AI論述全部都是講錯的 其實他的公司是在一個非常大的順風上面。", "return_notes": "price source Yahoo chart symbol=NOW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "company", "kind_label": "公司", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260530_010", "episode_id": "ep_20260530_666", "episode_title": "EP666 | 🍐", "published_at": "2026-05-30", "company_or_theme": "被動元件", "ticker": "concept_proxy:被動元件", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-01", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "大家也開始注意到鋁電容這邊出事情了；鋁電容是非常缺乏，市場對它的討論度是不夠的，他們其實都是有噴。", "return_notes": "concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260603_002", "episode_id": "ep_20260603_667", "episode_title": "EP667 | 🌍", "published_at": "2026-06-03", "company_or_theme": "光通訊", "ticker": "concept_proxy:光通訊", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-06-04", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "光的一個成長的速率跟未來發展的可能性是持續的在拉大。", "return_notes": "concept proxy basket=光通訊; symbols=3081.TWO;3163.TWO;4979.TWO; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260603_003", "episode_id": "ep_20260603_667", "episode_title": "EP667 | 🌍", "published_at": "2026-06-03", "company_or_theme": "光通訊", "ticker": "concept_proxy:光通訊", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-04", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "有可能在後面這個資金又會再一次的說不定就往光的方向去跑。", "return_notes": "concept proxy basket=光通訊; symbols=3081.TWO;3163.TWO;4979.TWO; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260603_005", "episode_id": "ep_20260603_667", "episode_title": "EP667 | 🌍", "published_at": "2026-06-03", "company_or_theme": "AI PC", "ticker": "concept_proxy:AI PC", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-06-04", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "如果說 AI PC 可以拉起來的話 因為它本身的單價是比較高。", "return_notes": "concept proxy basket=AI PC; symbols=2317.TW;2356.TW;2382.TW;3231.TW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260603_006", "episode_id": "ep_20260603_667", "episode_title": "EP667 | 🌍", "published_at": "2026-06-03", "company_or_theme": "台積電", "ticker": "2330", "market": "TWSE", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-04", "base_price": "2385", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "TSMC 很明顯地在轉強 搞不好後面投信的資金進來就有機會會把它推上去。", "return_notes": "price source Yahoo chart symbol=2330.TW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "company", "kind_label": "公司", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260603_007", "episode_id": "ep_20260603_667", "episode_title": "EP667 | 🌍", "published_at": "2026-06-03", "company_or_theme": "NVIDIA", "ticker": "NVDA", "market": "US", "stance": "bullish", "conviction": "medium", "time_horizon": "short", "base_trade_date": "2026-06-04", "base_price": "218.6600037", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "NVIDIA 也是有突破在往上去走 所以確實其實是有機會的。", "return_notes": "price source Yahoo chart symbol=NVDA; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "company", "kind_label": "公司", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260603_008", "episode_id": "ep_20260603_667", "episode_title": "EP667 | 🌍", "published_at": "2026-06-03", "company_or_theme": "功率半導體", "ticker": "concept_proxy:功率半導體", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-06-04", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "功率半導體相關的一些公司 基本面有滿顯著的在改善中 可能是下一波題材的一個會據點。", "return_notes": "concept proxy basket=功率半導體; symbols=8081.TW; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}, {"mention_id": "m_20260603_010", "episode_id": "ep_20260603_667", "episode_title": "EP667 | 🌍", "published_at": "2026-06-03", "company_or_theme": "被動元件", "ticker": "concept_proxy:被動元件", "market": "concept", "stance": "bullish", "conviction": "medium", "time_horizon": "medium", "base_trade_date": "2026-06-04", "base_price": "1", "available_horizons": "", "calculation_status": "pending_price", "evidence_text": "目前 AI PC 裡面的一些用料都會使用得比較好，不管是在晶片端附近或板子上面的材料，不管是上面的被動元件或各種元件，都有一個材料的提升。", "return_notes": "concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 4 horizon target prices unavailable", "return_7d": "", "return_7d_pct": "", "benchmark_return_7d": "", "benchmark_return_7d_pct": "", "excess_return_7d": "", "excess_return_7d_pct": "", "return_30d": "", "return_30d_pct": "", "benchmark_return_30d": "", "benchmark_return_30d_pct": "", "excess_return_30d": "", "excess_return_30d_pct": "", "return_90d": "", "return_90d_pct": "", "benchmark_return_90d": "", "benchmark_return_90d_pct": "", "excess_return_90d": "", "excess_return_90d_pct": "", "return_180d": "", "return_180d_pct": "", "benchmark_return_180d": "", "benchmark_return_180d_pct": "", "excess_return_180d": "", "excess_return_180d_pct": "", "kind": "concept", "kind_label": "概念 proxy", "best_horizon": "pending", "return_7d_display": "等待", "excess_7d_display": "等待", "return_7d_value": 0, "excess_return_7d_value": 0}]</script>
+  <script id="proxy-data" type="application/json">[{"concept_name": "AI PC", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_ai_pc_2317", "ticker": "2317", "market": "TWSE", "name": "鴻海", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI PC", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_ai_pc_2356", "ticker": "2356", "market": "TWSE", "name": "英業達", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI PC", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_ai_pc_2382", "ticker": "2382", "market": "TWSE", "name": "廣達", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI PC", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_ai_pc_3231", "ticker": "3231", "market": "TWSE", "name": "緯創", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI Server", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_ai_server_2317", "ticker": "2317", "market": "TWSE", "name": "鴻海", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "AI Server", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_ai_server_2382", "ticker": "2382", "market": "TWSE", "name": "廣達", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "AI Server", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_ai_server_3231", "ticker": "3231", "market": "TWSE", "name": "緯創", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "AI Server", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_ai_server_6669", "ticker": "6669", "market": "TWSE", "name": "緯穎", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "AI 軟體", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "7", "active_weight_total": "1", "return_status_counts": "pending_price:2", "proxy_id": "concept_ai_software_crm", "ticker": "CRM", "market": "US", "name": "Salesforce", "weight": "0.1428571429", "benchmark_market": "US", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI 軟體", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "7", "active_weight_total": "1", "return_status_counts": "pending_price:2", "proxy_id": "concept_ai_software_crwd", "ticker": "CRWD", "market": "US", "name": "CrowdStrike", "weight": "0.1428571429", "benchmark_market": "US", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI 軟體", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "7", "active_weight_total": "1", "return_status_counts": "pending_price:2", "proxy_id": "concept_ai_software_net", "ticker": "NET", "market": "US", "name": "Cloudflare", "weight": "0.1428571429", "benchmark_market": "US", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI 軟體", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "7", "active_weight_total": "1", "return_status_counts": "pending_price:2", "proxy_id": "concept_ai_software_now", "ticker": "NOW", "market": "US", "name": "ServiceNow", "weight": "0.1428571429", "benchmark_market": "US", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI 軟體", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "7", "active_weight_total": "1", "return_status_counts": "pending_price:2", "proxy_id": "concept_ai_software_okta", "ticker": "OKTA", "market": "US", "name": "Okta", "weight": "0.1428571429", "benchmark_market": "US", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI 軟體", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "7", "active_weight_total": "1", "return_status_counts": "pending_price:2", "proxy_id": "concept_ai_software_pltr", "ticker": "PLTR", "market": "US", "name": "Palantir", "weight": "0.1428571429", "benchmark_market": "US", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "AI 軟體", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "7", "active_weight_total": "1", "return_status_counts": "pending_price:2", "proxy_id": "concept_ai_software_snow", "ticker": "SNOW", "market": "US", "name": "Snowflake", "weight": "0.1428571429", "benchmark_market": "US", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "ODM/OEM", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "5", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_odm_oem_2317", "ticker": "2317", "market": "TWSE", "name": "鴻海", "weight": "0.2", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "ODM/OEM", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "5", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_odm_oem_2356", "ticker": "2356", "market": "TWSE", "name": "英業達", "weight": "0.2", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "ODM/OEM", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "5", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_odm_oem_2382", "ticker": "2382", "market": "TWSE", "name": "廣達", "weight": "0.2", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "ODM/OEM", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "5", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_odm_oem_3231", "ticker": "3231", "market": "TWSE", "name": "緯創", "weight": "0.2", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "ODM/OEM", "concept_issue": "ok", "directional_mention_count": "1", "active_proxy_count": "5", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_odm_oem_6669", "ticker": "6669", "market": "TWSE", "name": "緯穎", "weight": "0.2", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "光通訊", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "3", "active_weight_total": "0.9999999999", "return_status_counts": "pending_price:2", "proxy_id": "concept_optical_comm_3081", "ticker": "3081", "market": "TPEx", "name": "聯亞", "weight": "0.3333333333", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "光通訊", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "3", "active_weight_total": "0.9999999999", "return_status_counts": "pending_price:2", "proxy_id": "concept_optical_comm_3163", "ticker": "3163", "market": "TPEx", "name": "波若威", "weight": "0.3333333333", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "光通訊", "concept_issue": "ok", "directional_mention_count": "2", "active_proxy_count": "3", "active_weight_total": "0.9999999999", "return_status_counts": "pending_price:2", "proxy_id": "concept_optical_comm_4979", "ticker": "4979", "market": "TPEx", "name": "華星光", "weight": "0.3333333333", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "ok", "priority_label": "OK"}, {"concept_name": "功率元件", "concept_issue": "single_name_proxy;needs_sector_expansion", "directional_mention_count": "1", "active_proxy_count": "1", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_power_component_8081", "ticker": "8081", "market": "TWSE", "name": "致新", "weight": "1", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 single-name proxy; expand before serious analysis", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "high", "priority_label": "優先"}, {"concept_name": "功率半導體", "concept_issue": "single_name_proxy;needs_sector_expansion", "directional_mention_count": "1", "active_proxy_count": "1", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_power_semiconductor_8081", "ticker": "8081", "market": "TWSE", "name": "致新", "weight": "1", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 single-name proxy; expand before serious analysis", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "high", "priority_label": "優先"}, {"concept_name": "散熱", "concept_issue": "mixed_component_markets", "directional_mention_count": "1", "active_proxy_count": "2", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_thermal_3017", "ticker": "3017", "market": "TWSE", "name": "奇鋐", "weight": "0.5", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "散熱", "concept_issue": "mixed_component_markets", "directional_mention_count": "1", "active_proxy_count": "2", "active_weight_total": "1", "return_status_counts": "pending_price:1", "proxy_id": "concept_thermal_3324", "ticker": "3324", "market": "TPEx", "name": "雙鴻", "weight": "0.5", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "筆電 OEM", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_laptop_oem_2317", "ticker": "2317", "market": "TWSE", "name": "鴻海", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "筆電 OEM", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_laptop_oem_2356", "ticker": "2356", "market": "TWSE", "name": "英業達", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "筆電 OEM", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_laptop_oem_2382", "ticker": "2382", "market": "TWSE", "name": "廣達", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "筆電 OEM", "concept_issue": "proxy_defined_before_mentions", "directional_mention_count": "0", "active_proxy_count": "4", "active_weight_total": "1", "return_status_counts": "", "proxy_id": "concept_laptop_oem_3231", "ticker": "3231", "market": "TWSE", "name": "緯創", "weight": "0.25", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "衛星 AI 運算", "concept_issue": "no_active_proxy;mentioned_but_not_trackable;has_inactive_rows", "directional_mention_count": "2", "active_proxy_count": "0", "active_weight_total": "0", "return_status_counts": "", "proxy_id": "concept_satellite_ai_none", "ticker": "", "market": "concept", "name": "", "weight": "0", "benchmark_market": "TWSE", "is_active": "false", "current_notes": "no public pure-play proxy in v0.1; keep not_applicable until basket is reviewed", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "high", "priority_label": "優先"}, {"concept_name": "被動元件", "concept_issue": "mixed_component_markets", "directional_mention_count": "4", "active_proxy_count": "3", "active_weight_total": "0.9999999999", "return_status_counts": "pending_price:4", "proxy_id": "concept_passive_2327", "ticker": "2327", "market": "TWSE", "name": "國巨", "weight": "0.3333333333", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "被動元件", "concept_issue": "mixed_component_markets", "directional_mention_count": "4", "active_proxy_count": "3", "active_weight_total": "0.9999999999", "return_status_counts": "pending_price:4", "proxy_id": "concept_passive_2492", "ticker": "2492", "market": "TWSE", "name": "華新科", "weight": "0.3333333333", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}, {"concept_name": "被動元件", "concept_issue": "mixed_component_markets", "directional_mention_count": "4", "active_proxy_count": "3", "active_weight_total": "0.9999999999", "return_status_counts": "pending_price:4", "proxy_id": "concept_passive_6173", "ticker": "6173", "market": "TPEx", "name": "信昌電", "weight": "0.3333333333", "benchmark_market": "TWSE", "is_active": "true", "current_notes": "manual v0.1 equal-weight proxy basket", "review_decision": "", "corrected_weight": "", "corrected_benchmark_market": "", "corrected_is_active": "", "replacement_ticker": "", "replacement_market": "", "replacement_name": "", "review_comment": "", "priority": "watch", "priority_label": "檢查"}]</script>
+  <script>
+    const returns = JSON.parse(document.getElementById("return-data").textContent);
+    const proxies = JSON.parse(document.getElementById("proxy-data").textContent);
+    const maxAbsReturn = Math.max(0.01, ...returns.flatMap(row => [
+      Math.abs(Number(row.return_7d_value || 0)),
+      Math.abs(Number(row.excess_return_7d_value || 0))
+    ]));
+
+    const searchInput = document.getElementById("searchInput");
+    const kindFilter = document.getElementById("kindFilter");
+    const marketFilter = document.getElementById("marketFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const horizonFilter = document.getElementById("horizonFilter");
+    const clearSignalFilters = document.getElementById("clearSignalFilters");
+    const signalsBody = document.getElementById("signalsBody");
+    const signalsEmpty = document.getElementById("signalsEmpty");
+    const signalCount = document.getElementById("signalCount");
+
+    const proxySearchInput = document.getElementById("proxySearchInput");
+    const proxyPriorityFilter = document.getElementById("proxyPriorityFilter");
+    const clearProxyFilters = document.getElementById("clearProxyFilters");
+    const proxyBody = document.getElementById("proxyBody");
+    const proxyEmpty = document.getElementById("proxyEmpty");
+    const proxyCount = document.getElementById("proxyCount");
+
+    function unique(values) {
+      return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
+    }
+
+    function addOptions(select, values) {
+      for (const value of values) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function badge(text, cls) {
+      return `<span class="badge ${cls}">${escapeHtml(text)}</span>`;
+    }
+
+    function returnBar(value, label) {
+      const numeric = Number(value || 0);
+      const width = Math.min(50, Math.abs(numeric) / maxAbsReturn * 50);
+      const cls = numeric >= 0 ? "pos" : "neg";
+      const shown = label && label !== "等待" ? label : "等待";
+      return `
+        <div class="bar-track">
+          <div class="bar-zero"></div>
+          ${label && label !== "等待" ? `<div class="bar-fill ${cls}" style="width:${width}%;"></div>` : ""}
+          <div class="bar-label">${escapeHtml(shown)}</div>
+        </div>
+      `;
+    }
+
+    function matchesSignal(row) {
+      const query = searchInput.value.trim().toLowerCase();
+      const haystack = [
+        row.company_or_theme,
+        row.ticker,
+        row.episode_title,
+        row.evidence_text,
+        row.mention_id
+      ].join(" ").toLowerCase();
+      if (query && !haystack.includes(query)) return false;
+      if (kindFilter.value && row.kind !== kindFilter.value) return false;
+      if (marketFilter.value && row.market !== marketFilter.value) return false;
+      if (statusFilter.value && row.calculation_status !== statusFilter.value) return false;
+      if (horizonFilter.value === "7d" && !String(row.available_horizons || "").includes("7d")) return false;
+      if (horizonFilter.value === "pending" && row.available_horizons) return false;
+      return true;
+    }
+
+    function renderSignals() {
+      const rows = returns.filter(matchesSignal);
+      signalsBody.innerHTML = rows.map(row => `
+        <tr>
+          <td class="name-cell">
+            <strong>${escapeHtml(row.company_or_theme)}</strong>
+            <span>${escapeHtml(row.ticker)} · ${escapeHtml(row.market)}</span>
+          </td>
+          <td>${badge(row.kind_label, row.kind === "concept" ? "badge-concept" : "badge-company")}</td>
+          <td>${escapeHtml(row.published_at)}</td>
+          <td>${escapeHtml(row.base_trade_date || "等待")}</td>
+          <td>${badge(row.available_horizons || row.calculation_status, row.available_horizons ? "badge-ready" : "badge-status")}</td>
+          <td class="bar-cell">${returnBar(row.return_7d_value, row.return_7d_display)}</td>
+          <td class="bar-cell">${returnBar(row.excess_return_7d_value, row.excess_7d_display)}</td>
+          <td class="wrap">${escapeHtml(row.evidence_text)}</td>
+        </tr>
+      `).join("");
+      signalCount.textContent = `${rows.length} / ${returns.length}`;
+      signalsEmpty.style.display = rows.length ? "none" : "block";
+    }
+
+    function matchesProxy(row) {
+      const query = proxySearchInput.value.trim().toLowerCase();
+      const haystack = [
+        row.concept_name,
+        row.concept_issue,
+        row.proxy_id,
+        row.ticker,
+        row.market,
+        row.name,
+        row.current_notes
+      ].join(" ").toLowerCase();
+      if (query && !haystack.includes(query)) return false;
+      if (proxyPriorityFilter.value && row.priority !== proxyPriorityFilter.value) return false;
+      return true;
+    }
+
+    function renderProxies() {
+      const rows = proxies.filter(matchesProxy);
+      proxyBody.innerHTML = rows.map(row => `
+        <tr>
+          <td class="name-cell">
+            <strong>${escapeHtml(row.concept_name)}</strong>
+            <span>${escapeHtml(row.directional_mention_count)} mentions · ${escapeHtml(row.return_status_counts || "no returns")}</span>
+          </td>
+          <td>${badge(row.priority_label, row.priority === "high" ? "badge-high" : row.priority === "watch" ? "badge-watch" : "badge-ok")}</td>
+          <td class="name-cell">
+            <strong>${escapeHtml(row.name || "未啟用")}</strong>
+            <span>${escapeHtml(row.ticker || "-")} · ${escapeHtml(row.market || "-")}</span>
+          </td>
+          <td>${escapeHtml(row.weight)} / ${escapeHtml(row.active_weight_total)}</td>
+          <td class="wrap">${escapeHtml(row.concept_issue)}</td>
+        </tr>
+      `).join("");
+      proxyCount.textContent = `${rows.length} / ${proxies.length}`;
+      proxyEmpty.style.display = rows.length ? "none" : "block";
+    }
+
+    addOptions(marketFilter, unique(returns.map(row => row.market)));
+    addOptions(statusFilter, unique(returns.map(row => row.calculation_status)));
+
+    [searchInput, kindFilter, marketFilter, statusFilter, horizonFilter].forEach(input => {
+      input.addEventListener("input", renderSignals);
+      input.addEventListener("change", renderSignals);
+    });
+    [proxySearchInput, proxyPriorityFilter].forEach(input => {
+      input.addEventListener("input", renderProxies);
+      input.addEventListener("change", renderProxies);
+    });
+    clearSignalFilters.addEventListener("click", () => {
+      searchInput.value = "";
+      kindFilter.value = "";
+      marketFilter.value = "";
+      statusFilter.value = "";
+      horizonFilter.value = "";
+      renderSignals();
+    });
+    clearProxyFilters.addEventListener("click", () => {
+      proxySearchInput.value = "";
+      proxyPriorityFilter.value = "";
+      renderProxies();
+    });
+
+    renderSignals();
+    renderProxies();
+  </script>
+</body>
+</html>

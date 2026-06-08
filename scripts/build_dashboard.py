@@ -1,0 +1,683 @@
+#!/usr/bin/env python3
+"""Build a static HTML dashboard from generated CSV reports."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+from datetime import datetime, timezone
+import html
+import json
+import pathlib
+
+
+HORIZONS = [7, 30, 90, 180]
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Create reports/dashboard.html.")
+    parser.add_argument("--summary-csv", default="reports/summary.csv")
+    parser.add_argument("--return-report", default="reports/approved_company_bullish_returns.csv")
+    parser.add_argument("--concept-proxy-review", default="reports/concept_proxy_review.csv")
+    parser.add_argument("--output", default="reports/dashboard.html")
+    return parser.parse_args()
+
+
+def load_csv(path: pathlib.Path) -> list[dict[str, str]]:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def summary_map(rows: list[dict[str, str]]) -> dict[str, dict[str, str]]:
+    return {f"{row['section']}.{row['metric']}": row for row in rows}
+
+
+def metric(summary: dict[str, dict[str, str]], key: str, default: str = "0") -> str:
+    return summary.get(key, {}).get("display_value") or default
+
+
+def numeric(value: str) -> float | None:
+    if not value:
+        return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def pct(value: str) -> str:
+    parsed = numeric(value)
+    if parsed is None:
+        return ""
+    return f"{parsed * 100:.2f}%"
+
+
+def row_kind(row: dict[str, str]) -> str:
+    return "concept" if row.get("ticker", "").startswith("concept_proxy:") else "company"
+
+
+def enriched_returns(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    enriched: list[dict[str, str]] = []
+    for row in rows:
+        item = dict(row)
+        item["kind"] = row_kind(row)
+        item["kind_label"] = "概念 proxy" if item["kind"] == "concept" else "公司"
+        item["best_horizon"] = row.get("available_horizons") or "pending"
+        item["return_7d_display"] = row.get("return_7d_pct") or "等待"
+        item["excess_7d_display"] = row.get("excess_return_7d_pct") or "等待"
+        item["return_7d_value"] = numeric(row.get("return_7d", "")) or 0
+        item["excess_return_7d_value"] = numeric(row.get("excess_return_7d", "")) or 0
+        enriched.append(item)
+    return enriched
+
+
+def enriched_proxy_rows(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    enriched: list[dict[str, str]] = []
+    for row in rows:
+        item = dict(row)
+        issue = row.get("concept_issue", "")
+        if issue == "ok":
+            priority = "ok"
+            priority_label = "OK"
+        elif "no_active_proxy" in issue or "single_name_proxy" in issue:
+            priority = "high"
+            priority_label = "優先"
+        else:
+            priority = "watch"
+            priority_label = "檢查"
+        item["priority"] = priority
+        item["priority_label"] = priority_label
+        enriched.append(item)
+    return enriched
+
+
+def json_script(name: str, data: object) -> str:
+    payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
+    return f"<script id=\"{name}\" type=\"application/json\">{payload}</script>"
+
+
+def escape(value: str) -> str:
+    return html.escape(value, quote=True)
+
+
+def build_html(
+    summary_rows: list[dict[str, str]],
+    return_rows: list[dict[str, str]],
+    proxy_rows: list[dict[str, str]],
+) -> str:
+    summary = summary_map(summary_rows)
+    generated_at = datetime.now(timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    returns = enriched_returns(return_rows)
+    proxies = enriched_proxy_rows(proxy_rows)
+
+    stat_cards = [
+        ("Episodes", metric(summary, "episodes.formal_total"), "formal sources"),
+        ("Mentions", metric(summary, "mentions.formal_total"), f"{metric(summary, 'mentions.approved_total')} approved"),
+        ("Trackable", metric(summary, "returns.total_return_candidates"), f"{metric(summary, 'returns.concept_proxy_return_candidates')} concept proxy"),
+        ("7d Ready", metric(summary, "performance.7d.available_count"), f"{metric(summary, 'performance.7d.hit_rate')} hit rate"),
+        ("7d Avg", metric(summary, "performance.7d.avg_return", "-"), "stance-adjusted"),
+        ("7d Excess", metric(summary, "performance.7d.avg_excess_return", "-"), "vs benchmark"),
+    ]
+    stat_html = "\n".join(
+        f"""
+        <section class="stat">
+          <div class="stat-label">{escape(label)}</div>
+          <div class="stat-value">{escape(value)}</div>
+          <div class="stat-note">{escape(note)}</div>
+        </section>
+        """
+        for label, value, note in stat_cards
+    )
+
+    issue_counts: dict[str, int] = {}
+    for row in proxies:
+        issue_counts[row["concept_issue"]] = issue_counts.get(row["concept_issue"], 0) + 1
+    issue_html = "\n".join(
+        f"<span class=\"issue-chip\">{escape(issue)} <strong>{count}</strong></span>"
+        for issue, count in sorted(issue_counts.items(), key=lambda item: (-item[1], item[0]))
+    )
+
+    return f"""<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>股癌追蹤 Dashboard</title>
+  <style>
+    :root {{
+      --bg: #f6f7f4;
+      --panel: #ffffff;
+      --panel-soft: #f0f3ef;
+      --ink: #1c2420;
+      --muted: #66716a;
+      --line: #dce2dc;
+      --accent: #0f766e;
+      --accent-weak: #d7f0eb;
+      --amber: #b7791f;
+      --amber-weak: #f7e8c8;
+      --rose: #b42318;
+      --rose-weak: #f8d8d4;
+      --green: #147a43;
+      --green-weak: #d9f1df;
+      --shadow: 0 1px 2px rgba(28, 36, 32, 0.06);
+    }}
+    * {{ box-sizing: border-box; }}
+    body {{
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }}
+    .shell {{
+      width: min(1440px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }}
+    header {{
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid var(--line);
+    }}
+    h1 {{
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }}
+    .subtle {{ color: var(--muted); font-size: 13px; }}
+    .generated {{ text-align: right; min-width: 220px; }}
+    .stats {{
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }}
+    .stat, .panel {{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }}
+    .stat {{ padding: 12px 14px; min-height: 92px; }}
+    .stat-label {{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }}
+    .stat-value {{
+      margin-top: 8px;
+      font-size: 26px;
+      font-weight: 720;
+      line-height: 1;
+      letter-spacing: 0;
+    }}
+    .stat-note {{ margin-top: 8px; color: var(--muted); font-size: 12px; }}
+    .grid {{
+      display: grid;
+      grid-template-columns: minmax(0, 1.8fr) minmax(320px, 0.95fr);
+      gap: 14px;
+      align-items: start;
+    }}
+    .panel {{ overflow: hidden; }}
+    .panel-head {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-soft);
+    }}
+    h2 {{ margin: 0; font-size: 16px; letter-spacing: 0; }}
+    .filters {{
+      display: grid;
+      grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(120px, 0.8fr)) 40px;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfa;
+    }}
+    input, select, button {{
+      width: 100%;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+    }}
+    button {{
+      display: grid;
+      place-items: center;
+      padding: 0;
+      cursor: pointer;
+      color: var(--muted);
+    }}
+    button:hover {{ border-color: #b8c4bc; color: var(--ink); }}
+    .table-wrap {{ overflow: auto; max-height: 690px; }}
+    table {{
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }}
+    th, td {{
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }}
+    th {{
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #eef2ec;
+      color: #334139;
+      font-size: 12px;
+      font-weight: 700;
+    }}
+    td.wrap {{ white-space: normal; min-width: 260px; max-width: 420px; }}
+    .name-cell strong {{ display: block; font-size: 14px; }}
+    .name-cell span {{ display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }}
+    .badge {{
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 650;
+      border: 1px solid transparent;
+    }}
+    .badge-company {{ color: #075985; background: #dff0fb; border-color: #bee3f8; }}
+    .badge-concept {{ color: #6b4e00; background: var(--amber-weak); border-color: #efd08f; }}
+    .badge-status {{ color: #445047; background: #edf1ed; border-color: var(--line); }}
+    .badge-ready {{ color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }}
+    .badge-high {{ color: var(--rose); background: var(--rose-weak); border-color: #efb5ad; }}
+    .badge-watch {{ color: var(--amber); background: var(--amber-weak); border-color: #efd08f; }}
+    .badge-ok {{ color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }}
+    .bar-cell {{ min-width: 170px; }}
+    .bar-track {{
+      position: relative;
+      height: 24px;
+      width: 150px;
+      background: #edf0eb;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      overflow: hidden;
+    }}
+    .bar-zero {{
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: #a9b2aa;
+    }}
+    .bar-fill {{
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      border-radius: 3px;
+      min-width: 2px;
+    }}
+    .bar-fill.pos {{ left: 50%; background: var(--green); }}
+    .bar-fill.neg {{ right: 50%; background: var(--rose); }}
+    .bar-label {{
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink);
+    }}
+    .empty {{
+      display: none;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+    }}
+    .proxy-summary {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfcfa;
+    }}
+    .issue-chip {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: #eef2ec;
+      color: #334139;
+      font-size: 12px;
+      border: 1px solid var(--line);
+    }}
+    .proxy-table table {{ min-width: 760px; }}
+    .proxy-table .table-wrap {{ max-height: 520px; }}
+    .footer-note {{
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    @media (max-width: 1100px) {{
+      .stats {{ grid-template-columns: repeat(3, minmax(120px, 1fr)); }}
+      .grid {{ grid-template-columns: 1fr; }}
+      .generated {{ text-align: left; }}
+      header {{ align-items: flex-start; flex-direction: column; }}
+    }}
+    @media (max-width: 720px) {{
+      .shell {{ width: min(100vw - 20px, 1440px); padding-top: 14px; }}
+      .stats {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+      .filters {{ grid-template-columns: 1fr; }}
+      .stat-value {{ font-size: 22px; }}
+      h1 {{ font-size: 21px; }}
+    }}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <h1>股癌追蹤 Dashboard</h1>
+        <div class="subtle">公司訊號、概念 proxy、回測進度與代理籃子審核</div>
+      </div>
+      <div class="generated subtle">Generated<br>{escape(generated_at)}</div>
+    </header>
+
+    <main>
+      <section class="stats" aria-label="summary">
+        {stat_html}
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>追蹤明細</h2>
+            <span class="subtle" id="signalCount"></span>
+          </div>
+          <div class="filters">
+            <input id="searchInput" type="search" placeholder="搜尋標的、ticker、episode">
+            <select id="kindFilter" aria-label="kind">
+              <option value="">全部類型</option>
+              <option value="company">公司</option>
+              <option value="concept">概念 proxy</option>
+            </select>
+            <select id="marketFilter" aria-label="market">
+              <option value="">全部市場</option>
+            </select>
+            <select id="statusFilter" aria-label="status">
+              <option value="">全部狀態</option>
+            </select>
+            <select id="horizonFilter" aria-label="horizon">
+              <option value="">全部 horizon</option>
+              <option value="7d">已有 7d</option>
+              <option value="pending">等待價格</option>
+            </select>
+            <button id="clearSignalFilters" type="button" aria-label="清除篩選" title="清除篩選">×</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>標的</th>
+                  <th>類型</th>
+                  <th>發布</th>
+                  <th>基準日</th>
+                  <th>狀態</th>
+                  <th>7d 報酬</th>
+                  <th>7d 超額</th>
+                  <th>證據</th>
+                </tr>
+              </thead>
+              <tbody id="signalsBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="signalsEmpty">沒有符合篩選條件的追蹤項目。</div>
+        </div>
+
+        <aside class="panel proxy-table">
+          <div class="panel-head">
+            <h2>Proxy 審核</h2>
+            <span class="subtle" id="proxyCount"></span>
+          </div>
+          <div class="proxy-summary">{issue_html}</div>
+          <div class="filters" style="grid-template-columns: minmax(160px, 1fr) minmax(120px, .7fr) 40px;">
+            <input id="proxySearchInput" type="search" placeholder="搜尋概念、成分股、issue">
+            <select id="proxyPriorityFilter" aria-label="priority">
+              <option value="">全部</option>
+              <option value="high">優先</option>
+              <option value="watch">檢查</option>
+              <option value="ok">OK</option>
+            </select>
+            <button id="clearProxyFilters" type="button" aria-label="清除 proxy 篩選" title="清除篩選">×</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>概念</th>
+                  <th>優先度</th>
+                  <th>成分</th>
+                  <th>權重</th>
+                  <th>Issue</th>
+                </tr>
+              </thead>
+              <tbody id="proxyBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="proxyEmpty">沒有符合篩選條件的 proxy 成分。</div>
+        </aside>
+      </section>
+
+      <div class="footer-note">資料來源：reports/summary.csv、reports/approved_company_bullish_returns.csv、reports/concept_proxy_review.csv。更新請執行 python3 scripts/run_daily_update.py。</div>
+    </main>
+  </div>
+
+  {json_script("return-data", returns)}
+  {json_script("proxy-data", proxies)}
+  <script>
+    const returns = JSON.parse(document.getElementById("return-data").textContent);
+    const proxies = JSON.parse(document.getElementById("proxy-data").textContent);
+    const maxAbsReturn = Math.max(0.01, ...returns.flatMap(row => [
+      Math.abs(Number(row.return_7d_value || 0)),
+      Math.abs(Number(row.excess_return_7d_value || 0))
+    ]));
+
+    const searchInput = document.getElementById("searchInput");
+    const kindFilter = document.getElementById("kindFilter");
+    const marketFilter = document.getElementById("marketFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const horizonFilter = document.getElementById("horizonFilter");
+    const clearSignalFilters = document.getElementById("clearSignalFilters");
+    const signalsBody = document.getElementById("signalsBody");
+    const signalsEmpty = document.getElementById("signalsEmpty");
+    const signalCount = document.getElementById("signalCount");
+
+    const proxySearchInput = document.getElementById("proxySearchInput");
+    const proxyPriorityFilter = document.getElementById("proxyPriorityFilter");
+    const clearProxyFilters = document.getElementById("clearProxyFilters");
+    const proxyBody = document.getElementById("proxyBody");
+    const proxyEmpty = document.getElementById("proxyEmpty");
+    const proxyCount = document.getElementById("proxyCount");
+
+    function unique(values) {{
+      return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
+    }}
+
+    function addOptions(select, values) {{
+      for (const value of values) {{
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        select.appendChild(option);
+      }}
+    }}
+
+    function escapeHtml(value) {{
+      return String(value ?? "").replace(/[&<>"']/g, char => ({{
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }}[char]));
+    }}
+
+    function badge(text, cls) {{
+      return `<span class="badge ${{cls}}">${{escapeHtml(text)}}</span>`;
+    }}
+
+    function returnBar(value, label) {{
+      const numeric = Number(value || 0);
+      const width = Math.min(50, Math.abs(numeric) / maxAbsReturn * 50);
+      const cls = numeric >= 0 ? "pos" : "neg";
+      const shown = label && label !== "等待" ? label : "等待";
+      return `
+        <div class="bar-track">
+          <div class="bar-zero"></div>
+          ${{label && label !== "等待" ? `<div class="bar-fill ${{cls}}" style="width:${{width}}%;"></div>` : ""}}
+          <div class="bar-label">${{escapeHtml(shown)}}</div>
+        </div>
+      `;
+    }}
+
+    function matchesSignal(row) {{
+      const query = searchInput.value.trim().toLowerCase();
+      const haystack = [
+        row.company_or_theme,
+        row.ticker,
+        row.episode_title,
+        row.evidence_text,
+        row.mention_id
+      ].join(" ").toLowerCase();
+      if (query && !haystack.includes(query)) return false;
+      if (kindFilter.value && row.kind !== kindFilter.value) return false;
+      if (marketFilter.value && row.market !== marketFilter.value) return false;
+      if (statusFilter.value && row.calculation_status !== statusFilter.value) return false;
+      if (horizonFilter.value === "7d" && !String(row.available_horizons || "").includes("7d")) return false;
+      if (horizonFilter.value === "pending" && row.available_horizons) return false;
+      return true;
+    }}
+
+    function renderSignals() {{
+      const rows = returns.filter(matchesSignal);
+      signalsBody.innerHTML = rows.map(row => `
+        <tr>
+          <td class="name-cell">
+            <strong>${{escapeHtml(row.company_or_theme)}}</strong>
+            <span>${{escapeHtml(row.ticker)}} · ${{escapeHtml(row.market)}}</span>
+          </td>
+          <td>${{badge(row.kind_label, row.kind === "concept" ? "badge-concept" : "badge-company")}}</td>
+          <td>${{escapeHtml(row.published_at)}}</td>
+          <td>${{escapeHtml(row.base_trade_date || "等待")}}</td>
+          <td>${{badge(row.available_horizons || row.calculation_status, row.available_horizons ? "badge-ready" : "badge-status")}}</td>
+          <td class="bar-cell">${{returnBar(row.return_7d_value, row.return_7d_display)}}</td>
+          <td class="bar-cell">${{returnBar(row.excess_return_7d_value, row.excess_7d_display)}}</td>
+          <td class="wrap">${{escapeHtml(row.evidence_text)}}</td>
+        </tr>
+      `).join("");
+      signalCount.textContent = `${{rows.length}} / ${{returns.length}}`;
+      signalsEmpty.style.display = rows.length ? "none" : "block";
+    }}
+
+    function matchesProxy(row) {{
+      const query = proxySearchInput.value.trim().toLowerCase();
+      const haystack = [
+        row.concept_name,
+        row.concept_issue,
+        row.proxy_id,
+        row.ticker,
+        row.market,
+        row.name,
+        row.current_notes
+      ].join(" ").toLowerCase();
+      if (query && !haystack.includes(query)) return false;
+      if (proxyPriorityFilter.value && row.priority !== proxyPriorityFilter.value) return false;
+      return true;
+    }}
+
+    function renderProxies() {{
+      const rows = proxies.filter(matchesProxy);
+      proxyBody.innerHTML = rows.map(row => `
+        <tr>
+          <td class="name-cell">
+            <strong>${{escapeHtml(row.concept_name)}}</strong>
+            <span>${{escapeHtml(row.directional_mention_count)}} mentions · ${{escapeHtml(row.return_status_counts || "no returns")}}</span>
+          </td>
+          <td>${{badge(row.priority_label, row.priority === "high" ? "badge-high" : row.priority === "watch" ? "badge-watch" : "badge-ok")}}</td>
+          <td class="name-cell">
+            <strong>${{escapeHtml(row.name || "未啟用")}}</strong>
+            <span>${{escapeHtml(row.ticker || "-")}} · ${{escapeHtml(row.market || "-")}}</span>
+          </td>
+          <td>${{escapeHtml(row.weight)}} / ${{escapeHtml(row.active_weight_total)}}</td>
+          <td class="wrap">${{escapeHtml(row.concept_issue)}}</td>
+        </tr>
+      `).join("");
+      proxyCount.textContent = `${{rows.length}} / ${{proxies.length}}`;
+      proxyEmpty.style.display = rows.length ? "none" : "block";
+    }}
+
+    addOptions(marketFilter, unique(returns.map(row => row.market)));
+    addOptions(statusFilter, unique(returns.map(row => row.calculation_status)));
+
+    [searchInput, kindFilter, marketFilter, statusFilter, horizonFilter].forEach(input => {{
+      input.addEventListener("input", renderSignals);
+      input.addEventListener("change", renderSignals);
+    }});
+    [proxySearchInput, proxyPriorityFilter].forEach(input => {{
+      input.addEventListener("input", renderProxies);
+      input.addEventListener("change", renderProxies);
+    }});
+    clearSignalFilters.addEventListener("click", () => {{
+      searchInput.value = "";
+      kindFilter.value = "";
+      marketFilter.value = "";
+      statusFilter.value = "";
+      horizonFilter.value = "";
+      renderSignals();
+    }});
+    clearProxyFilters.addEventListener("click", () => {{
+      proxySearchInput.value = "";
+      proxyPriorityFilter.value = "";
+      renderProxies();
+    }});
+
+    renderSignals();
+    renderProxies();
+  </script>
+</body>
+</html>
+"""
+
+
+def write_dashboard(path: pathlib.Path, html_text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html_text, encoding="utf-8")
+
+
+def main() -> int:
+    args = parse_args()
+    html_text = build_html(
+        summary_rows=load_csv(pathlib.Path(args.summary_csv)),
+        return_rows=load_csv(pathlib.Path(args.return_report)),
+        proxy_rows=load_csv(pathlib.Path(args.concept_proxy_review)),
+    )
+    write_dashboard(pathlib.Path(args.output), html_text)
+    print(f"Wrote dashboard to {args.output}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
