@@ -63,10 +63,17 @@ def enriched_returns(rows: list[dict[str, str]]) -> list[dict[str, str]]:
         item["kind"] = row_kind(row)
         item["kind_label"] = "概念 proxy" if item["kind"] == "concept" else "公司"
         item["best_horizon"] = row.get("available_horizons") or "pending"
-        item["return_7d_display"] = row.get("return_7d_pct") or "等待"
-        item["excess_7d_display"] = row.get("excess_return_7d_pct") or "等待"
-        item["return_7d_value"] = numeric(row.get("return_7d", "")) or 0
-        item["excess_return_7d_value"] = numeric(row.get("excess_return_7d", "")) or 0
+        item["available_horizon_count"] = str(
+            sum(1 for horizon in HORIZONS if row.get(f"return_{horizon}d"))
+        )
+        item["has_any_return"] = "true" if item["available_horizon_count"] != "0" else "false"
+        for horizon in HORIZONS:
+            return_value = numeric(row.get(f"return_{horizon}d", ""))
+            excess_value = numeric(row.get(f"excess_return_{horizon}d", ""))
+            item[f"return_{horizon}d_display"] = row.get(f"return_{horizon}d_pct") or "等待"
+            item[f"excess_{horizon}d_display"] = row.get(f"excess_return_{horizon}d_pct") or "等待"
+            item[f"return_{horizon}d_value"] = return_value if return_value is not None else 0
+            item[f"excess_return_{horizon}d_value"] = excess_value if excess_value is not None else 0
         enriched.append(item)
     return enriched
 
@@ -235,6 +242,46 @@ def build_html(
       background: var(--panel-soft);
     }}
     h2 {{ margin: 0; font-size: 16px; letter-spacing: 0; }}
+    .toolbar {{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fff;
+    }}
+    .quick-filters {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }}
+    .quick-filter {{
+      width: auto;
+      min-width: 0;
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #fff;
+    }}
+    .quick-filter.active {{
+      color: #07524c;
+      background: var(--accent-weak);
+      border-color: #8fd5cc;
+      font-weight: 700;
+    }}
+    .sort-control {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 220px;
+    }}
+    .sort-control label {{
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }}
     .filters {{
       display: grid;
       grid-template-columns: minmax(180px, 1.4fr) repeat(4, minmax(120px, 0.8fr)) 40px;
@@ -339,6 +386,29 @@ def build_html(
       font-weight: 700;
       color: var(--ink);
     }}
+    .horizon-list {{
+      display: grid;
+      grid-template-columns: repeat(4, minmax(52px, 1fr));
+      gap: 4px;
+      min-width: 236px;
+    }}
+    .horizon-pill {{
+      display: grid;
+      gap: 2px;
+      min-height: 38px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      background: #f7f9f6;
+      font-size: 11px;
+      line-height: 1.1;
+    }}
+    .horizon-pill.ready {{
+      background: #eef8f1;
+      border-color: #b6e2c0;
+    }}
+    .horizon-pill strong {{ font-size: 11px; }}
+    .horizon-pill span {{ color: var(--muted); }}
     .empty {{
       display: none;
       padding: 24px;
@@ -381,6 +451,8 @@ def build_html(
       .shell {{ width: min(100vw - 20px, 1440px); padding-top: 14px; }}
       .stats {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
       .filters {{ grid-template-columns: 1fr; }}
+      .toolbar {{ align-items: stretch; flex-direction: column; }}
+      .sort-control {{ min-width: 0; }}
       .stat-value {{ font-size: 22px; }}
       h1 {{ font-size: 21px; }}
     }}
@@ -406,6 +478,26 @@ def build_html(
           <div class="panel-head">
             <h2>追蹤明細</h2>
             <span class="subtle" id="signalCount"></span>
+          </div>
+          <div class="toolbar">
+            <div class="quick-filters" aria-label="quick filters">
+              <button class="quick-filter active" type="button" data-quick-filter="all">全部</button>
+              <button class="quick-filter" type="button" data-quick-filter="ready">已有報酬</button>
+              <button class="quick-filter" type="button" data-quick-filter="positive_excess">正超額</button>
+              <button class="quick-filter" type="button" data-quick-filter="pending">待價格</button>
+            </div>
+            <div class="sort-control">
+              <label for="sortSelect">排序</label>
+              <select id="sortSelect" aria-label="sort">
+                <option value="published_desc">發布日新到舊</option>
+                <option value="published_asc">發布日舊到新</option>
+                <option value="return_7d_desc">7d 報酬高到低</option>
+                <option value="return_7d_asc">7d 報酬低到高</option>
+                <option value="excess_7d_desc">7d 超額高到低</option>
+                <option value="excess_7d_asc">7d 超額低到高</option>
+                <option value="name_asc">標的名稱</option>
+              </select>
+            </div>
           </div>
           <div class="filters">
             <input id="searchInput" type="search" placeholder="搜尋標的、ticker、episode">
@@ -436,6 +528,7 @@ def build_html(
                   <th>發布</th>
                   <th>基準日</th>
                   <th>狀態</th>
+                  <th>Horizon</th>
                   <th>7d 報酬</th>
                   <th>7d 超額</th>
                   <th>證據</th>
@@ -500,6 +593,7 @@ def build_html(
     const marketFilter = document.getElementById("marketFilter");
     const statusFilter = document.getElementById("statusFilter");
     const horizonFilter = document.getElementById("horizonFilter");
+    const sortSelect = document.getElementById("sortSelect");
     const clearSignalFilters = document.getElementById("clearSignalFilters");
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
@@ -511,6 +605,7 @@ def build_html(
     const proxyBody = document.getElementById("proxyBody");
     const proxyEmpty = document.getElementById("proxyEmpty");
     const proxyCount = document.getElementById("proxyCount");
+    let activeQuickFilter = "all";
 
     function unique(values) {{
       return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-Hant"));
@@ -553,6 +648,32 @@ def build_html(
       `;
     }}
 
+    function horizonPills(row) {{
+      return [7, 30, 90, 180].map(horizon => {{
+        const label = row[`return_${{horizon}}d_display`] || "等待";
+        const ready = label !== "等待";
+        return `
+          <span class="horizon-pill ${{ready ? "ready" : ""}}">
+            <strong>${{horizon}}d</strong>
+            <span>${{escapeHtml(label)}}</span>
+          </span>
+        `;
+      }}).join("");
+    }}
+
+    function compareSignals(a, b) {{
+      const sortValue = sortSelect.value;
+      const byName = a.company_or_theme.localeCompare(b.company_or_theme, "zh-Hant");
+      if (sortValue === "published_asc") return a.published_at.localeCompare(b.published_at) || byName;
+      if (sortValue === "published_desc") return b.published_at.localeCompare(a.published_at) || byName;
+      if (sortValue === "return_7d_desc") return Number(b.return_7d_value || 0) - Number(a.return_7d_value || 0) || byName;
+      if (sortValue === "return_7d_asc") return Number(a.return_7d_value || 0) - Number(b.return_7d_value || 0) || byName;
+      if (sortValue === "excess_7d_desc") return Number(b.excess_return_7d_value || 0) - Number(a.excess_return_7d_value || 0) || byName;
+      if (sortValue === "excess_7d_asc") return Number(a.excess_return_7d_value || 0) - Number(b.excess_return_7d_value || 0) || byName;
+      if (sortValue === "name_asc") return byName || b.published_at.localeCompare(a.published_at);
+      return b.published_at.localeCompare(a.published_at) || byName;
+    }}
+
     function matchesSignal(row) {{
       const query = searchInput.value.trim().toLowerCase();
       const haystack = [
@@ -568,11 +689,14 @@ def build_html(
       if (statusFilter.value && row.calculation_status !== statusFilter.value) return false;
       if (horizonFilter.value === "7d" && !String(row.available_horizons || "").includes("7d")) return false;
       if (horizonFilter.value === "pending" && row.available_horizons) return false;
+      if (activeQuickFilter === "ready" && row.has_any_return !== "true") return false;
+      if (activeQuickFilter === "positive_excess" && Number(row.excess_return_7d_value || 0) <= 0) return false;
+      if (activeQuickFilter === "pending" && row.has_any_return === "true") return false;
       return true;
     }}
 
     function renderSignals() {{
-      const rows = returns.filter(matchesSignal);
+      const rows = returns.filter(matchesSignal).sort(compareSignals);
       signalsBody.innerHTML = rows.map(row => `
         <tr>
           <td class="name-cell">
@@ -583,6 +707,7 @@ def build_html(
           <td>${{escapeHtml(row.published_at)}}</td>
           <td>${{escapeHtml(row.base_trade_date || "等待")}}</td>
           <td>${{badge(row.available_horizons || row.calculation_status, row.available_horizons ? "badge-ready" : "badge-status")}}</td>
+          <td><div class="horizon-list">${{horizonPills(row)}}</div></td>
           <td class="bar-cell">${{returnBar(row.return_7d_value, row.return_7d_display)}}</td>
           <td class="bar-cell">${{returnBar(row.excess_return_7d_value, row.excess_7d_display)}}</td>
           <td class="wrap">${{escapeHtml(row.evidence_text)}}</td>
@@ -632,7 +757,7 @@ def build_html(
     addOptions(marketFilter, unique(returns.map(row => row.market)));
     addOptions(statusFilter, unique(returns.map(row => row.calculation_status)));
 
-    [searchInput, kindFilter, marketFilter, statusFilter, horizonFilter].forEach(input => {{
+    [searchInput, kindFilter, marketFilter, statusFilter, horizonFilter, sortSelect].forEach(input => {{
       input.addEventListener("input", renderSignals);
       input.addEventListener("change", renderSignals);
     }});
@@ -646,7 +771,20 @@ def build_html(
       marketFilter.value = "";
       statusFilter.value = "";
       horizonFilter.value = "";
+      activeQuickFilter = "all";
+      document.querySelectorAll("[data-quick-filter]").forEach(button => {{
+        button.classList.toggle("active", button.dataset.quickFilter === "all");
+      }});
       renderSignals();
+    }});
+    document.querySelectorAll("[data-quick-filter]").forEach(button => {{
+      button.addEventListener("click", () => {{
+        activeQuickFilter = button.dataset.quickFilter;
+        document.querySelectorAll("[data-quick-filter]").forEach(item => {{
+          item.classList.toggle("active", item === button);
+        }});
+        renderSignals();
+      }});
     }});
     clearProxyFilters.addEventListener("click", () => {{
       proxySearchInput.value = "";

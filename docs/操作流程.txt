@@ -189,7 +189,7 @@ python3 scripts/build_dashboard.py
 
 reports/dashboard.html
 
-Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、7d 報酬條圖、公司 / 概念 proxy 篩選、狀態篩選與 proxy 審核表。此檔案是靜態 HTML，可直接用瀏覽器開啟。
+Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。此檔案是靜態 HTML，可直接用瀏覽器開啟。
 
 
 七、Git 提交前檢查

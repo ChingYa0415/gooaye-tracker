@@ -1241,6 +1241,10 @@ P4：Dashboard。
 72. 更新 scripts/run_daily_update.py，將 dashboard 產生納入日常更新流程。
 73. 更新 scripts/validate_data.py，檢查 reports/dashboard.html 是否存在且包含必要資料掛載點。
 74. 完成 dashboard 瀏覽器測試：桌面 1280px 與手機 390px 寬度皆無頁面級水平溢出，互動篩選與清除篩選可正常運作。
+75. 更新 scripts/build_dashboard.py，加入快速篩選：全部、已有報酬、正超額、待價格。
+76. 更新 scripts/build_dashboard.py，加入追蹤明細排序：發布日、7d 報酬、7d 超額與標的名稱。
+77. 更新 scripts/build_dashboard.py，加入 7 / 30 / 90 / 180 horizon 狀態 pills，讓未到期與已到期結果同時可視。
+78. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄新版 Dashboard 功能。
 
 修改或新增檔案：
 
@@ -1435,13 +1439,18 @@ P4：Dashboard。
 66. 已確認瀏覽器 console 無 error logs。
 67. 已確認桌面 1280px 與手機 390px 寬度下 document scroll width 不超出 viewport。
 68. 已確認 scripts/run_daily_update.py --skip-price-fetch 會重建 dashboard 並通過資料驗證。
+69. 已確認新版 Dashboard 首屏有快速篩選按鈕、排序選單與 76 個 horizon pills。
+70. 已確認快速篩選「已有報酬」會顯示 4 / 19 筆。
+71. 已確認快速篩選「正超額」會顯示 1 / 19 筆，且目前為散熱 proxy，7d 超額 6.80%。
+72. 已確認 7d 報酬高到低排序會將散熱 proxy 排在第一，7d 報酬 11.47%。
+73. 已確認手機 390px 寬度下工具列轉為直向排列，且無頁面級水平溢出。
 
 明日待辦：
 
 1. 等待後續交易日資料到期後，重跑 scripts/run_daily_update.py 更新 7 / 30 / 90 / 180 天報酬。
 2. 依 reports/concept_proxy_review.csv 人工檢查 concept proxy baskets，特別是功率元件、功率半導體與衛星 AI 運算。
 3. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
-4. 人工檢查 Dashboard 測試版的資訊密度與欄位優先順序，決定是否需要加上排序、匯出或更多 horizon 視覺化。
+4. 人工檢查 Dashboard 測試版的資訊密度與欄位優先順序，決定是否需要加上匯出、欄位顯示切換或更多圖表。
 5. 視人工審核需求，建立 apply_concept_proxy_review.py，將已確認的 proxy review 決策安全回寫 concept_proxies.csv。
 
 備註：
