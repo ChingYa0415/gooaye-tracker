@@ -176,6 +176,15 @@ EXPECTED_FIELDS = {
         "replacement_name",
         "review_comment",
     ],
+    "reports/new_episodes.csv": [
+        "episode_id",
+        "published_at",
+        "title",
+        "url",
+        "audio_url",
+        "duration_seconds",
+        "next_action",
+    ],
 }
 
 
@@ -340,6 +349,7 @@ def validate(root: pathlib.Path) -> list[str]:
     report = read_table(root / "reports/approved_company_bullish_returns.csv")
     require_fields(root / "reports/approved_company_bullish_returns.csv", report, return_report_fields())
     concept_proxy_review = tables["reports/concept_proxy_review.csv"].rows
+    new_episodes = tables["reports/new_episodes.csv"].rows
     summary = read_table(root / "reports/summary.csv")
     require_fields(root / "reports/summary.csv", summary, summary_fields())
 
@@ -393,6 +403,12 @@ def validate(root: pathlib.Path) -> list[str]:
         validate_float(row["active_proxy_count"], f"concept_proxy_review.csv:{row['proxy_id']}:active_proxy_count")
         validate_float(row["active_weight_total"], f"concept_proxy_review.csv:{row['proxy_id']}:active_weight_total")
         validate_float(row["weight"], f"concept_proxy_review.csv:{row['proxy_id']}:weight")
+    for row in new_episodes:
+        validate_date(row["published_at"], f"new_episodes.csv:{row['episode_id']}")
+        if row["episode_id"] not in mention_ids and row["episode_id"] not in episode_ids:
+            raise ValidationError(f"new_episodes.csv:{row['episode_id']} references missing episode")
+        if row["next_action"] != "download_audio":
+            raise ValidationError(f"new_episodes.csv:{row['episode_id']} unexpected next_action")
 
     for row in episodes:
         validate_date(row["published_at"], f"episodes.csv:{row['episode_id']}")

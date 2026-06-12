@@ -57,6 +57,9 @@
 5. reports/dashboard.html
    靜態測試版 Dashboard，整合 summary、return report 與 concept proxy review 的可讀視圖。
 
+6. reports/new_episodes.csv
+   記錄 RSS 同步時新加入的集數與下一步處理動作。
+
 本機設定檔：
 
 1. .env
@@ -940,7 +943,51 @@
 4. validate_data.py 會檢查 dashboard.html 是否存在，並確認必要資料掛載點存在。
 
 
-十八、下一步檢查清單
+十八、new_episodes.csv
+
+用途：
+記錄由 scripts/sync_episodes.py 產生的新集數工作表。此報表列出本次 RSS 同步新增到 episodes.csv 的集數，並標出後續應執行的處理動作。
+
+欄位：
+
+1. episode_id
+   型別：string
+   必填：是
+   說明：新集數 ID，對應 episodes.csv。
+
+2. published_at
+   型別：date
+   必填：是
+   說明：RSS 發布日期。
+
+3. title
+   型別：string
+   必填：是
+   說明：RSS 標題。
+
+4. url
+   型別：string
+   必填：是
+   說明：SoundOn 播放頁 URL。
+
+5. audio_url
+   型別：string
+   必填：是
+   說明：RSS enclosure 音檔 URL。
+
+6. duration_seconds
+   型別：integer
+   必填：否
+   說明：RSS 提供的音訊長度秒數。
+
+7. next_action
+   型別：enum
+   必填：是
+   允許值：download_audio
+   說明：新集數下一步處理動作。
+
+
+十九、下一步檢查清單
 
 建立或修改資料後，至少檢查：
 
@@ -960,3 +1007,4 @@
 14. summary.csv 是否包含 episodes.formal_total、mentions.formal_total、returns.formal_total 與 reports.approved_company_bullish_returns_rows 等核心指標。
 15. concept_proxy_review.csv 是否與 concept_proxies.csv 的 proxy_id 完全一致。
 16. dashboard.html 是否已由最新 reports/*.csv 重建。
+17. new_episodes.csv 若有列資料，是否都已存在於 episodes.csv，且 next_action 為 download_audio。

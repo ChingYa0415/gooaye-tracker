@@ -1245,6 +1245,11 @@ P4：Dashboard。
 76. 更新 scripts/build_dashboard.py，加入追蹤明細排序：發布日、7d 報酬、7d 超額與標的名稱。
 77. 更新 scripts/build_dashboard.py，加入 7 / 30 / 90 / 180 horizon 狀態 pills，讓未到期與已到期結果同時可視。
 78. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄新版 Dashboard 功能。
+79. 建立 scripts/sync_episodes.py，安全同步 Gooaye RSS 新集數，不覆寫既有 transcript_status。
+80. 使用 scripts/sync_episodes.py 同步 EP668 與 EP669，兩集目前 transcript_status=missing。
+81. 產生 reports/new_episodes.csv，記錄本次新增集數與 next_action=download_audio。
+82. 建立 Codex automation「同步股癌新集數」，每週三與週六上午檢查 RSS、同步新集數並重建 Dashboard。
+83. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄新集數同步與週期更新流程。
 
 修改或新增檔案：
 
@@ -1306,6 +1311,8 @@ P4：Dashboard。
 56. reports/concept_proxy_review.csv
 57. scripts/build_dashboard.py
 58. reports/dashboard.html
+59. scripts/sync_episodes.py
+60. reports/new_episodes.csv
 
 本機產物，不進 Git：
 
@@ -1368,6 +1375,8 @@ P4：Dashboard。
 8. concept_proxy_review.csv 第一版只產生人工審核欄位，不自動回寫 concept_proxies.csv，避免尚未確認的籃子調整直接影響回測。
 9. Dashboard 測試版採靜態 HTML，不引入後端或前端框架，先以最低維護成本提供可讀入口。
 10. Dashboard 是派生視圖，不取代 CSV 真相來源；正式資料仍以 data/processed/*.csv 與 reports/*.csv 為準。
+11. 新集數同步預設只加入比目前最新正式集數更新的 RSS items；補歷史集數需手動使用 --include-backfill。
+12. 週期性 automation 只負責同步 metadata 與重建 Dashboard，不自動下載音檔或轉錄，避免未審核的新內容直接進入 mentions。
 
 驗證方式：
 
@@ -1444,14 +1453,19 @@ P4：Dashboard。
 71. 已確認快速篩選「正超額」會顯示 1 / 19 筆，且目前為散熱 proxy，7d 超額 6.80%。
 72. 已確認 7d 報酬高到低排序會將散熱 proxy 排在第一，7d 報酬 11.47%。
 73. 已確認手機 390px 寬度下工具列轉為直向排列，且無頁面級水平溢出。
+74. 已確認 scripts/sync_episodes.py --dry-run 只會新增 EP668 與 EP669，不會補入更舊 backfill。
+75. 已確認正式同步後 episodes.csv 變為 12 筆正式 episodes。
+76. 已確認 transcript_inputs.csv 新增 EP668 與 EP669，transcript_status 均為 missing。
+77. 已確認 reports/new_episodes.csv 產生 2 筆，next_action 均為 download_audio。
+78. 已確認 scripts/run_daily_update.py --skip-price-fetch 於同步後通過資料驗證。
 
 明日待辦：
 
 1. 等待後續交易日資料到期後，重跑 scripts/run_daily_update.py 更新 7 / 30 / 90 / 180 天報酬。
-2. 依 reports/concept_proxy_review.csv 人工檢查 concept proxy baskets，特別是功率元件、功率半導體與衛星 AI 運算。
-3. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
-4. 人工檢查 Dashboard 測試版的資訊密度與欄位優先順序，決定是否需要加上匯出、欄位顯示切換或更多圖表。
-5. 視人工審核需求，建立 apply_concept_proxy_review.py，將已確認的 proxy review 決策安全回寫 concept_proxies.csv。
+2. 對 reports/new_episodes.csv 中的 EP668 與 EP669 執行 download_audio、split_audio、transcribe_whisper_cpp、combine_transcripts。
+3. 依 reports/concept_proxy_review.csv 人工檢查 concept proxy baskets，特別是功率元件、功率半導體與衛星 AI 運算。
+4. 評估是否把台股價格來源從 Yahoo MVP 改為 TWSE / TPEx 官方資料。
+5. 人工檢查 Dashboard 測試版的資訊密度與欄位優先順序，決定是否需要加上匯出、欄位顯示切換或更多圖表。
 
 備註：
 目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、needs_context 二次校對、第一版價格資料抓取、公司與概念 proxy 報酬檢查報表、summary 總覽報表、concept proxy review 工作表、Dashboard 測試版與日常資料驗證入口；資料、腳本與可讀報表層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、人工校準 concept proxy baskets，並改善價格來源穩定性。

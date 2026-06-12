@@ -43,6 +43,37 @@ python3 scripts/run_daily_update.py --start-date 2026-01-01 --end-date 2026-12-3
 6. reports/dashboard.html
 
 
+二之一、新集數同步流程
+
+用途：
+從 Gooaye SoundOn RSS 檢查是否有比目前 episodes.csv 更新的集數，安全新增到 episodes.csv 與 transcript_inputs.csv，並輸出新集數工作表。
+
+檢查但不寫入：
+
+python3 scripts/sync_episodes.py --dry-run
+
+正式同步：
+
+python3 scripts/sync_episodes.py
+
+輸出檔案：
+
+1. data/processed/episodes.csv
+2. data/processed/transcript_inputs.csv
+3. reports/new_episodes.csv
+
+預設行為：
+
+1. 只新增比目前最新正式 episode 還新的 RSS items。
+2. 不覆寫既有 generated / reviewed 等 transcript_status。
+3. 不補舊集數；若要手動補歷史集數，才使用 --include-backfill。
+4. 新集數的 next_action 會標為 download_audio。
+
+週期性更新：
+
+Codex automation「同步股癌新集數」已設定為每週三與週六上午執行。任務會先跑 scripts/sync_episodes.py，再跑 scripts/run_daily_update.py --skip-price-fetch，並回報新增集數與後續處理動作。
+
+
 三、資料驗證流程
 
 用途：

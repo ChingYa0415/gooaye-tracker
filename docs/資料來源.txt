@@ -296,3 +296,21 @@ python3 scripts/build_dashboard.py
 
 注意：
 Dashboard 是 reports/*.csv 的可讀視圖，不是原始真相來源。每次更新價格、mentions 或 proxy review 後，應透過 scripts/run_daily_update.py 重建。
+
+13. 新集數同步
+
+工具：
+scripts/sync_episodes.py
+
+用途：
+讀取 Gooaye SoundOn RSS，將比目前 episodes.csv 最新正式集數更新的 RSS items 安全加入 data/processed/episodes.csv 與 data/processed/transcript_inputs.csv，並輸出 reports/new_episodes.csv 作為後續下載音檔與轉錄的工作清單。
+
+範例：
+python3 scripts/sync_episodes.py --dry-run
+python3 scripts/sync_episodes.py
+
+目前使用：
+已同步 EP668 與 EP669 至 episodes.csv 與 transcript_inputs.csv，兩集目前 transcript_status=missing，下一步為 download_audio。
+
+注意：
+此工具預設不補歷史集數，避免週期性任務意外加入大量舊集。若要手動補舊集，可使用 --include-backfill。
