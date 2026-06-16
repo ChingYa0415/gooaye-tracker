@@ -1644,3 +1644,54 @@ P4：Dashboard。
 
 備註：
 截至本次補跑結束，第一批 13 集正式 episodes 都已完成逐字稿狀態更新，Dashboard 已反映全部 generated transcripts 的自動抽取結果。
+
+
+二十之五、2026-06-16 追加實作紀錄
+
+日期：
+2026-06-16
+
+今日目標：
+在既有 7 / 30 / 90 / 180 天報酬之外，加入從提到後第一個交易日開始到目前最新價格日的總漲跌。
+
+完成內容：
+
+1. 更新 scripts/fetch_prices.py，在 mention_returns.csv 新增 current_trade_date、current_price、current_return、benchmark_current_return、excess_current_return。
+2. current_return 採標的實際漲跌，不做 bearish 方向反轉；horizon return 則沿用既有 stance-adjusted 計算。
+3. 更新 scripts/build_return_report.py，將 current 欄位與百分比格式輸出到 reports/approved_company_bullish_returns.csv。
+4. 更新 scripts/build_summary_report.py，新增 performance.current.available_count、performance.current.avg_return、performance.current.avg_excess_return。
+5. 更新 scripts/build_dashboard.py，在總覽卡片加入 Current Avg / Current Excess，並在追蹤明細加入至今報酬、至今超額與排序選項。
+6. 更新 scripts/validate_data.py，將 current 欄位納入資料驗證 schema。
+7. 更新 docs/資料字典.txt 與 docs/操作流程.txt，記錄 current_return 的意義與和 horizon return 的差異。
+
+修改或新增檔案：
+
+1. scripts/fetch_prices.py
+2. scripts/build_return_report.py
+3. scripts/build_summary_report.py
+4. scripts/build_dashboard.py
+5. scripts/validate_data.py
+6. data/processed/mention_returns.csv
+7. reports/approved_company_bullish_returns.csv
+8. reports/summary.csv
+9. reports/dashboard.html
+10. docs/資料字典.txt
+11. docs/操作流程.txt
+12. 股癌追蹤系統規劃與設計.txt
+
+重要決策：
+
+1. 至今報酬回答的是標的從提到後第一個交易日至今實際漲跌，因此不反轉 bearish。
+2. 至今超額使用 current_return 減去 benchmark_current_return。
+3. 概念 proxy 的 current_price 使用合成籃子淨值，base_price 仍為 1。
+
+驗證方式：
+
+1. python3 -m py_compile 通過本次修改 scripts。
+2. python3 scripts/run_daily_update.py 成功重建 mention_returns、return report、summary 與 dashboard。
+3. python3 scripts/validate_data.py 通過，summary 增加 current 相關指標。
+
+明日待辦：
+
+1. 用瀏覽器檢查 Dashboard 至今欄位在桌面與手機版的呈現。
+2. 如果 Dashboard 欄位過寬，評估加入欄位顯示切換或把 7d / 至今圖表合併成緊湊呈現。

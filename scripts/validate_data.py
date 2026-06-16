@@ -70,6 +70,11 @@ EXPECTED_FIELDS = {
         "stance",
         "base_trade_date",
         "base_price",
+        "current_trade_date",
+        "current_price",
+        "current_return",
+        "benchmark_current_return",
+        "excess_current_return",
         "return_7d",
         "return_30d",
         "return_90d",
@@ -466,6 +471,17 @@ def validate(root: pathlib.Path) -> list[str]:
                 raise ValidationError(f"mention_returns.csv:{row['mention_id']} missing base price fields")
         validate_date(row["base_trade_date"], f"mention_returns.csv:{row['mention_id']}")
         validate_float(row["base_price"], f"mention_returns.csv:{row['mention_id']}:base_price")
+        validate_date(row["current_trade_date"], f"mention_returns.csv:{row['mention_id']}:current_trade_date")
+        validate_float(row["current_price"], f"mention_returns.csv:{row['mention_id']}:current_price")
+        validate_float(row["current_return"], f"mention_returns.csv:{row['mention_id']}:current_return")
+        validate_float(
+            row["benchmark_current_return"],
+            f"mention_returns.csv:{row['mention_id']}:benchmark_current_return",
+        )
+        validate_float(
+            row["excess_current_return"],
+            f"mention_returns.csv:{row['mention_id']}:excess_current_return",
+        )
         for horizon in HORIZONS:
             validate_float(row[f"return_{horizon}d"], f"mention_returns.csv:{row['mention_id']}:return_{horizon}d")
             validate_float(
@@ -522,6 +538,14 @@ def return_report_fields() -> list[str]:
         "time_horizon",
         "base_trade_date",
         "base_price",
+        "current_trade_date",
+        "current_price",
+        "current_return",
+        "current_return_pct",
+        "benchmark_current_return",
+        "benchmark_current_return_pct",
+        "excess_current_return",
+        "excess_current_return_pct",
         "available_horizons",
         "calculation_status",
         "evidence_text",

@@ -67,6 +67,13 @@ def enriched_returns(rows: list[dict[str, str]]) -> list[dict[str, str]]:
             sum(1 for horizon in HORIZONS if row.get(f"return_{horizon}d"))
         )
         item["has_any_return"] = "true" if item["available_horizon_count"] != "0" else "false"
+        current_return = numeric(row.get("current_return", ""))
+        current_excess = numeric(row.get("excess_current_return", ""))
+        item["current_return_display"] = row.get("current_return_pct") or "等待"
+        item["excess_current_display"] = row.get("excess_current_return_pct") or "等待"
+        item["current_return_value"] = current_return if current_return is not None else 0
+        item["excess_current_return_value"] = current_excess if current_excess is not None else 0
+        item["has_current_return"] = "true" if current_return is not None else "false"
         for horizon in HORIZONS:
             return_value = numeric(row.get(f"return_{horizon}d", ""))
             excess_value = numeric(row.get(f"excess_return_{horizon}d", ""))
@@ -121,6 +128,8 @@ def build_html(
         ("Episodes", metric(summary, "episodes.formal_total"), "formal sources"),
         ("Mentions", metric(summary, "mentions.formal_total"), f"{metric(summary, 'mentions.approved_total')} approved"),
         ("Trackable", metric(summary, "returns.total_return_candidates"), f"{metric(summary, 'returns.concept_proxy_return_candidates')} concept proxy"),
+        ("Current Avg", metric(summary, "performance.current.avg_return", "-"), f"{metric(summary, 'performance.current.available_count')} ready"),
+        ("Current Excess", metric(summary, "performance.current.avg_excess_return", "-"), "vs benchmark"),
         ("7d Ready", metric(summary, "performance.7d.available_count"), f"{metric(summary, 'performance.7d.hit_rate')} hit rate"),
         ("7d Avg", metric(summary, "performance.7d.avg_return", "-"), "stance-adjusted"),
         ("7d Excess", metric(summary, "performance.7d.avg_excess_return", "-"), "vs benchmark"),
@@ -312,7 +321,7 @@ def build_html(
     table {{
       width: 100%;
       border-collapse: collapse;
-      min-width: 980px;
+      min-width: 1180px;
     }}
     th, td {{
       padding: 10px 12px;
@@ -499,6 +508,10 @@ def build_html(
                 <option value="return_7d_asc">7d 報酬低到高</option>
                 <option value="excess_7d_desc">7d 超額高到低</option>
                 <option value="excess_7d_asc">7d 超額低到高</option>
+                <option value="current_return_desc">至今報酬高到低</option>
+                <option value="current_return_asc">至今報酬低到高</option>
+                <option value="current_excess_desc">至今超額高到低</option>
+                <option value="current_excess_asc">至今超額低到高</option>
                 <option value="name_asc">標的名稱</option>
               </select>
             </div>
@@ -534,6 +547,8 @@ def build_html(
                   <th>基準日</th>
                   <th>狀態</th>
                   <th>Horizon</th>
+                  <th>至今報酬</th>
+                  <th>至今超額</th>
                   <th>7d 報酬</th>
                   <th>7d 超額</th>
                   <th>證據</th>
@@ -590,7 +605,9 @@ def build_html(
     const proxies = JSON.parse(document.getElementById("proxy-data").textContent);
     const maxAbsReturn = Math.max(0.01, ...returns.flatMap(row => [
       Math.abs(Number(row.return_7d_value || 0)),
-      Math.abs(Number(row.excess_return_7d_value || 0))
+      Math.abs(Number(row.excess_return_7d_value || 0)),
+      Math.abs(Number(row.current_return_value || 0)),
+      Math.abs(Number(row.excess_current_return_value || 0))
     ]));
 
     const searchInput = document.getElementById("searchInput");
@@ -687,6 +704,10 @@ def build_html(
       if (sortValue === "return_7d_asc") return Number(a.return_7d_value || 0) - Number(b.return_7d_value || 0) || byName;
       if (sortValue === "excess_7d_desc") return Number(b.excess_return_7d_value || 0) - Number(a.excess_return_7d_value || 0) || byName;
       if (sortValue === "excess_7d_asc") return Number(a.excess_return_7d_value || 0) - Number(b.excess_return_7d_value || 0) || byName;
+      if (sortValue === "current_return_desc") return Number(b.current_return_value || 0) - Number(a.current_return_value || 0) || byName;
+      if (sortValue === "current_return_asc") return Number(a.current_return_value || 0) - Number(b.current_return_value || 0) || byName;
+      if (sortValue === "current_excess_desc") return Number(b.excess_current_return_value || 0) - Number(a.excess_current_return_value || 0) || byName;
+      if (sortValue === "current_excess_asc") return Number(a.excess_current_return_value || 0) - Number(b.excess_current_return_value || 0) || byName;
       if (sortValue === "name_asc") return byName || b.published_at.localeCompare(a.published_at);
       return b.published_at.localeCompare(a.published_at) || byName;
     }}
@@ -726,6 +747,8 @@ def build_html(
           <td>${{escapeHtml(row.base_trade_date || "等待")}}</td>
           <td>${{badge(row.available_horizons || row.calculation_status, row.available_horizons ? "badge-ready" : "badge-status")}}</td>
           <td><div class="horizon-list">${{horizonPills(row)}}</div></td>
+          <td class="bar-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnBar(row.current_return_value, row.current_return_display)}}</td>
+          <td class="bar-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnBar(row.excess_current_return_value, row.excess_current_display)}}</td>
           <td class="bar-cell">${{returnBar(row.return_7d_value, row.return_7d_display)}}</td>
           <td class="bar-cell">${{returnBar(row.excess_return_7d_value, row.excess_7d_display)}}</td>
           <td class="wrap">${{escapeHtml(row.evidence_text)}}</td>
@@ -820,7 +843,8 @@ def build_html(
 
 def write_dashboard(path: pathlib.Path, html_text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(html_text, encoding="utf-8")
+    normalized = "\n".join(line.rstrip() for line in html_text.splitlines()) + "\n"
+    path.write_text(normalized, encoding="utf-8")
 
 
 def main() -> int:

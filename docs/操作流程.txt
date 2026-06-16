@@ -259,7 +259,10 @@ python3 scripts/build_dashboard.py
 
 reports/dashboard.html
 
-Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、股癌看法、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。此檔案是靜態 HTML，可直接用瀏覽器開啟。
+Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、股癌看法、至今報酬、至今超額、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。此檔案是靜態 HTML，可直接用瀏覽器開啟。
+
+注意：
+至今報酬是從 base_trade_date 到目前價格資料最後一日的標的實際漲跌，不做 bearish 方向反轉；7 / 30 / 90 / 180 horizon 欄位則沿用既有回測邏輯。
 
 
 七、Git 提交前檢查

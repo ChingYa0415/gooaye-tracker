@@ -412,73 +412,98 @@
    必填：否
    說明：基準日收盤價。
 
-7. return_7d
+7. current_trade_date
+   型別：date
+   必填：否
+   說明：目前累計報酬使用的最新價格日期。
+
+8. current_price
    型別：number
    必填：否
-   說明：7 天後報酬率。使用小數，例如 0.05 代表 5%。
+   說明：current_trade_date 的調整後收盤價。概念 proxy 會記為合成籃子淨值。
 
-8. return_30d
+9. current_return
+   型別：number
+   必填：否
+   說明：從 base_trade_date 到 current_trade_date 的標的實際報酬率，不做 bullish / bearish 方向反轉。
+
+10. benchmark_current_return
+   型別：number
+   必填：否
+   說明：benchmark 從 base_trade_date 到 current_trade_date 附近最新可得交易日的報酬率。
+
+11. excess_current_return
+   型別：number
+   必填：否
+   說明：current_return - benchmark_current_return。
+
+12. return_7d
+   型別：number
+   必填：否
+   說明：7 天後報酬率。使用小數，例如 0.05 代表 5%。此欄沿用既有回測邏輯，bearish 會轉成方向調整後報酬。
+
+13. return_30d
    型別：number
    必填：否
    說明：30 天後報酬率。
 
-9. return_90d
+14. return_90d
    型別：number
    必填：否
    說明：90 天後報酬率。
 
-10. return_180d
+15. return_180d
    型別：number
    必填：否
    說明：180 天後報酬率。
 
-11. benchmark_return_7d
+16. benchmark_return_7d
    型別：number
    必填：否
    說明：benchmark 7 天後報酬率。
 
-12. benchmark_return_30d
+17. benchmark_return_30d
    型別：number
    必填：否
    說明：benchmark 30 天後報酬率。
 
-13. benchmark_return_90d
+18. benchmark_return_90d
    型別：number
    必填：否
    說明：benchmark 90 天後報酬率。
 
-14. benchmark_return_180d
+19. benchmark_return_180d
    型別：number
    必填：否
    說明：benchmark 180 天後報酬率。
 
-15. excess_return_7d
+20. excess_return_7d
    型別：number
    必填：否
    說明：return_7d - benchmark_return_7d。
 
-16. excess_return_30d
+21. excess_return_30d
    型別：number
    必填：否
    說明：return_30d - benchmark_return_30d。
 
-17. excess_return_90d
+22. excess_return_90d
    型別：number
    必填：否
    說明：return_90d - benchmark_return_90d。
 
-18. excess_return_180d
+23. excess_return_180d
    型別：number
    必填：否
    說明：return_180d - benchmark_return_180d。
 
-19. calculation_status
+24. calculation_status
    型別：enum
    必填：是
    允許值：pending_price / calculated / missing_price / not_applicable / error
    說明：報酬計算狀態。
 
-20. notes
+25. notes
    型別：string
    必填：否
    說明：錯誤原因或補充說明。

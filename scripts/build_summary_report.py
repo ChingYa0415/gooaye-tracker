@@ -168,6 +168,39 @@ def build_summary(
         Counter(row["available_horizons"] or "(none)" for row in return_report),
     )
 
+    current_returns = non_empty_floats(return_report, "current_return")
+    current_excess_returns = non_empty_floats(return_report, "excess_current_return")
+    rows.append(
+        count_row(
+            "performance",
+            "current.available_count",
+            len(current_returns),
+            "rows with current return from base trade date to latest price date",
+        )
+    )
+    if current_returns:
+        avg_current_return = sum(current_returns) / len(current_returns)
+        rows.append(
+            SummaryRow(
+                "performance",
+                "current.avg_return",
+                number(avg_current_return),
+                percent(avg_current_return),
+                "raw target return from base trade date to latest price date",
+            )
+        )
+    if current_excess_returns:
+        avg_current_excess = sum(current_excess_returns) / len(current_excess_returns)
+        rows.append(
+            SummaryRow(
+                "performance",
+                "current.avg_excess_return",
+                number(avg_current_excess),
+                percent(avg_current_excess),
+                "current target return minus benchmark return",
+            )
+        )
+
     for horizon in HORIZONS:
         mention_returns = non_empty_floats(return_report, f"return_{horizon}d")
         benchmark_returns = non_empty_floats(return_report, f"benchmark_return_{horizon}d")

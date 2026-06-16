@@ -28,6 +28,34 @@ BENCHMARK_SYMBOLS = {
 
 HORIZONS = [7, 30, 90, 180]
 
+RETURN_FIELDNAMES = [
+    "mention_id",
+    "ticker",
+    "market",
+    "stance",
+    "base_trade_date",
+    "base_price",
+    "current_trade_date",
+    "current_price",
+    "current_return",
+    "benchmark_current_return",
+    "excess_current_return",
+    "return_7d",
+    "return_30d",
+    "return_90d",
+    "return_180d",
+    "benchmark_return_7d",
+    "benchmark_return_30d",
+    "benchmark_return_90d",
+    "benchmark_return_180d",
+    "excess_return_7d",
+    "excess_return_30d",
+    "excess_return_90d",
+    "excess_return_180d",
+    "calculation_status",
+    "notes",
+]
+
 
 @dataclass(frozen=True)
 class PriceRow:
@@ -255,6 +283,20 @@ def first_trade_on_or_after(prices: dict[date, float], target: date) -> tuple[da
     return None
 
 
+def last_trade_on_or_before(prices: dict[date, float], target: date) -> tuple[date, float] | None:
+    for trade_date in sorted(prices, reverse=True):
+        if trade_date <= target:
+            return trade_date, prices[trade_date]
+    return None
+
+
+def latest_trade(prices: dict[date, float]) -> tuple[date, float] | None:
+    if not prices:
+        return None
+    trade_date = max(prices)
+    return trade_date, prices[trade_date]
+
+
 def calc_return(base_price: float, target_price: float, stance: str) -> float:
     raw_return = target_price / base_price - 1
     if stance == "bearish":
@@ -277,6 +319,11 @@ def empty_return_row(mention: dict[str, str], status: str, notes: str) -> dict[s
         "stance": mention.get("stance", ""),
         "base_trade_date": "",
         "base_price": "",
+        "current_trade_date": "",
+        "current_price": "",
+        "current_return": "",
+        "benchmark_current_return": "",
+        "excess_current_return": "",
         "calculation_status": status,
         "notes": notes,
     }
@@ -311,6 +358,19 @@ def calculate_company_return_row(
     row = empty_return_row(mention, "calculated", f"price source Yahoo chart symbol={symbol}")
     row["base_trade_date"] = base_date.isoformat()
     row["base_price"] = format_number(base_price)
+    current = latest_trade(prices)
+    if current is not None and current[0] >= base_date:
+        current_date, current_price = current
+        current_return = current_price / base_price - 1
+        row["current_trade_date"] = current_date.isoformat()
+        row["current_price"] = format_number(current_price)
+        row["current_return"] = format_number(current_return)
+        if benchmark_base is not None:
+            benchmark_current = last_trade_on_or_before(benchmark_prices, current_date)
+            if benchmark_current is not None:
+                benchmark_current_return = benchmark_current[1] / benchmark_base[1] - 1
+                row["benchmark_current_return"] = format_number(benchmark_current_return)
+                row["excess_current_return"] = format_number(current_return - benchmark_current_return)
     pending_targets = 0
 
     for horizon in HORIZONS:
@@ -383,6 +443,34 @@ def calculate_concept_return_row(
     row["market"] = "concept"
     row["base_trade_date"] = base_date.isoformat()
     row["base_price"] = "1"
+    latest_component_dates: list[date] = []
+    for proxy, _, _ in component_bases:
+        symbol = yahoo_symbol(proxy.ticker, proxy.market)
+        latest = latest_trade(prices_by_symbol.get(symbol, {}))
+        if latest is not None:
+            latest_component_dates.append(latest[0])
+    if len(latest_component_dates) == len(component_bases):
+        current_date = min(latest_component_dates)
+        current_returns: list[tuple[float, float]] = []
+        for proxy, component_base_date, component_base_price in component_bases:
+            symbol = yahoo_symbol(proxy.ticker, proxy.market)
+            current = last_trade_on_or_before(prices_by_symbol.get(symbol, {}), current_date)
+            if current is None:
+                current_returns = []
+                break
+            _, current_price = current
+            current_returns.append((proxy.weight, current_price / component_base_price - 1))
+        if current_returns:
+            current_return = weighted_average(current_returns)
+            row["current_trade_date"] = current_date.isoformat()
+            row["current_price"] = format_number(1 + current_return)
+            row["current_return"] = format_number(current_return)
+            if benchmark_base is not None:
+                benchmark_current = last_trade_on_or_before(benchmark_prices, current_date)
+                if benchmark_current is not None:
+                    benchmark_current_return = benchmark_current[1] / benchmark_base[1] - 1
+                    row["benchmark_current_return"] = format_number(benchmark_current_return)
+                    row["excess_current_return"] = format_number(current_return - benchmark_current_return)
     pending_targets = 0
 
     for horizon in HORIZONS:
@@ -443,30 +531,7 @@ def calculate_return_row(
 
 
 def output_fieldnames(existing_fieldnames: list[str]) -> list[str]:
-    if existing_fieldnames:
-        return existing_fieldnames
-    return [
-        "mention_id",
-        "ticker",
-        "market",
-        "stance",
-        "base_trade_date",
-        "base_price",
-        "return_7d",
-        "return_30d",
-        "return_90d",
-        "return_180d",
-        "benchmark_return_7d",
-        "benchmark_return_30d",
-        "benchmark_return_90d",
-        "benchmark_return_180d",
-        "excess_return_7d",
-        "excess_return_30d",
-        "excess_return_90d",
-        "excess_return_180d",
-        "calculation_status",
-        "notes",
-    ]
+    return RETURN_FIELDNAMES
 
 
 def write_returns(path: pathlib.Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
