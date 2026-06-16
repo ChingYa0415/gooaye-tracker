@@ -1,6 +1,6 @@
 股癌追蹤操作流程
-版本：0.1
-日期：2026-06-06
+版本：0.2
+日期：2026-06-16
 
 一、文件目的
 
@@ -71,7 +71,9 @@ python3 scripts/sync_episodes.py
 
 週期性更新：
 
-Codex automation「同步股癌新集數」已設定為每週三與週六上午執行。任務會先跑 scripts/sync_episodes.py，再跑 scripts/run_daily_update.py --skip-price-fetch，並回報新增集數與後續處理動作。
+Codex automation「同步並分析股癌新集數」已設定為每週三與週六上午執行。任務會先跑 scripts/sync_episodes.py；接著檢查 data/processed/transcript_inputs.csv 中 transcript_status=missing 且尚未產生合併逐字稿的正式集數，依序下載音檔、切段、用本機 whisper.cpp 轉錄整集、合併逐字稿，接著執行 scripts/auto_extract_stock_mentions.py 與 scripts/run_daily_update.py。
+
+此排程不需要人工審核才會把新標的納入追蹤。只要逐字稿中命中 instruments.csv 的單一股票別名，且上下文可判斷出 stance keyword，腳本會自動寫入 mentions.csv，review_status=approved，並在 reviewer_note 標記 no manual review。低信心或只有名稱、沒有語氣線索的命中會保留在 reports/auto_stock_mentions.csv，但預設不寫入正式 mentions。
 
 
 三、資料驗證流程
@@ -91,7 +93,7 @@ python3 scripts/validate_data.py
 4. mentions.csv 是否引用存在的 episode_id。
 5. approved mention 是否有 evidence_text。
 6. 正式 approved mentions 是否都有 mention_returns.csv row。
-7. approved company bullish / bearish mentions 是否都有報表 row。
+7. approved company mentions 是否都有報表 row；概念型 mentions 則只追蹤 bullish / bearish 且已啟用 proxy 的項目。
 8. calculated / pending_price rows 是否有 base_trade_date 與 base_price。
 9. data/prices/*.csv 是否有必要欄位與可解析的價格。
 10. reports/summary.csv 是否包含必要總覽指標。
@@ -118,7 +120,7 @@ python3 scripts/split_audio.py --episode-id ep_YYYYMMDD_XXX
 
 python3 scripts/transcribe_openai.py --episode-id ep_YYYYMMDD_XXX
 
-若 OpenAI API 額度不足，改用本機 whisper.cpp：
+若 OpenAI API 額度不足，改用本機 whisper.cpp。未指定 --chunk-index 時，會轉錄該集所有 chunks；若只要補單段，可加上 --chunk-index：
 
 python3 scripts/transcribe_whisper_cpp.py --episode-id ep_YYYYMMDD_XXX
 
@@ -132,7 +134,44 @@ python3 scripts/combine_transcripts.py --episode-id ep_YYYYMMDD_XXX
 逐字稿原文、原始音檔、切段音檔與模型檔都是本機 raw artifacts，不進 Git。確認合併逐字稿與 metadata 完成後，原始音檔與切段音檔可刪除。
 
 
-五、候選 mention 與人工審核流程
+五、自動抽取股票 mention 流程
+
+用途：
+不經人工審核，從已合併的逐字稿中自動整理有提到的單一股票、判斷股癌語氣，並納入後續績效追蹤。
+
+正式執行：
+
+python3 scripts/auto_extract_stock_mentions.py
+
+檢查但不寫入：
+
+python3 scripts/auto_extract_stock_mentions.py --dry-run
+
+輸出檔案：
+
+1. data/processed/mentions.csv
+2. reports/auto_stock_mentions.csv
+
+預設行為：
+
+1. 只掃描 transcript_status=generated 的正式集數。
+2. 只處理 instruments.csv 中可對應 ticker 且 market 為 TWSE、TPEx、US 的單一股票。
+3. 同一集同一 ticker 已存在 mentions.csv 時不重複新增。
+4. 有語氣關鍵字的命中自動寫入 mentions.csv，review_status=approved。
+5. bullish / bearish / watch / past_review / neutral 會一併進入公司績效追蹤；其中 bullish / bearish 才代表方向性看法。
+6. 沒有語氣關鍵字的低信心命中預設只寫入 reports/auto_stock_mentions.csv，action=skipped_low_confidence。
+7. 若要把低信心 neutral 命中也寫入 mentions.csv，可加 --include-low-confidence，但目前不建議排程使用。
+
+自動抽取後，執行：
+
+python3 scripts/run_daily_update.py
+
+此流程會更新價格、mention_returns.csv、追蹤報表、summary 與 dashboard。
+
+
+五之一、候選 mention 與人工審核工具
+
+下列工具保留給需要人工校對、補歷史資料或修正錯誤時使用；目前日常流程不依賴人工審核。
 
 1. 掃描逐字稿中的標的別名：
 
@@ -220,7 +259,7 @@ python3 scripts/build_dashboard.py
 
 reports/dashboard.html
 
-Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。此檔案是靜態 HTML，可直接用瀏覽器開啟。
+Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、股癌看法、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。此檔案是靜態 HTML，可直接用瀏覽器開啟。
 
 
 七、Git 提交前檢查

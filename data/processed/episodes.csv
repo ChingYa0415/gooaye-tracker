@@ -1,5 +1,6 @@
 episode_id,source_name,source_type,title,published_at,url,duration_seconds,transcript_status,notes
 sample_ep_001,股癌 Gooaye,podcast,範例節目：AI Server 與台股觀察,2026-06-05,https://example.com/sample-episode-001,,manual,sample row for schema validation
+ep_20260613_670,股癌 Gooaye,podcast,EP670 | 🫡,2026-06-13,https://player.soundon.fm/p/954689a5-3096-43a4-a80b-7810b219cef3/episodes/685bc211-b7dc-478b-9463-53a160c20cdf,3127,missing,synced from SoundOn RSS latest 20
 ep_20260610_669,股癌 Gooaye,podcast,EP669 | 🎈,2026-06-10,https://player.soundon.fm/p/954689a5-3096-43a4-a80b-7810b219cef3/episodes/f208d558-a3a0-4812-a19a-777c69ac31bf,3041,missing,synced from SoundOn RSS latest 20
 ep_20260606_668,股癌 Gooaye,podcast,EP668 | 🦞,2026-06-06,https://player.soundon.fm/p/954689a5-3096-43a4-a80b-7810b219cef3/episodes/6d6095d8-112b-4c7f-abb3-8b670f092b2e,3002,missing,synced from SoundOn RSS latest 20
 ep_20260603_667,股癌 Gooaye,podcast,EP667 | 🌍,2026-06-03,https://player.soundon.fm/p/954689a5-3096-43a4-a80b-7810b219cef3/episodes/8c2cb9ef-82a5-46ec-bd46-1e213017a353,3051,generated,selected from SoundOn RSS latest 10; local whisper.cpp transcript generated

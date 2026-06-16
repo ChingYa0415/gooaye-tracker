@@ -1,6 +1,6 @@
 股癌追蹤資料字典
-版本：0.1
-日期：2026-06-05
+版本：0.2
+日期：2026-06-16
 
 一、文件目的
 
@@ -46,7 +46,7 @@
    記錄待人工校對的 pending mentions、短證據、逐字稿行號提示與審核決策欄位。
 
 2. reports/approved_company_bullish_returns.csv
-   記錄已審核、可回測的公司 bullish / bearish mentions，以及已定義 proxy 的概念型 bullish / bearish mentions。
+   記錄已 approved 且可追蹤績效的公司 mentions，以及已定義 proxy 的概念型 bullish / bearish mentions。檔名沿用第一版，內容已包含公司 neutral、watch、past_review 等非方向性看法。
 
 3. reports/summary.csv
    記錄目前資料管線的總覽指標，例如 episode 數、mention review 狀態、return 狀態、可得 horizon 與平均報酬。
@@ -59,6 +59,9 @@
 
 6. reports/new_episodes.csv
    記錄 RSS 同步時新加入的集數與下一步處理動作。
+
+7. reports/auto_stock_mentions.csv
+   記錄 scripts/auto_extract_stock_mentions.py 掃描逐字稿後的股票命中、推定 stance、證據片段與處理動作。
 
 本機設定檔：
 
@@ -237,13 +240,19 @@
    必填：否
    說明：審核補充說明。
 
-正式回測納入條件：
+正式追蹤納入條件：
 
 1. review_status = approved。
-2. stance = bullish 或 bearish。
-3. evidence_text 不可空白。
-4. 若 market 不是 concept，ticker 不可空白。
+2. evidence_text 不可空白。
+3. 若 mention_type = company，ticker 不可空白，且會納入後續價格表現追蹤。
+4. 若 market = concept，需有啟用的 concept proxy，且 stance = bullish 或 bearish，才納入 proxy 績效追蹤。
 5. mention_id 不可以 sample_ 開頭。
+
+方向性績效解讀：
+
+1. bullish / bearish 代表明確方向性看法，可用於方向命中或超額報酬評估。
+2. neutral / watch / past_review 仍可追蹤後續價格表現，但不得解讀成新的看多或看空訊號。
+3. auto_ 開頭的 mention_id 代表由逐字稿別名與語氣關鍵字自動產生，不需人工審核。
 
 
 五、instruments.csv
@@ -477,14 +486,14 @@
 第一版計算規則：
 
 1. 只計算 review_status=approved 的 mention。
-2. mention_type=company、stance 為 bullish / bearish，且 ticker 不空白的 mention 會進入單一公司價格回測。
-3. concept / industry / theme 若有啟用 concept_proxies.csv proxy，且 stance 為 bullish / bearish，會進入概念 proxy 回測。
-4. watch、past_review、沒有 proxy 的概念等 mention 會在 mention_returns.csv 中標為 not_applicable。
-4. base_trade_date 使用 published_at 後第一個可取得的交易日。
-5. 7 / 30 / 90 / 180 天報酬使用 base_trade_date 加上日曆天後第一個可取得的交易日。
-6. 報酬使用 adj_close 計算；若來源沒有 adj_close，則使用 close。
-7. benchmark 第一版：TWSE 使用 ^TWII，US 使用 ^IXIC。
-8. 若未來 horizon 價格尚未出現，calculation_status 標為 pending_price。
+2. mention_type=company 且 ticker 不空白的 mention 會進入單一公司價格表現追蹤。
+3. concept / industry / theme 若有啟用 concept_proxies.csv proxy，且 stance 為 bullish / bearish，會進入概念 proxy 表現追蹤。
+4. 沒有 ticker 的公司、沒有 proxy 的概念等 mention 會在 mention_returns.csv 中標為 not_applicable。
+5. base_trade_date 使用 published_at 後第一個可取得的交易日。
+6. 7 / 30 / 90 / 180 天報酬使用 base_trade_date 加上日曆天後第一個可取得的交易日。
+7. 報酬使用 adj_close 計算；若來源沒有 adj_close，則使用 close。
+8. benchmark 第一版：TWSE 使用 ^TWII，US 使用 ^IXIC。
+9. 若未來 horizon 價格尚未出現，calculation_status 標為 pending_price。
 
 
 八、data/prices/*.csv
@@ -810,7 +819,7 @@
 十四、approved_company_bullish_returns.csv
 
 用途：
-記錄由 scripts/build_return_report.py 產生的第一版報酬檢查報表。此報表從 mentions.csv、episodes.csv、concept_proxies.csv 與 mention_returns.csv 派生，用來人工檢查 approved company bullish / bearish mentions，以及已啟用 proxy 的概念型 bullish / bearish mentions 的基準價、可得 horizon 報酬與相對 benchmark 超額報酬。
+記錄由 scripts/build_return_report.py 產生的第一版報酬檢查報表。此報表從 mentions.csv、episodes.csv、concept_proxies.csv 與 mention_returns.csv 派生，用來檢查 approved company mentions，以及已啟用 proxy 的概念型 bullish / bearish mentions 的基準價、可得 horizon 報酬與相對 benchmark 超額報酬。
 
 欄位群組：
 
@@ -828,7 +837,7 @@
 
 4. 證據欄位
    欄位：evidence_text
-   說明：保留原始短證據，方便人工檢查該 mention 是否真的值得納入回測。
+   說明：保留原始短證據，方便檢查該 mention 是否真的值得納入追蹤。
 
 5. horizon 報酬欄位
    欄位：return_7d、return_30d、return_90d、return_180d，以及對應的 _pct 欄位
@@ -995,14 +1004,14 @@
 2. sample_ 開頭資料是否被排除在正式統計之外。
 3. approved mention 是否都有 evidence_text。
 4. bullish / bearish 且非 concept 的 mention 是否有 ticker。
-5. mention_returns.csv 是否只含正式回測候選資料或明確標記 sample。
+5. mention_returns.csv 是否包含所有正式 approved mentions 或明確標記 sample。
 6. instruments.csv 是否能支援常見別名查找。
 7. transcript_inputs.csv 是否每筆都有 audio_url 與 transcript_path。
 8. audio_chunks.csv 的 chunk_bytes 是否都低於 ASR 單檔上傳限制。
 9. pending_mentions_review.csv 若有 review_decision，是否皆為允許值。
 10. mention_returns.csv 中 calculated / pending_price rows 是否都有 base_trade_date 與 base_price。
 11. data/prices/*.csv 是否每列欄位數一致。
-12. approved_company_bullish_returns.csv 是否只包含 approved、bullish / bearish，且可回測的公司或概念 proxy 正式 mentions。
+12. approved_company_bullish_returns.csv 是否包含可追蹤的 approved company mentions，以及 approved、bullish / bearish 且有 proxy 的概念正式 mentions。
 13. 每次更新價格後，是否已同步重建 approved_company_bullish_returns.csv。
 14. summary.csv 是否包含 episodes.formal_total、mentions.formal_total、returns.formal_total 與 reports.approved_company_bullish_returns_rows 等核心指標。
 15. concept_proxy_review.csv 是否與 concept_proxies.csv 的 proxy_id 完全一致。

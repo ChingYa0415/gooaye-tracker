@@ -1,31 +1,32 @@
 mention_id,ticker,market,stance,base_trade_date,base_price,return_7d,return_30d,return_90d,return_180d,benchmark_return_7d,benchmark_return_30d,benchmark_return_90d,benchmark_return_180d,excess_return_7d,excess_return_30d,excess_return_90d,excess_return_180d,calculation_status,notes
 sample_m_001,2330,TWSE,bullish,,,,,,,,,,,,,,,pending_price,sample row; returns not calculated yet
-m_20260603_001,MRVL,US,past_review,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
-m_20260603_002,concept_proxy:光通訊,concept,bullish,2026-06-04,1,,,,,,,,,,,,,pending_price,concept proxy basket=光通訊; symbols=3081.TWO;3163.TWO;4979.TWO; 4 horizon target prices unavailable
-m_20260603_003,concept_proxy:光通訊,concept,bullish,2026-06-04,1,,,,,,,,,,,,,pending_price,concept proxy basket=光通訊; symbols=3081.TWO;3163.TWO;4979.TWO; 4 horizon target prices unavailable
-m_20260603_004,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
-m_20260603_005,concept_proxy:AI PC,concept,bullish,2026-06-04,1,,,,,,,,,,,,,pending_price,concept proxy basket=AI PC; symbols=2317.TW;2356.TW;2382.TW;3231.TW; 4 horizon target prices unavailable
-m_20260603_006,2330,TWSE,bullish,2026-06-04,2385,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=2330.TW; 4 horizon target prices unavailable
-m_20260603_007,NVDA,US,bullish,2026-06-04,218.6600037,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=NVDA; 4 horizon target prices unavailable
-m_20260603_008,concept_proxy:功率半導體,concept,bullish,2026-06-04,1,,,,,,,,,,,,,pending_price,concept proxy basket=功率半導體; symbols=8081.TW; 4 horizon target prices unavailable
-m_20260530_001,concept_proxy:被動元件,concept,bullish,2026-06-01,1,,,,,,,,,,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 4 horizon target prices unavailable
-m_20260530_002,concept_proxy:AI 軟體,concept,bullish,2026-06-01,1,,,,,,,,,,,,,pending_price,concept proxy basket=AI 軟體; symbols=CRM;CRWD;NET;NOW;OKTA;PLTR;SNOW; 4 horizon target prices unavailable
-m_20260530_003,SNOW,US,bullish,2026-06-01,280.1600037,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=SNOW; 4 horizon target prices unavailable
-m_20260530_004,concept_proxy:ODM/OEM,concept,bullish,2026-06-01,1,,,,,,,,,,,,,pending_price,concept proxy basket=ODM/OEM; symbols=2317.TW;2356.TW;2382.TW;3231.TW;6669.TW; 4 horizon target prices unavailable
-m_20260530_005,concept_proxy:AI 軟體,concept,bullish,2026-06-01,1,,,,,,,,,,,,,pending_price,concept proxy basket=AI 軟體; symbols=CRM;CRWD;NET;NOW;OKTA;PLTR;SNOW; 4 horizon target prices unavailable
-m_20260530_006,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
-m_20260527_001,2330,TWSE,bullish,2026-05-28,2295,0.03921568627,,,,0.0467732809,,,,-0.007557594623,,,,pending_price,price source Yahoo chart symbol=2330.TW; 3 horizon target prices unavailable
-m_20260527_002,TSLA,US,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
+m_20260603_001,MRVL,US,past_review,2026-06-04,316.4299927,-0.1128843727,,,,-0.03806426403,,,,-0.07482010865,,,,pending_price,price source Yahoo chart symbol=MRVL; 3 horizon target prices unavailable
+m_20260603_002,concept_proxy:光通訊,concept,bullish,2026-06-04,1,-0.1692142155,,,,-0.05534458239,,,,-0.1138696331,,,,pending_price,concept proxy basket=光通訊; symbols=3081.TWO;3163.TWO;4979.TWO; 3 horizon target prices unavailable
+m_20260603_003,concept_proxy:光通訊,concept,bullish,2026-06-04,1,-0.1692142155,,,,-0.05534458239,,,,-0.1138696331,,,,pending_price,concept proxy basket=光通訊; symbols=3081.TWO;3163.TWO;4979.TWO; 3 horizon target prices unavailable
+m_20260603_004,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved concept stance is not bullish/bearish
+m_20260603_005,concept_proxy:AI PC,concept,bullish,2026-06-04,1,-0.1237029075,,,,-0.05534458239,,,,-0.06835832516,,,,pending_price,concept proxy basket=AI PC; symbols=2317.TW;2356.TW;2382.TW;3231.TW; 3 horizon target prices unavailable
+m_20260603_006,2330,TWSE,bullish,2026-06-04,2378.654053,-0.05408691213,,,,-0.05534458239,,,,0.001257670257,,,,pending_price,price source Yahoo chart symbol=2330.TW; 3 horizon target prices unavailable
+m_20260603_007,NVDA,US,bullish,2026-06-04,218.6600037,-0.06306598515,,,,-0.03806426403,,,,-0.02500172113,,,,pending_price,price source Yahoo chart symbol=NVDA; 3 horizon target prices unavailable
+m_20260603_008,concept_proxy:功率半導體,concept,bullish,2026-06-04,1,-0.025,,,,-0.05534458239,,,,0.03034458239,,,,pending_price,concept proxy basket=功率半導體; symbols=8081.TW; 3 horizon target prices unavailable
+m_20260530_001,concept_proxy:被動元件,concept,bullish,2026-06-01,1,-0.06795413106,,,,-0.0404766982,,,,-0.02747743286,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 3 horizon target prices unavailable
+m_20260530_002,concept_proxy:AI 軟體,concept,bullish,2026-06-01,1,-0.1410991006,,,,-0.04272006808,,,,-0.0983790325,,,,pending_price,concept proxy basket=AI 軟體; symbols=CRM;CRWD;NET;NOW;OKTA;PLTR;SNOW; 3 horizon target prices unavailable
+m_20260530_003,SNOW,US,bullish,2026-06-01,280.1600037,-0.1417404561,,,,-0.04272006808,,,,-0.09902038807,,,,pending_price,price source Yahoo chart symbol=SNOW; 3 horizon target prices unavailable
+m_20260530_004,concept_proxy:ODM/OEM,concept,bullish,2026-06-01,1,-0.05570458386,,,,-0.0404766982,,,,-0.01522788567,,,,pending_price,concept proxy basket=ODM/OEM; symbols=2317.TW;2356.TW;2382.TW;3231.TW;6669.TW; 3 horizon target prices unavailable
+m_20260530_005,concept_proxy:AI 軟體,concept,bullish,2026-06-01,1,-0.1410991006,,,,-0.04272006808,,,,-0.0983790325,,,,pending_price,concept proxy basket=AI 軟體; symbols=CRM;CRWD;NET;NOW;OKTA;PLTR;SNOW; 3 horizon target prices unavailable
+m_20260530_006,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved concept stance is not bullish/bearish
+m_20260527_001,2330,TWSE,bullish,2026-05-28,2288.893555,0.03921567163,,,,0.0467732809,,,,-0.007557609263,,,,pending_price,price source Yahoo chart symbol=2330.TW; 3 horizon target prices unavailable
+m_20260527_002,TSLA,US,watch,2026-05-28,442.1000061,-0.05349466992,,,,-0.003213889097,,,,-0.05028078082,,,,pending_price,price source Yahoo chart symbol=TSLA; 3 horizon target prices unavailable
 m_20260527_003,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved concept mention has no active proxy basket
 m_20260527_004,concept_proxy:散熱,concept,bullish,2026-05-28,1,0.1147460373,,,,0.0467732809,,,,0.06797275636,,,,pending_price,concept proxy basket=散熱; symbols=3017.TW;3324.TWO; 3 horizon target prices unavailable
 m_20260527_005,concept_proxy:功率元件,concept,bullish,2026-05-28,1,-0.02268760908,,,,0.0467732809,,,,-0.06946088997,,,,pending_price,concept proxy basket=功率元件; symbols=8081.TW; 3 horizon target prices unavailable
-m_20260527_006,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
-m_20260603_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
-m_20260603_010,concept_proxy:被動元件,concept,bullish,2026-06-04,1,,,,,,,,,,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 4 horizon target prices unavailable
-m_20260530_007,CRM,US,bullish,2026-06-01,209.6000061,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=CRM; 4 horizon target prices unavailable
-m_20260530_008,NOW,US,bullish,2026-06-01,135.8600006,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=NOW; 4 horizon target prices unavailable
-m_20260530_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
-m_20260530_010,concept_proxy:被動元件,concept,bullish,2026-06-01,1,,,,,,,,,,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 4 horizon target prices unavailable
-m_20260530_011,NET,US,past_review,,,,,,,,,,,,,,,not_applicable,approved mention stance is not bullish/bearish
-m_20260527_007,concept_proxy:被動元件,concept,bullish,2026-05-28,1,-0.003915773534,,,,0.0467732809,,,,-0.05068905443,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 3 horizon target prices unavailable
+m_20260527_006,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved concept stance is not bullish/bearish
+m_20260603_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved concept stance is not bullish/bearish
+m_20260603_010,concept_proxy:被動元件,concept,bullish,2026-06-04,1,0.1217826479,,,,-0.05534458239,,,,0.1771272302,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 3 horizon target prices unavailable
+m_20260530_007,CRM,US,bullish,2026-06-01,209.0604248,-0.1290553292,,,,-0.04272006808,,,,-0.08633526108,,,,pending_price,price source Yahoo chart symbol=CRM; 3 horizon target prices unavailable
+m_20260530_008,NOW,US,bullish,2026-06-01,135.8600006,-0.1595024148,,,,-0.04272006808,,,,-0.1167823467,,,,pending_price,price source Yahoo chart symbol=NOW; 3 horizon target prices unavailable
+m_20260530_009,,concept,watch,,,,,,,,,,,,,,,not_applicable,approved concept stance is not bullish/bearish
+m_20260530_010,concept_proxy:被動元件,concept,bullish,2026-06-01,1,-0.06795413106,,,,-0.0404766982,,,,-0.02747743286,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 3 horizon target prices unavailable
+m_20260530_011,NET,US,past_review,2026-06-01,270.8200073,-0.08503808218,,,,-0.04272006808,,,,-0.0423180141,,,,pending_price,price source Yahoo chart symbol=NET; 3 horizon target prices unavailable
+m_20260527_007,concept_proxy:被動元件,concept,bullish,2026-05-28,1,-0.003915781238,,,,0.0467732809,,,,-0.05068906214,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 3 horizon target prices unavailable
 m_20260527_008,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved concept mention has no active proxy basket
+auto_20260530_666_pltr,PLTR,US,past_review,2026-06-01,160.6499939,-0.1505134989,,,,-0.04272006808,,,,-0.1077934308,,,,pending_price,price source Yahoo chart symbol=PLTR; 3 horizon target prices unavailable

@@ -1,6 +1,6 @@
 股癌追蹤資料來源
-版本：0.1
-日期：2026-06-05
+版本：0.2
+日期：2026-06-16
 
 一、Podcast 來源
 
@@ -13,10 +13,10 @@ https://feeds.soundon.fm/podcasts/954689a5-3096-43a4-a80b-7810b219cef3.xml
 取得股癌節目的 episode metadata，包含標題、發布日期、SoundOn 播放頁 URL、guid 與節目長度。
 
 目前使用：
-已用於建立 data/processed/episodes.csv 第一批 10 集樣本。
+已用於建立並持續同步 data/processed/episodes.csv 的股癌正式集數 metadata。
 
 注意：
-RSS 只提供節目 metadata 與簡介，不等於完整逐字稿。正式 mention 標註仍需要逐字稿、音訊片段或人工摘錄的原文證據。
+RSS 只提供節目 metadata 與簡介，不等於完整逐字稿。正式 mention 仍需要逐字稿或音訊轉錄後的 evidence_text。
 
 
 二、台股上市公司資料
@@ -160,8 +160,7 @@ https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
 在 OpenAI API 配額不足或不想使用雲端轉錄時，使用本機 Whisper 產生逐字稿。
 
 目前使用：
-已用 scripts/transcribe_whisper_cpp.py 將 EP667 的 4 個 audio chunks 轉成逐字稿，並用 scripts/combine_transcripts.py 合併成 data/raw/transcripts/ep_20260603_667.txt。
-已用 ggml-small.bin 針對 6 筆 needs_context mentions 的相關 chunks 做二次校對，將 5 筆更新為 approved、1 筆更新為 rejected。
+已用 scripts/transcribe_whisper_cpp.py 將多集音檔 chunks 轉成逐字稿，並用 scripts/combine_transcripts.py 合併成 data/raw/transcripts/{episode_id}.txt。未指定 --chunk-index 時，腳本會處理該集所有 chunks；指定 --chunk-index 時可只補單段。
 
 注意：
 模型檔、chunk transcript 與合併逐字稿皆為本機 raw artifact，由 .gitignore 排除，不進 Git。
@@ -179,9 +178,30 @@ scripts/search_transcript_mentions.py
 python3 scripts/search_transcript_mentions.py --episode-id ep_20260530_666 --episode-id ep_20260527_665 --limit-per-alias 2
 
 注意：
-此工具只用來加速人工初篩，不會自動新增 approved mention。正式進入回測前仍需人工校對 ASR 文字與上下文。
+此工具只用來加速人工初篩，不會自動新增 approved mention。日常自動流程請使用 scripts/auto_extract_stock_mentions.py。
 
-6. mention 人工審核工作表
+6. 自動股票 mention 抽取
+
+工具：
+scripts/auto_extract_stock_mentions.py
+
+用途：
+讀取 data/raw/transcripts/ 下的合併逐字稿與 data/processed/instruments.csv 的 name、ticker、aliases，自動整理有提到的單一股票、推定 stance / conviction / time_horizon，並把有語氣線索的命中直接寫入 data/processed/mentions.csv。
+
+範例：
+python3 scripts/auto_extract_stock_mentions.py --dry-run
+python3 scripts/auto_extract_stock_mentions.py
+
+輸出：
+reports/auto_stock_mentions.csv
+
+目前使用：
+日常流程與週期性排程以此工具作為單一股票 mention 的主要入口，不需要人工審核才納入追蹤。新增資料會使用 auto_ 開頭 mention_id，review_status=approved，reviewer_note 會標記 no manual review。
+
+注意：
+此工具第一版使用別名命中與關鍵字規則，不是語意模型。預設只把有 stance keyword 的命中寫入 mentions.csv；低信心命中會保留於 reports/auto_stock_mentions.csv，action=skipped_low_confidence。若要完整收錄所有名稱命中，可加 --include-low-confidence，但可能提高誤判率。
+
+7. mention 人工審核工作表
 
 工具：
 scripts/build_review_queue.py
@@ -200,24 +220,24 @@ python3 scripts/apply_review_decisions.py
 review_decision 空白時不會回寫。正式套用前先跑 --dry-run，確認沒有不合法的 review_decision、stance、conviction 或 time_horizon。
 needs_context rows 應優先補上下文或用較大 Whisper 模型重轉相關 chunk；若仍無法確認標的或語氣，應改為 rejected，不強行 approved。
 
-7. 報酬檢查報表
+8. 報酬檢查報表
 
 工具：
 scripts/build_return_report.py
 
 用途：
-讀取 data/processed/mentions.csv、data/processed/episodes.csv、data/processed/concept_proxies.csv 與 data/processed/mention_returns.csv，輸出 reports/approved_company_bullish_returns.csv。此報表列出已 approved、stance 為 bullish / bearish，且可回測的公司 mentions 或已啟用 proxy 的概念 mentions。
+讀取 data/processed/mentions.csv、data/processed/episodes.csv、data/processed/concept_proxies.csv 與 data/processed/mention_returns.csv，輸出 reports/approved_company_bullish_returns.csv。此報表列出已 approved 且可追蹤績效的公司 mentions，以及已啟用 proxy 的概念 bullish / bearish mentions。
 
 範例：
 python3 scripts/build_return_report.py
 
 目前使用：
-目前 reports/approved_company_bullish_returns.csv 共 19 筆可追蹤候選，其中 6 筆為公司候選、13 筆為概念 proxy 候選。已有 4 筆具備 7d return，其餘因 horizon 價格尚未到期而維持 pending_price。
+目前 reports/approved_company_bullish_returns.csv 會包含公司 bullish、bearish、neutral、watch、past_review 等看法；其中 bullish / bearish 才視為方向性訊號。概念型 mention 仍需 bullish / bearish 且有啟用 proxy 才進入報表。
 
 注意：
 此報表是 mention_returns.csv 的人工檢查視圖。每次重跑 scripts/fetch_prices.py 更新價格與報酬後，應再重跑 scripts/build_return_report.py，讓可讀報表同步反映最新 horizon return。
 
-8. 總覽報表
+9. 總覽報表
 
 工具：
 scripts/build_summary_report.py
@@ -229,18 +249,18 @@ scripts/build_summary_report.py
 python3 scripts/build_summary_report.py
 
 目前使用：
-已產生 reports/summary.csv，共 28 筆 summary 指標，包含公司候選數、概念 proxy 候選數與總候選數。
+已產生 reports/summary.csv，包含公司候選數、概念 proxy 候選數、總候選數、review 狀態、return 狀態與可得 horizon。
 
 注意：
 此報表是 dashboard 與人工檢查的總覽入口。每次更新價格或報酬檢查報表後，應同步重建 summary.csv。
 
-9. 日常更新入口
+10. 日常更新入口
 
 工具：
 scripts/run_daily_update.py
 
 用途：
-串接日常價格更新、報表重建與資料驗證。預設會執行 scripts/fetch_prices.py、scripts/build_return_report.py、scripts/build_summary_report.py 與 scripts/validate_data.py。
+串接日常價格更新、報表重建與資料驗證。預設會執行 scripts/fetch_prices.py、scripts/build_return_report.py、scripts/build_summary_report.py、scripts/build_concept_proxy_review.py、scripts/build_dashboard.py 與 scripts/validate_data.py。
 
 範例：
 python3 scripts/run_daily_update.py
@@ -249,7 +269,7 @@ python3 scripts/run_daily_update.py --skip-price-fetch
 注意：
 若只是修改文件、review CSV 或想確認現有資料一致性，可使用 --skip-price-fetch 避免重新呼叫價格來源。
 
-10. 資料驗證
+11. 資料驗證
 
 工具：
 scripts/validate_data.py
@@ -263,7 +283,7 @@ python3 scripts/validate_data.py
 注意：
 此工具是提交前與日常更新後的資料守門腳本。若驗證失敗，應先修正資料或重建派生檔，再提交或繼續下一步分析。
 
-11. 概念 proxy 審核工作表
+12. 概念 proxy 審核工作表
 
 工具：
 scripts/build_concept_proxy_review.py
@@ -280,13 +300,13 @@ python3 scripts/build_concept_proxy_review.py
 注意：
 此工作表第一版只產生審核建議欄位，不會自動回寫 concept_proxies.csv。正式調整 proxy 前仍需人工確認代表性、權重與資料來源。
 
-12. Dashboard 測試版
+13. Dashboard 測試版
 
 工具：
 scripts/build_dashboard.py
 
 用途：
-讀取 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv，輸出 reports/dashboard.html。Dashboard 提供總覽卡片、追蹤明細表、7d 報酬與超額報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、快速篩選、排序，以及概念 proxy 審核表。
+讀取 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv，輸出 reports/dashboard.html。Dashboard 提供總覽卡片、追蹤明細表、股癌看法、7d 報酬與超額報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、快速篩選、排序，以及概念 proxy 審核表。
 
 範例：
 python3 scripts/build_dashboard.py
@@ -297,20 +317,20 @@ python3 scripts/build_dashboard.py
 注意：
 Dashboard 是 reports/*.csv 的可讀視圖，不是原始真相來源。每次更新價格、mentions 或 proxy review 後，應透過 scripts/run_daily_update.py 重建。
 
-13. 新集數同步
+14. 新集數同步與自動分析
 
 工具：
 scripts/sync_episodes.py
 
 用途：
-讀取 Gooaye SoundOn RSS，將比目前 episodes.csv 最新正式集數更新的 RSS items 安全加入 data/processed/episodes.csv 與 data/processed/transcript_inputs.csv，並輸出 reports/new_episodes.csv 作為後續下載音檔與轉錄的工作清單。
+讀取 Gooaye SoundOn RSS，將比目前 episodes.csv 最新正式集數更新的 RSS items 安全加入 data/processed/episodes.csv 與 data/processed/transcript_inputs.csv，並輸出 reports/new_episodes.csv 作為後續下載音檔與轉錄的工作清單。週期性排程會接續下載、切段、轉錄、合併、自動抽取股票 mention、更新價格與重建 dashboard。
 
 範例：
 python3 scripts/sync_episodes.py --dry-run
 python3 scripts/sync_episodes.py
 
 目前使用：
-已同步 EP668 與 EP669 至 episodes.csv 與 transcript_inputs.csv，兩集目前 transcript_status=missing，下一步為 download_audio。
+已建立 Codex automation「同步並分析股癌新集數」，每週三與週六上午執行。新集數進來後不只偵測，還會嘗試完成分析與整合。
 
 注意：
 此工具預設不補歷史集數，避免週期性任務意外加入大量舊集。若要手動補舊集，可使用 --include-backfill。

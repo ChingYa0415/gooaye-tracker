@@ -346,6 +346,10 @@ def build_html(
     .badge-company {{ color: #075985; background: #dff0fb; border-color: #bee3f8; }}
     .badge-concept {{ color: #6b4e00; background: var(--amber-weak); border-color: #efd08f; }}
     .badge-status {{ color: #445047; background: #edf1ed; border-color: var(--line); }}
+    .badge-bullish {{ color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }}
+    .badge-bearish {{ color: var(--rose); background: var(--rose-weak); border-color: #efb5ad; }}
+    .badge-neutral {{ color: #445047; background: #edf1ed; border-color: var(--line); }}
+    .badge-past {{ color: #6b4e00; background: var(--amber-weak); border-color: #efd08f; }}
     .badge-ready {{ color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }}
     .badge-high {{ color: var(--rose); background: var(--rose-weak); border-color: #efb5ad; }}
     .badge-watch {{ color: var(--amber); background: var(--amber-weak); border-color: #efd08f; }}
@@ -525,6 +529,7 @@ def build_html(
                 <tr>
                   <th>標的</th>
                   <th>類型</th>
+                  <th>看法</th>
                   <th>發布</th>
                   <th>基準日</th>
                   <th>狀態</th>
@@ -634,6 +639,18 @@ def build_html(
       return `<span class="badge ${{cls}}">${{escapeHtml(text)}}</span>`;
     }}
 
+    function stanceBadge(row) {{
+      const stance = row.stance || "neutral";
+      const cls = stance === "bullish"
+        ? "badge-bullish"
+        : stance === "bearish"
+          ? "badge-bearish"
+          : stance === "past_review"
+            ? "badge-past"
+            : "badge-neutral";
+      return badge(stance, cls);
+    }}
+
     function returnBar(value, label) {{
       const numeric = Number(value || 0);
       const width = Math.min(50, Math.abs(numeric) / maxAbsReturn * 50);
@@ -704,6 +721,7 @@ def build_html(
             <span>${{escapeHtml(row.ticker)}} · ${{escapeHtml(row.market)}}</span>
           </td>
           <td>${{badge(row.kind_label, row.kind === "concept" ? "badge-concept" : "badge-company")}}</td>
+          <td>${{stanceBadge(row)}}</td>
           <td>${{escapeHtml(row.published_at)}}</td>
           <td>${{escapeHtml(row.base_trade_date || "等待")}}</td>
           <td>${{badge(row.available_horizons || row.calculation_status, row.available_horizons ? "badge-ready" : "badge-status")}}</td>

@@ -1,0 +1,13 @@
+episode_id,ticker,market,company_or_theme,matched_aliases,line_numbers,auto_stance,auto_conviction,auto_time_horizon,evidence_text,action
+ep_20260527_665,2330,TWSE,台積電,台積;台積電,509;509;524;524;527;527,,,,像最近 / 應該大家蠻多人在討論 / 就是台積電的一個分紅慘案 / 大家覺得說分紅也太小氣了吧 / 怎麼越專越多錢,skipped_existing_mention
+ep_20260527_665,TSLA,US,Tesla,Tesla,589;635,,,,該是不會解嗎應該就是去增加它的持股 / 那同時回去降低一點 / 可能像Tesla的持股 / 因為對我來講 / 反而我就壓住馬斯克的一個故事,skipped_existing_mention
+ep_20260530_666,2330,TWSE,台積電,TSMC;台積,1536;1537;1742,neutral,low,medium,首席林生的懸旅掛 / 他是工程師跟他說 / TSMC / TSMC / 比利時楊幼寧家,skipped_low_confidence
+ep_20260530_666,CRM,US,Salesforce,Salesforce,753,,,,我覺得最後面都還是靠成績去做證明 / 那不然說像一些公司派的強硬態度 / 你有注意到說像 Salesforce / 他搞了一個正式上的Raker High的一個白白 / 他就狂買股票,skipped_existing_mention
+ep_20260530_666,NOW,US,ServiceNow,ServiceNow,761,,,,我狂賣我自己的股票 / 那再來我們也注意到 / 像是 ServiceNow的老闆 / 也是跟大家講說 / 就是外面的那些AI論述,skipped_existing_mention
+ep_20260530_666,PLTR,US,Palantir,Piantia,1090,,,,那後來就換成Software這邊 / 就注意到美國軟體股噴到天上去 / 像那時候Piantia是二十幾 / 直接噴到100多 / 那Clawflare 什麼翻倍,skipped_existing_mention
+ep_20260530_666,SNOW,US,Snowflake,Snowflake,767,,,,其實他的公司是在一個非常大的順風上面 / 然後也是靠成績慢慢去證明 / 那最近像是什麼Octa或是Snowflake / 都是開出雞號的成績 / 那就告訴大家說,skipped_existing_mention
+ep_20260530_666,TSLA,US,Tesla,Tesla,2100,neutral,low,medium,還大的拖鞋是什麼牌子 / 害猛老哥 / Tesla的好戲 / 還在後頭 / 想聽聽你進行對Intel的看法,skipped_low_confidence
+ep_20260603_667,2330,TWSE,台積電,TSMC;台積;台積電,1074;1074;1101;1104;1113,,,,但營餅料核實也可以典實曾經自己的股票呢 / 那感覺GTC後 / 資金又回流營餅料台積電供應鏈 / 夢宮覺得市場是否會補漲營餅料TSNC / 那另外下一波的漲價題材,skipped_existing_mention
+ep_20260603_667,MRVL,US,Marvell,瑪瑞爾,542;545;874,,,,說不定就往光的方向去跑 / 那只是你說 / 瑪瑞爾這樣子噴到你的噴什麼 / 老實說 / 這已經超出自己的認知範圍了,skipped_existing_mention
+ep_20260603_667,NVDA,US,NVIDIA,NVIDIA;Nvidia,1101;1101;1114;1114,,,,那不排除了這樣子一個可能性 / 所以抓這兩個題材還滿OK的 / 那在講說不會去補長NVIDIA跟TSMC / 我覺得最近的盤 / 有一點點這樣子的味道,skipped_existing_mention
+ep_20260603_667,SNOW,US,Snowflake,Snowflake,608;610;619;672;894,neutral,low,short,去製用一些開源式的模型 / 那最終可以幫你省下巨量的成本 / 那最近我在寫一篇Snowflake的文章 / 放在我的粉串上面的那裡 / 又吸引到Snowflake的員工來跟我稍微分享一下,skipped_low_confidence

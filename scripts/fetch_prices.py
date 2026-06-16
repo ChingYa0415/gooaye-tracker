@@ -216,8 +216,6 @@ def needed_symbols(
     for mention in mentions:
         ticker = mention.get("ticker", "")
         market = mention.get("market", "")
-        if mention.get("stance") not in {"bullish", "bearish"}:
-            continue
         if mention.get("mention_type") == "company":
             if not ticker or market not in YAHOO_SYMBOLS:
                 continue
@@ -227,6 +225,8 @@ def needed_symbols(
                 symbols.add(benchmark_symbol)
             continue
 
+        if mention.get("stance") not in {"bullish", "bearish"}:
+            continue
         proxies = concept_proxies.get(mention.get("company_or_theme", ""), [])
         for proxy in proxies:
             symbols.add(yahoo_symbol(proxy.ticker, proxy.market))
@@ -431,10 +431,10 @@ def calculate_return_row(
     prices_by_symbol: dict[str, dict[date, float]],
     concept_proxies: dict[str, list[ConceptProxy]],
 ) -> dict[str, str]:
-    if mention["stance"] not in {"bullish", "bearish"}:
-        return empty_return_row(mention, "not_applicable", "approved mention stance is not bullish/bearish")
     if mention["mention_type"] == "company":
         return calculate_company_return_row(mention, prices_by_symbol)
+    if mention["stance"] not in {"bullish", "bearish"}:
+        return empty_return_row(mention, "not_applicable", "approved concept stance is not bullish/bearish")
     return calculate_concept_return_row(
         mention,
         prices_by_symbol,

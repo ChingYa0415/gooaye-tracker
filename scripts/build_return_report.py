@@ -59,12 +59,11 @@ def is_report_candidate(mention: dict[str, str], proxy_concepts: set[str]) -> bo
     if (
         mention["mention_id"].startswith("sample_")
         or mention["review_status"] != "approved"
-        or mention["stance"] not in {"bullish", "bearish"}
     ):
         return False
     if mention["mention_type"] == "company":
         return bool(mention["ticker"])
-    return mention["company_or_theme"] in proxy_concepts
+    return mention["stance"] in {"bullish", "bearish"} and mention["company_or_theme"] in proxy_concepts
 
 
 def build_rows(

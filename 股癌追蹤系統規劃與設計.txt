@@ -1,12 +1,12 @@
 股癌追蹤系統規劃與設計
-版本：0.1
-日期：2026-06-05
+版本：0.2
+日期：2026-06-16
 
 一、計劃目的
 
 本計劃要做的事情，是把 Podcast、YouTube 或社群內容中「被看好、被看壞、被持續追蹤」的公司與產業觀點，轉成可檢查、可追蹤、可回測的結構化資料。
 
-核心問題不是「某一集有沒有提到股票」，而是：
+核心問題是「某一集有沒有提到股票」，並進一步判斷：
 
 1. 某位內容創作者在什麼時間點提到了哪家公司或產業？
 2. 當時語氣是看多、看空、中性，還是只是描述新聞？
@@ -88,9 +88,9 @@
 2. 新集數進入待處理佇列。
 3. 系統取得音訊或影片資訊。
 4. 系統轉逐字稿。
-5. AI 抽取投資觀點。
-6. 使用者在後台審核。
-7. 通過審核後才進入正式追蹤。
+5. 系統依股票別名與語氣規則自動抽取單一股票 mention。
+6. 有足夠上下文的股票 mention 直接進入正式追蹤。
+7. 低信心命中保留在檢查報表，不預設寫入正式 mentions。
 8. 每日更新價格與報酬。
 
 流程 C：完整自動化
@@ -114,7 +114,7 @@
 -> 切段
 -> 公司/股票/產業辨識
 -> 立場與理由抽取
--> 人工審核
+-> 自動核准或低信心保留
 -> 價格資料抓取
 -> 報酬與 benchmark 計算
 -> Dashboard / 報表
@@ -149,9 +149,10 @@
 5. Stance Extractor
    判斷這段話是看多、看空、中性、觀察、回顧，還是無投資意圖。
 
-6. Human Review
-   所有正式進入回測的 mention 必須人工確認。
-   第一階段人工審核比完全自動更重要，否則很容易把玩笑、反諷、新聞轉述誤判成推薦。
+6. Auto Approval / Review Queue
+   單一股票 mention 以自動抽取為主，不需要人工審核才進入追蹤。
+   自動流程會保留 evidence_text、rationale 與 auto report，讓後續可以抽查與修正。
+   低信心、概念 proxy 或資料品質問題仍可進入人工檢查工具。
 
 7. Price Engine
    依股票代號與日期抓取價格。
@@ -288,8 +289,8 @@
 6. unclear
    語氣可能是玩笑、反諷、引用別人說法，或上下文不足。
 
-正式統計只納入 approved 且 stance 為 bullish 或 bearish 的 mention。
-watch 可另做「觀察名單績效」，不要與明確看多看空混在一起。
+單一股票只要 approved 且有 ticker，即可納入後續價格表現追蹤。
+bullish / bearish 才納入方向性訊號統計；neutral、watch、past_review 可追表現，但不要與明確看多看空混在一起。
 
 
 八、AI 抽取設計
@@ -676,10 +677,10 @@ mention_returns.csv
 處理：
 第一階段允許手動貼逐字稿或重點片段。自動轉錄放到第二階段。
 
-風險 2：AI 誤判語氣
+風險 2：自動抽取誤判語氣
 
 處理：
-所有正式統計都要人工審核。AI 只當候選產生器。
+自動抽取先採關鍵字與別名規則，所有新增 mention 都保留 evidence_text 與 auto report。低信心命中預設不寫入正式 mentions；方向性統計只使用 bullish / bearish。
 
 風險 3：股票別名混淆
 
@@ -711,10 +712,10 @@ mention_returns.csv
 
 目前最建議的路線：
 
-1. 先做手動標註 + 價格回測，不急著自動轉錄。
-2. 用最近 10 到 20 集股癌建立第一批樣本。
-3. 每筆只要有「日期、股票、立場、證據、基準價、90 天報酬」就能開始驗證價值。
-4. 當手動流程證明有價值，再投資 AI 抽取與自動管線。
+1. 以 RSS 週期同步、whisper.cpp 本機轉錄、自動股票 mention 抽取與價格追蹤作為主線。
+2. 用最近集數持續累積逐字稿與 auto_ mentions。
+3. 每筆只要有「日期、股票、立場、證據、基準價、後續報酬」就能開始驗證價值。
+4. 人工審核工具保留給低信心命中、概念 proxy 與錯誤修正，不作為日常必要步驟。
 
 推薦第一個里程碑：
 
@@ -1000,6 +1001,30 @@ P4：Dashboard。
 1. 未來回來接手時，不需要重新猜流程。
 2. 每個 script 的輸入與輸出都清楚。
 3. 每日實作紀錄能對應到完成的項目。
+
+
+十九之十二、新集數自動分析與股票 mention 抽取
+
+狀態：Review
+
+實作項目：
+
+1. 將週期性新集數同步從 metadata-only 擴充為下載、切段、轉錄、合併逐字稿。
+2. 建立 scripts/auto_extract_stock_mentions.py，從合併逐字稿自動找出 instruments.csv 中的單一股票。
+3. 依上下文關鍵字推定 stance、conviction 與 time_horizon。
+4. 將高信心股票 mention 直接寫入 mentions.csv，review_status=approved，不需人工審核。
+5. 將所有命中與處理動作寫入 reports/auto_stock_mentions.csv，保留 skipped_existing_mention、skipped_low_confidence 與 added_approved_auto_mention。
+6. 讓 company mentions 不論 stance 都進入後續價格表現追蹤；bullish / bearish 才作為方向性訊號。
+7. 更新 mention_returns、return report、summary、dashboard 與 validate_data.py，使自動資料成為正式資料管線的一部分。
+8. 更新 Codex automation，使新集數不只被偵測，也會嘗試完成轉錄、抽取、追蹤與 dashboard 重建。
+
+驗收標準：
+
+1. 排程可從 RSS 新集數一路跑到 dashboard 重建。
+2. 不需人工審核即可新增 auto_ 開頭的股票 mention。
+3. reports/auto_stock_mentions.csv 可追溯每個命中的 evidence_text 與 action。
+4. scripts/run_daily_update.py --skip-price-fetch 與 scripts/validate_data.py 通過。
+5. Dashboard 顯示股癌看法欄位，並能列出非 bullish / bearish 的公司追蹤列。
 
 
 二十、每日實作紀錄
@@ -1469,3 +1494,80 @@ P4：Dashboard。
 
 備註：
 目前第一階段已跨過逐字稿取得、30 筆候選 mentions、第一輪 review、needs_context 二次校對、第一版價格資料抓取、公司與概念 proxy 報酬檢查報表、summary 總覽報表、concept proxy review 工作表、Dashboard 測試版與日常資料驗證入口；資料、腳本與可讀報表層已具備可重跑的落地流程。接下來重點是等待價格 horizon 到期、人工校準 concept proxy baskets，並改善價格來源穩定性。
+
+
+二十之三、2026-06-16 實作紀錄
+
+日期：
+2026-06-16
+
+今日目標：
+依新的產品目標，移除日常流程對人工審核的依賴，讓系統自動整理集數中提到的個股、判斷股癌看法，並追蹤後續表現。
+
+完成內容：
+
+1. 建立 scripts/auto_extract_stock_mentions.py，從已合併逐字稿掃描 instruments.csv 的單一股票別名。
+2. 自動依上下文關鍵字推定 stance、conviction 與 time_horizon。
+3. 產生 reports/auto_stock_mentions.csv，記錄每個命中的 evidence_text、line_numbers、auto_stance 與 action。
+4. 將高信心命中自動寫入 mentions.csv，review_status=approved，reviewer_note 標示 no manual review。
+5. 實際從既有三集 generated transcripts 中新增 Palantir / PLTR 的 auto_ mention。
+6. 更新 scripts/fetch_prices.py，讓所有 approved company mentions 只要有 ticker 就進入價格表現追蹤，不再只限 bullish / bearish。
+7. 更新 scripts/build_return_report.py、scripts/build_summary_report.py 與 scripts/validate_data.py，使 company neutral、watch、past_review 也可進入追蹤報表。
+8. 更新 scripts/build_dashboard.py，在追蹤明細加入「看法」欄位與 stance badge。
+9. 更新 scripts/transcribe_whisper_cpp.py，未指定 --chunk-index 時會轉錄該集所有 chunks，並避免重複寫入 transcription_runs.csv。
+10. 更新 Codex automation「同步並分析股癌新集數」，讓排程在同步 RSS 後可掃描 transcript_inputs.csv 中所有 missing 正式集數，接續下載音檔、切段、轉錄、合併、auto extract、run_daily_update。
+11. 更新 README.md、docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt、docs/標註規則.txt 與本規劃檔，反映不需人工審核的主流程。
+12. 重跑日常更新，價格資料更新至 2026-06-16，新增 MRVL 與 TSLA 價格檔。
+
+修改或新增檔案：
+
+1. scripts/auto_extract_stock_mentions.py
+2. scripts/transcribe_whisper_cpp.py
+3. scripts/fetch_prices.py
+4. scripts/build_return_report.py
+5. scripts/build_summary_report.py
+6. scripts/build_dashboard.py
+7. scripts/validate_data.py
+8. data/processed/mentions.csv
+9. data/processed/mention_returns.csv
+10. reports/auto_stock_mentions.csv
+11. reports/approved_company_bullish_returns.csv
+12. reports/summary.csv
+13. reports/dashboard.html
+14. data/prices/*.csv
+15. README.md
+16. docs/操作流程.txt
+17. docs/資料來源.txt
+18. docs/資料字典.txt
+19. docs/標註規則.txt
+20. 股癌追蹤系統規劃與設計.txt
+
+重要決策：
+
+1. 日常目標改為「提到的單一股票都整理並追蹤」，不再要求人工審核後才進入追蹤。
+2. bullish / bearish 才代表方向性看法；neutral、watch、past_review 可追蹤後續表現，但不計入方向命中率。
+3. 低信心命中預設不寫入 mentions.csv，只留在 auto_stock_mentions.csv 供之後檢查。
+4. 自動化排程除了偵測新集數，也要嘗試完成分析與整合。
+
+遇到問題：
+
+1. transcribe_whisper_cpp.py 原本預設只轉錄 chunk 0；若直接交給排程，會造成新集數只轉第一段。已改成預設整集轉錄。
+2. 逐字稿 ASR 專有名詞仍可能有錯字，因此 auto extract 第一版使用低信心過濾，避免單純名稱命中大量進入正式 mentions。
+3. reports/approved_company_bullish_returns.csv 檔名沿用舊名，但內容已擴充為 company all stances plus directional concept proxies。
+
+驗證方式：
+
+1. python3 -m py_compile 已通過本次修改的主要 scripts。
+2. python3 scripts/transcribe_whisper_cpp.py --episode-id ep_20260527_665 可重用既有 4 個 transcript chunks，不重跑轉錄。
+3. python3 scripts/auto_extract_stock_mentions.py 成功新增 1 筆 auto stock mention，並輸出 12 筆 auto_stock_mentions report rows。
+4. python3 scripts/run_daily_update.py 已完成價格更新、return report、summary、dashboard 與 validation。
+5. python3 scripts/run_daily_update.py --skip-price-fetch 通過，輸出 12 集正式 episodes、31 筆正式 mentions、30 筆正式 mention_returns、23 筆 return report rows。
+
+明日待辦：
+
+1. 對 EP668、EP669 與最新 RSS 新集數執行完整下載、切段、轉錄、合併與自動抽取。
+2. 檢查自動抽取的 precision，必要時擴充 stance keyword 與 instruments aliases。
+3. 視需要將 reports/approved_company_bullish_returns.csv 改名為更中性的 return_tracking_report.csv，並保留相容轉接。
+
+備註：
+目前自動化主線已打通到資料與腳本層：新集數排程會嘗試從同步一路做到分析整合；既有資料已能追蹤非 bullish / bearish 的公司 mention 後續表現。下一步是把尚未轉錄的新集數跑進同一條管線，擴大樣本。

@@ -185,6 +185,19 @@ EXPECTED_FIELDS = {
         "duration_seconds",
         "next_action",
     ],
+    "reports/auto_stock_mentions.csv": [
+        "episode_id",
+        "ticker",
+        "market",
+        "company_or_theme",
+        "matched_aliases",
+        "line_numbers",
+        "auto_stance",
+        "auto_conviction",
+        "auto_time_horizon",
+        "evidence_text",
+        "action",
+    ],
 }
 
 
@@ -293,12 +306,11 @@ def is_return_candidate(mention: dict[str, str], proxy_concepts: set[str]) -> bo
     if (
         not is_formal(mention, "mention_id")
         or mention["review_status"] != "approved"
-        or mention["stance"] not in {"bullish", "bearish"}
     ):
         return False
     if mention["mention_type"] == "company":
         return bool(mention["ticker"])
-    return mention["company_or_theme"] in proxy_concepts
+    return mention["stance"] in {"bullish", "bearish"} and mention["company_or_theme"] in proxy_concepts
 
 
 def validate_price_files(root: pathlib.Path) -> int:
@@ -350,6 +362,7 @@ def validate(root: pathlib.Path) -> list[str]:
     require_fields(root / "reports/approved_company_bullish_returns.csv", report, return_report_fields())
     concept_proxy_review = tables["reports/concept_proxy_review.csv"].rows
     new_episodes = tables["reports/new_episodes.csv"].rows
+    auto_stock_mentions = tables["reports/auto_stock_mentions.csv"].rows
     summary = read_table(root / "reports/summary.csv")
     require_fields(root / "reports/summary.csv", summary, summary_fields())
 
@@ -409,6 +422,23 @@ def validate(root: pathlib.Path) -> list[str]:
             raise ValidationError(f"new_episodes.csv:{row['episode_id']} references missing episode")
         if row["next_action"] != "download_audio":
             raise ValidationError(f"new_episodes.csv:{row['episode_id']} unexpected next_action")
+    for row in auto_stock_mentions:
+        if row["episode_id"] not in episode_ids:
+            raise ValidationError(f"auto_stock_mentions.csv:{row['episode_id']} references missing episode")
+        if row["market"] not in {"TWSE", "TPEx", "US"}:
+            raise ValidationError(f"auto_stock_mentions.csv:{row['episode_id']} unsupported market")
+        if row["auto_stance"]:
+            validate_allowed([row], "auto_stance", ALLOWED["stance"], "auto_stock_mentions.csv")
+        if row["auto_conviction"]:
+            validate_allowed([row], "auto_conviction", ALLOWED["conviction"], "auto_stock_mentions.csv")
+        if row["auto_time_horizon"]:
+            validate_allowed([row], "auto_time_horizon", ALLOWED["time_horizon"], "auto_stock_mentions.csv")
+        if row["action"] not in {
+            "added_approved_auto_mention",
+            "skipped_existing_mention",
+            "skipped_low_confidence",
+        }:
+            raise ValidationError(f"auto_stock_mentions.csv:{row['episode_id']} unexpected action")
 
     for row in episodes:
         validate_date(row["published_at"], f"episodes.csv:{row['episode_id']}")

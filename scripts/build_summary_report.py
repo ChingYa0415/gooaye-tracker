@@ -105,7 +105,6 @@ def build_summary(
         row
         for row in approved_mentions
         if row["mention_type"] == "company"
-        and row["stance"] in {"bullish", "bearish"}
         and bool(row["ticker"])
     ]
     proxy_concepts = active_proxy_concepts(concept_proxies)
