@@ -21,6 +21,16 @@ def parse_args() -> argparse.Namespace:
         default="data/raw/transcripts",
         help="Directory for combined transcript text files.",
     )
+    parser.add_argument(
+        "--episodes-csv",
+        default="data/processed/episodes.csv",
+        help="Episode metadata CSV to update after a combined transcript is written.",
+    )
+    parser.add_argument(
+        "--transcript-inputs-csv",
+        default="data/processed/transcript_inputs.csv",
+        help="Transcript input manifest to update after a combined transcript is written.",
+    )
     return parser.parse_args()
 
 
@@ -34,6 +44,31 @@ def load_runs(path: pathlib.Path, episode_id: str) -> list[dict[str, str]]:
             if row["episode_id"] == episode_id and row["transcription_status"] == "generated"
         ]
     return sorted(rows, key=lambda row: int(row["chunk_index"]))
+
+
+def mark_generated(path: pathlib.Path, episode_id: str) -> bool:
+    if not path.exists():
+        return False
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        fieldnames = list(reader.fieldnames or [])
+        rows = list(reader)
+    if "transcript_status" not in fieldnames:
+        return False
+
+    changed = False
+    for row in rows:
+        if row.get("episode_id") == episode_id and row.get("transcript_status") != "generated":
+            row["transcript_status"] = "generated"
+            changed = True
+    if not changed:
+        return False
+
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+    return True
 
 
 def main() -> int:
@@ -55,7 +90,14 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / f"{args.episode_id}.txt"
     output_path.write_text("".join(parts).strip() + "\n", encoding="utf-8")
+    updated = [
+        str(path)
+        for path in [pathlib.Path(args.episodes_csv), pathlib.Path(args.transcript_inputs_csv)]
+        if mark_generated(path, args.episode_id)
+    ]
     print(f"Wrote combined transcript to {output_path}")
+    if updated:
+        print(f"Updated transcript_status=generated in {', '.join(updated)}")
     return 0
 
 

@@ -29,4 +29,10 @@ m_20260530_010,concept_proxy:被動元件,concept,bullish,2026-06-01,1,-0.067954
 m_20260530_011,NET,US,past_review,2026-06-01,270.8200073,-0.08503808218,,,,-0.04272006808,,,,-0.0423180141,,,,pending_price,price source Yahoo chart symbol=NET; 3 horizon target prices unavailable
 m_20260527_007,concept_proxy:被動元件,concept,bullish,2026-05-28,1,-0.003915781238,,,,0.0467732809,,,,-0.05068906214,,,,pending_price,concept proxy basket=被動元件; symbols=2327.TW;2492.TW;6173.TWO; 3 horizon target prices unavailable
 m_20260527_008,,concept,bullish,,,,,,,,,,,,,,,not_applicable,approved concept mention has no active proxy basket
+auto_20260506_659_3443,3443,TWSE,past_review,2026-05-07,5425.283691,-0.06880733573,-0.215709216,,,-0.004340921438,0.03741613452,,,-0.0644664143,-0.2531253505,,,pending_price,price source Yahoo chart symbol=3443.TW; 2 horizon target prices unavailable
+auto_20260509_660_2330,2330,TWSE,past_review,2026-05-11,2229.053223,0.002237190371,0.008948542431,,,-0.02149406609,0.03434980752,,,0.02373125646,-0.02540126508,,,pending_price,price source Yahoo chart symbol=2330.TW; 2 horizon target prices unavailable
+auto_20260516_662_2330,2330,TWSE,past_review,2026-05-18,2234.040039,0.03124998634,,,,0.06731366087,,,,-0.03606367453,,,,pending_price,price source Yahoo chart symbol=2330.TW; 3 horizon target prices unavailable
 auto_20260530_666_pltr,PLTR,US,past_review,2026-06-01,160.6499939,-0.1505134989,,,,-0.04272006808,,,,-0.1077934308,,,,pending_price,price source Yahoo chart symbol=PLTR; 3 horizon target prices unavailable
+auto_20260606_668_2330,2330,TWSE,bearish,2026-06-08,2288.893555,-0.03761924408,,,,0.04633360367,,,,-0.08395284775,,,,pending_price,price source Yahoo chart symbol=2330.TW; 3 horizon target prices unavailable
+auto_20260606_668_snow,SNOW,US,watch,2026-06-08,240.4499969,0.001372434332,,,,0.02908951546,,,,-0.02771708113,,,,pending_price,price source Yahoo chart symbol=SNOW; 3 horizon target prices unavailable
+auto_20260610_669_2330,2330,TWSE,bullish,2026-06-11,2250,,,,,,,,,,,,,pending_price,price source Yahoo chart symbol=2330.TW; 4 horizon target prices unavailable

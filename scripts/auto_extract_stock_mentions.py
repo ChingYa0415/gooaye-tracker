@@ -149,7 +149,8 @@ def load_company_aliases(path: pathlib.Path) -> list[Alias]:
 def contains_alias(line: str, alias: str) -> bool:
     if alias.isascii() and re.fullmatch(r"[A-Za-z0-9._-]+", alias):
         pattern = rf"(?<![A-Za-z0-9]){re.escape(alias)}(?![A-Za-z0-9])"
-        return re.search(pattern, line, flags=re.IGNORECASE) is not None
+        flags = 0 if alias.isupper() and len(alias) <= 5 else re.IGNORECASE
+        return re.search(pattern, line, flags=flags) is not None
     flags = re.IGNORECASE if alias.isascii() else 0
     return re.search(re.escape(alias), line, flags=flags) is not None
 
@@ -215,7 +216,7 @@ def existing_episode_tickers(mentions: list[dict[str, str]]) -> set[tuple[str, s
     return {
         (row["episode_id"], row.get("ticker", ""), row.get("market", ""))
         for row in mentions
-        if not row["mention_id"].startswith("sample_") and row.get("ticker")
+        if not row["mention_id"].startswith(("sample_", "auto_")) and row.get("ticker")
     }
 
 
@@ -378,8 +379,11 @@ def main() -> int:
     ]
     if not args.dry_run:
         write_csv(pathlib.Path(args.report), report_fields, report_rows)
+        manual_mentions = [row for row in mentions if not row["mention_id"].startswith("auto_")]
         if new_mentions:
-            write_csv(pathlib.Path(args.output), fieldnames, mentions + new_mentions)
+            write_csv(pathlib.Path(args.output), fieldnames, manual_mentions + new_mentions)
+        elif len(manual_mentions) != len(mentions):
+            write_csv(pathlib.Path(args.output), fieldnames, manual_mentions)
 
     action = "Would add" if args.dry_run else "Added"
     print(

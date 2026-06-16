@@ -132,7 +132,7 @@ def write_chunks(path: pathlib.Path, chunks: dict[tuple[str, int], AudioChunk]) 
         "notes",
     ]
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for chunk in sorted(chunks.values(), key=lambda item: (item.episode_id, item.chunk_index)):
             writer.writerow(chunk.__dict__)
@@ -182,4 +182,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1571,3 +1571,76 @@ P4：Dashboard。
 
 備註：
 目前自動化主線已打通到資料與腳本層：新集數排程會嘗試從同步一路做到分析整合；既有資料已能追蹤非 bullish / bearish 的公司 mention 後續表現。下一步是把尚未轉錄的新集數跑進同一條管線，擴大樣本。
+
+
+二十之四、2026-06-16 補充實作紀錄
+
+日期：
+2026-06-16
+
+今日目標：
+將所有 transcript_status=missing 的正式集數補齊逐字稿，並一路更新到 Dashboard。
+
+完成內容：
+
+1. 補強 scripts/combine_transcripts.py，合併逐字稿後自動將 episodes.csv 與 transcript_inputs.csv 的 transcript_status 回寫為 generated。
+2. 補強 scripts/transcribe_whisper_cpp.py，避免 whisper.cpp 轉錄時將整段逐字稿輸出到終端，只保留 chunk 進度與錯誤尾端 log。
+3. 修正 scripts/download_audio.py 與 scripts/split_audio.py 的 CSV 輸出換行格式，避免產生 CRLF 造成 git diff --check 失敗。
+4. 批次下載、切段、轉錄與合併 EP670、EP669、EP668、EP664、EP663、EP662、EP661、EP660、EP659、EP658。
+5. 重新執行 scripts/auto_extract_stock_mentions.py，13 集 generated transcripts 全部納入自動股票 mention 掃描。
+6. 修正短 ticker 誤命中規則：短大寫 ticker 需要大小寫精準匹配，避免 `Future is now` 被誤認為 ServiceNow / NOW。
+7. 讓 auto_ mentions 每次由目前逐字稿掃描結果重建，避免規則修正後舊的誤判殘留。
+8. 自動新增 7 筆 auto stock mentions，其中包含創意、台積電、Palantir、Snowflake 等。
+9. 重跑 scripts/run_daily_update.py，更新價格、mention_returns.csv、return report、summary、concept proxy review 與 dashboard。
+10. 完成 Dashboard 瀏覽器檢查，追蹤明細為 29 / 29 筆，無 console error，無水平溢出。
+
+修改或新增檔案：
+
+1. scripts/combine_transcripts.py
+2. scripts/transcribe_whisper_cpp.py
+3. scripts/download_audio.py
+4. scripts/split_audio.py
+5. scripts/auto_extract_stock_mentions.py
+6. data/processed/episodes.csv
+7. data/processed/transcript_inputs.csv
+8. data/processed/audio_downloads.csv
+9. data/processed/audio_chunks.csv
+10. data/processed/transcription_runs.csv
+11. data/processed/mentions.csv
+12. data/processed/mention_returns.csv
+13. reports/auto_stock_mentions.csv
+14. reports/approved_company_bullish_returns.csv
+15. reports/summary.csv
+16. reports/dashboard.html
+17. data/prices/3443_TW.csv
+18. 股癌追蹤系統規劃與設計.txt
+
+重要決策：
+
+1. combine_transcripts.py 成為逐字稿完成狀態的正式回寫點，避免合併檔已存在但 metadata 仍顯示 missing。
+2. auto stock mentions 採重建策略，不累積舊 auto rows，方便規則修正後自動清掉誤判。
+3. 短 ticker 掃描採更保守規則，優先降低 false positive。
+
+遇到問題：
+
+1. 第一次批次 loop 的 stdin 被子程序消耗，導致 EP662 的 episode_id 少了第一個字母而中斷。已改用獨立 file descriptor 續跑。
+2. whisper.cpp 預設輸出完整逐字稿到終端，造成長批次輸出過大。已改成捕捉輸出並只在錯誤時顯示。
+3. download_audio.py 與 split_audio.py 原本未指定 lineterminator，重寫 CSV 時產生 CRLF。已修正。
+4. NOW 短 ticker 曾被一般英文句子誤命中。已修正規則並重建 auto mentions。
+
+驗證方式：
+
+1. 已確認 transcript_inputs.csv 不再有 transcript_status=missing 的正式集數。
+2. python3 -m py_compile 通過本次修改的 scripts。
+3. python3 scripts/validate_data.py 通過，輸出 13 集正式 episodes、37 筆正式 mentions、29 筆 return report rows。
+4. git diff --check 通過。
+5. Dashboard 以 http://127.0.0.1:8765/reports/dashboard.html 檢查，顯示 29 / 29 筆追蹤列、含「看法」欄、無 console error、無水平溢出。
+
+明日待辦：
+
+1. 觀察下一次排程是否能在新集數出現時自動完成同樣流程。
+2. 檢查 7 筆 auto_ mentions 的抽取品質，必要時補 aliases 或 stance keyword。
+3. 評估是否建立 raw audio / chunks 的自動清理腳本，依既有規範在合併逐字稿完成後清理本機暫存音檔。
+
+備註：
+截至本次補跑結束，第一批 13 集正式 episodes 都已完成逐字稿狀態更新，Dashboard 已反映全部 generated transcripts 的自動抽取結果。

@@ -1,4 +1,14 @@
 episode_id,title,audio_path,audio_bytes,sha256,duration_seconds,download_status,downloaded_at,notes
+ep_20260502_658,EP658 | 🪿,data/raw/audio/ep_20260502_658.mp3,49851920,d8e5478f9de11fcbdac31d0d62fc4aeb288e2ae2b55d49474764cedec3d175e2,2997,downloaded,2026-06-16T03:32:38+00:00,local audio file is gitignored
+ep_20260506_659,EP659 | 🦤,data/raw/audio/ep_20260506_659.mp3,49135451,0a1a9297bd0be9c35c6d8107db812b6909a774d0de7e2722f28e0684144d5fd1,3105,downloaded,2026-06-16T03:30:38+00:00,local audio file is gitignored
+ep_20260509_660,EP660 | 🍄‍🟫,data/raw/audio/ep_20260509_660.mp3,52204039,9e47d449c11657b5b2eb80af055d1010a61233025df6a94c83fe77cf6aa22179,3092,downloaded,2026-06-16T03:28:25+00:00,local audio file is gitignored
+ep_20260513_661,EP661 | 🚲,data/raw/audio/ep_20260513_661.mp3,49408482,1497f355407a77978ab445f26e38b795b78037d8327d9bc104be3a8c91dc5e27,2999,downloaded,2026-06-16T03:25:39+00:00,local audio file is gitignored
+ep_20260516_662,EP662 | ⛑️,data/raw/audio/ep_20260516_662.mp3,48683228,7ffb994f920124c54ae7e2ad1329acd5d08455e535ec94d00ea7ff584b789604,2999,downloaded,2026-06-16T03:23:07+00:00,local audio file is gitignored
+ep_20260520_663,EP663 | 🦘,data/raw/audio/ep_20260520_663.mp3,49655793,e22fc99b9b2af30088847178cf1e5d1b4fcc2545d27339a68fb2e3d7c0eb080b,2998,downloaded,2026-06-16T03:20:46+00:00,local audio file is gitignored
+ep_20260523_664,EP664 | 🐟,data/raw/audio/ep_20260523_664.mp3,50131503,d1d6af93973f98693e39b6bbf29bee5b13ba2c8169ed6103cfea90c7f5041456,2999,downloaded,2026-06-16T03:18:45+00:00,local audio file is gitignored
 ep_20260527_665,EP665 | 🌸,data/raw/audio/ep_20260527_665.mp3,49170154,f71d6495fd30d5328b9dd626c49bc00ac38e7a3804aad2184f2f6896c406cb46,2991,downloaded,2026-06-06T01:26:53+00:00,local audio file is gitignored
 ep_20260530_666,EP666 | 🍐,data/raw/audio/ep_20260530_666.mp3,56139926,70445364d0c0163166c0114dfe33879bf2d9bcf89e3f97917724c456f5cfa83b,3315,downloaded,2026-06-06T01:26:47+00:00,local audio file is gitignored
 ep_20260603_667,EP667 | 🌍,data/raw/audio/ep_20260603_667.mp3,49975591,777c752f51d34268d3f68e666e96100fa1616bba7b30b601a05d52e9ef5e5ee8,3051,downloaded,2026-06-06T00:57:19+00:00,local audio file is gitignored
+ep_20260606_668,EP668 | 🦞,data/raw/audio/ep_20260606_668.mp3,51155480,30109985b3e414a5cff52df4dea33ba893956ee2fe299441e2383d4e5ae1166c,3002,downloaded,2026-06-16T03:16:53+00:00,local audio file is gitignored
+ep_20260610_669,EP669 | 🎈,data/raw/audio/ep_20260610_669.mp3,48767459,fded0093efdeda4af5ad268a4cec1eebb99b3c542709a30653edf7af306c66f2,3041,downloaded,2026-06-16T03:15:03+00:00,local audio file is gitignored
+ep_20260613_670,EP670 | 🫡,data/raw/audio/ep_20260613_670.mp3,52257087,bba304463e1643854e22df5f9c2989d88666dd8a0d172e4a4e5b3177ff51bdcf,3127,downloaded,2026-06-16T03:13:40+00:00,local audio file is gitignored

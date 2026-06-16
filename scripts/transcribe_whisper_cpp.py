@@ -99,6 +99,7 @@ def transcribe_chunk(
     output_prefix = output_dir / f"{chunk['episode_id']}_{chunk_index:03d}"
     transcript_path = output_prefix.with_suffix(".txt")
     if transcript_path.exists() and not force:
+        print(f"Reusing transcript chunk {chunk['episode_id']} #{chunk_index}")
         return {
             "episode_id": chunk["episode_id"],
             "chunk_index": str(chunk_index),
@@ -122,7 +123,19 @@ def transcribe_chunk(
         str(output_prefix),
         "-np",
     ]
-    subprocess.run(command, check=True)
+    print(f"Transcribing chunk {chunk['episode_id']} #{chunk_index}")
+    try:
+        subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        print((exc.stdout or "")[-4000:])
+        raise
+    print(f"Wrote transcript chunk {chunk['episode_id']} #{chunk_index} to {transcript_path}")
     return {
         "episode_id": chunk["episode_id"],
         "chunk_index": str(chunk_index),

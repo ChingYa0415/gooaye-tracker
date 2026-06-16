@@ -1,13 +1,29 @@
 episode_id,ticker,market,company_or_theme,matched_aliases,line_numbers,auto_stance,auto_conviction,auto_time_horizon,evidence_text,action
+ep_20260502_658,2330,TWSE,台積電,2330;台積;台積電,23;23;675;675;676;676;784;789;800;981;991;1211;1211,neutral,low,short,"下禮拜都正式進入5月的第一個交易日,自己是覺得非常興奮且期待 / 因為4月,相信絕要多數人都繳出了非常暴力的成績 / 就算你沒有在做交易的人,只是把不會放在聯領武林,台積電什麼的人 / 那大家的成績都是非常的好 / 在5月,希望可以維持這樣的一個掌勢",skipped_low_confidence
+ep_20260502_658,2454,TWSE,聯發科,聯發科,675;679;699;731,neutral,low,short,因為最近有一個這個新聞 / 滿多人在討論 / 就是台積電跟聯發科的相關的話題 / 就是說在台積電這邊 / 有一個什麼先進封裝的研發大將,skipped_low_confidence
+ep_20260506_659,2330,TWSE,台積電,台積;台積電,1438;1445;1448;1462;1462,neutral,low,medium,好 / 下面為小明廢伴在本夢比 / 台積在本意比重 / 心態就像是臨死心水的公務員 / 看到哪業績獎金的業務,skipped_low_confidence
+ep_20260506_659,3443,TWSE,創意,3443;GUC,515;516;532;533,past_review,medium,medium,給都動起來 / 那當然前面像是這個 / GUC / 3443那個算是大家都已經知道 / 因為他跟Google高度相關嘛,added_approved_auto_mention
+ep_20260509_660,2330,TWSE,台積電,台積;台積電,5;5;161;162;929;929;997;997;998;998,past_review,medium,short,2感旺有整站住 / 最近盤視強到讓人害怕大盤 / 指數4萬2千點台積電噴到2345 / 很多人在問這是不是高點泡沫 / 但跟你說真正的泡沫是你每天睡不到4小時的體力,added_approved_auto_mention
+ep_20260513_661,2330,TWSE,台積電,TSMC;台積;台積電,859;859;936;937;940;942;1194;1194;1195;1195;1468;1586;1586,neutral,low,medium,連店我自己是真的不太熟悉 / 但事業先進是因為他有 / 很多台積電的授權 / 一些特殊自成的授權 / 或什麼的,skipped_low_confidence
+ep_20260516_662,2330,TWSE,台積電,TSMC;台積;台積電,622;622;627;627;646;646;661;661;680;1126,past_review,medium,medium,就那個金管會的 / 那個宣佈其實非常重要的 / 也就是說放寬台積電的上線 / 讓大家可以買到很多 / 那個其實在過去已經持續的發酵,added_approved_auto_mention
+ep_20260520_663,2330,TWSE,台積電,台積;台積電,658;658;1110;1110;1131;1131;1138;1138;1205;1205,neutral,low,medium,那我們今天就大家都可能維持一個 / 有機率的擴散 / 其實像台積電也是這樣子 / 有機率的擴散 / 他並沒有去,skipped_low_confidence
+ep_20260523_664,NVDA,US,NVIDIA,NVIDIA;Nvidia,526;526;543;543,neutral,low,medium,就是它現在是直接去 / 直面競爭不完資 / NVIDIA AMD Intel / 或是其他的ASIC業者 / 就是老子要下來打賬賬了,skipped_low_confidence
 ep_20260527_665,2330,TWSE,台積電,台積;台積電,509;509;524;524;527;527,,,,像最近 / 應該大家蠻多人在討論 / 就是台積電的一個分紅慘案 / 大家覺得說分紅也太小氣了吧 / 怎麼越專越多錢,skipped_existing_mention
 ep_20260527_665,TSLA,US,Tesla,Tesla,589;635,,,,該是不會解嗎應該就是去增加它的持股 / 那同時回去降低一點 / 可能像Tesla的持股 / 因為對我來講 / 反而我就壓住馬斯克的一個故事,skipped_existing_mention
 ep_20260530_666,2330,TWSE,台積電,TSMC;台積,1536;1537;1742,neutral,low,medium,首席林生的懸旅掛 / 他是工程師跟他說 / TSMC / TSMC / 比利時楊幼寧家,skipped_low_confidence
 ep_20260530_666,CRM,US,Salesforce,Salesforce,753,,,,我覺得最後面都還是靠成績去做證明 / 那不然說像一些公司派的強硬態度 / 你有注意到說像 Salesforce / 他搞了一個正式上的Raker High的一個白白 / 他就狂買股票,skipped_existing_mention
 ep_20260530_666,NOW,US,ServiceNow,ServiceNow,761,,,,我狂賣我自己的股票 / 那再來我們也注意到 / 像是 ServiceNow的老闆 / 也是跟大家講說 / 就是外面的那些AI論述,skipped_existing_mention
-ep_20260530_666,PLTR,US,Palantir,Piantia,1090,,,,那後來就換成Software這邊 / 就注意到美國軟體股噴到天上去 / 像那時候Piantia是二十幾 / 直接噴到100多 / 那Clawflare 什麼翻倍,skipped_existing_mention
+ep_20260530_666,PLTR,US,Palantir,Piantia,1090,past_review,high,medium,那後來就換成Software這邊 / 就注意到美國軟體股噴到天上去 / 像那時候Piantia是二十幾 / 直接噴到100多 / 那Clawflare 什麼翻倍,added_approved_auto_mention
 ep_20260530_666,SNOW,US,Snowflake,Snowflake,767,,,,其實他的公司是在一個非常大的順風上面 / 然後也是靠成績慢慢去證明 / 那最近像是什麼Octa或是Snowflake / 都是開出雞號的成績 / 那就告訴大家說,skipped_existing_mention
 ep_20260530_666,TSLA,US,Tesla,Tesla,2100,neutral,low,medium,還大的拖鞋是什麼牌子 / 害猛老哥 / Tesla的好戲 / 還在後頭 / 想聽聽你進行對Intel的看法,skipped_low_confidence
 ep_20260603_667,2330,TWSE,台積電,TSMC;台積;台積電,1074;1074;1101;1104;1113,,,,但營餅料核實也可以典實曾經自己的股票呢 / 那感覺GTC後 / 資金又回流營餅料台積電供應鏈 / 夢宮覺得市場是否會補漲營餅料TSNC / 那另外下一波的漲價題材,skipped_existing_mention
 ep_20260603_667,MRVL,US,Marvell,瑪瑞爾,542;545;874,,,,說不定就往光的方向去跑 / 那只是你說 / 瑪瑞爾這樣子噴到你的噴什麼 / 老實說 / 這已經超出自己的認知範圍了,skipped_existing_mention
 ep_20260603_667,NVDA,US,NVIDIA,NVIDIA;Nvidia,1101;1101;1114;1114,,,,那不排除了這樣子一個可能性 / 所以抓這兩個題材還滿OK的 / 那在講說不會去補長NVIDIA跟TSMC / 我覺得最近的盤 / 有一點點這樣子的味道,skipped_existing_mention
 ep_20260603_667,SNOW,US,Snowflake,Snowflake,608;610;619;672;894,neutral,low,short,去製用一些開源式的模型 / 那最終可以幫你省下巨量的成本 / 那最近我在寫一篇Snowflake的文章 / 放在我的粉串上面的那裡 / 又吸引到Snowflake的員工來跟我稍微分享一下,skipped_low_confidence
+ep_20260606_668,2330,TWSE,台積電,台積;台積電,367;367;369;369;374;374,bearish,medium,medium,這個可能有點類似說 / 搞不好我們在可能 / 因為我最早看台積電的時候 / 大概它是一兩百塊的東西 / 我在看一兩百塊台積電,added_approved_auto_mention
+ep_20260606_668,NVDA,US,NVIDIA,NVIDIA;Nvidia,459;459,neutral,low,medium,我們就是到了南港區 / 然後那有看了這個 / NVIDIA消費團相關的一些內容 / 那這次消費團的展示 / 我是非常喜歡的,skipped_low_confidence
+ep_20260606_668,SNOW,US,Snowflake,Snowflake,917,watch,medium,medium,如果說有些東西可以把它 / 結合到地段的模型的話 / 就類似我們前面再聊Snowflake / 可能有些東西下是要外包到也沒有辦法 / 那等到你開始有些Data把它建立進來的時候,added_approved_auto_mention
+ep_20260610_669,2330,TWSE,台積電,TSMC;台積;台積電,388;403;403;407;407;410;410;857;857,bullish,medium,medium,當然被動員現在是非常的強勢 / 那光碰的話就是全部都轉落 / 那TSMC有本來覺得有機會是下一波20跑的 / 然後現在也是轉落 / 那發歌也稍微都往下跳,added_approved_auto_mention
+ep_20260610_669,NVDA,US,NVIDIA,NVIDIA;Nvidia,468;468,neutral,low,medium,在搭配他發了東西 / 那即便呢 / 他其實去講說像NVIDIA的什麼記憶體手用什麼 / 那個並不是像標題下的這樣子 / 就是你深度去瞭解會知道,skipped_low_confidence
+ep_20260613_670,2330,TWSE,台積電,2330;台積;台積電,850;850;1463;1463;1466;1466;1468;1468;1470;1470;1475;1475;1483;1483,neutral,low,short,類似說連發科 / 就是要目標價2454 / 台積件就2330 / 那當然國際的目標價2327 / 我們看後面會不會,skipped_low_confidence
+ep_20260613_670,2454,TWSE,聯發科,2454,849,neutral,low,medium,數字當成是關鍵字的 / 類似說連發科 / 就是要目標價2454 / 台積件就2330 / 那當然國際的目標價2327,skipped_low_confidence

@@ -148,7 +148,7 @@ def write_downloads(path: pathlib.Path, downloads: dict[str, AudioDownload]) -> 
         "notes",
     ]
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for row in sorted(downloads.values(), key=lambda item: item.episode_id):
             writer.writerow(row.__dict__)
@@ -183,4 +183,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
