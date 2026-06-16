@@ -46,7 +46,7 @@
    記錄待人工校對的 pending mentions、短證據、逐字稿行號提示與審核決策欄位。
 
 2. reports/approved_company_bullish_returns.csv
-   記錄已 approved 且可追蹤績效的公司 mentions，以及已定義 proxy 的概念型 bullish / bearish mentions。檔名沿用第一版，內容已包含公司 neutral、watch、past_review 等非方向性看法。
+   記錄已 approved 且可追蹤績效的公司與概念 proxy 追蹤標的。檔名沿用第一版，但內容已改為「每個 ticker / proxy 一列」：報酬從第一次提及開始計算，後續提及日期列在同一列。
 
 3. reports/summary.csv
    記錄目前資料管線的總覽指標，例如 episode 數、mention review 狀態、return 狀態、可得 horizon 與平均報酬。
@@ -57,10 +57,13 @@
 5. reports/dashboard.html
    靜態測試版 Dashboard，整合 summary、return report 與 concept proxy review 的可讀視圖。
 
-6. reports/new_episodes.csv
+6. docs/index.html
+   GitHub Pages 發布入口，內容由 scripts/build_dashboard.py 從相同 Dashboard HTML 同步產生。
+
+7. reports/new_episodes.csv
    記錄 RSS 同步時新加入的集數與下一步處理動作。
 
-7. reports/auto_stock_mentions.csv
+8. reports/auto_stock_mentions.csv
    記錄 scripts/auto_extract_stock_mentions.py 掃描逐字稿後的股票命中、推定 stance、證據片段與處理動作。
 
 本機設定檔：
@@ -844,31 +847,41 @@
 十四、approved_company_bullish_returns.csv
 
 用途：
-記錄由 scripts/build_return_report.py 產生的第一版報酬檢查報表。此報表從 mentions.csv、episodes.csv、concept_proxies.csv 與 mention_returns.csv 派生，用來檢查 approved company mentions，以及已啟用 proxy 的概念型 bullish / bearish mentions 的基準價、可得 horizon 報酬與相對 benchmark 超額報酬。
+記錄由 scripts/build_return_report.py 產生的追蹤標的報表。此報表從 mentions.csv、episodes.csv、concept_proxies.csv 與 mention_returns.csv 派生，用來檢查 approved company 標的，以及已啟用 proxy 的概念型 bullish / bearish 標的的基準價、可得 horizon 報酬與相對 benchmark 超額報酬。
+
+此報表以追蹤標的為單位彙整：同一 ticker / market 的多次提及只保留一列，報酬欄位引用第一次提及的 mention_returns.csv 結果，後續提及日期與集數用清單欄位保留。若同一標的後續又被提到，應更新 mention_count、followup_published_dates、all_published_dates 與 mention_timeline，而不是新增第二列。
 
 欄位群組：
 
-1. mention 與 episode 欄位
-   欄位：mention_id、episode_id、episode_title、published_at、company_or_theme、ticker、market、stance、conviction、time_horizon
-   說明：用於追溯來源與原始標註。
+1. tracking 與來源欄位
+   欄位：tracking_id、first_mention_id、mention_ids、mention_count、first_episode_id、episode_ids、first_episode_title、episode_titles、first_published_at、followup_published_dates、all_published_dates、latest_published_at
+   說明：用於追溯同一標的的第一次提及與後續提及。tracking_id 是報表層的標的 ID，不取代 mentions.csv 的 mention_id。
 
-2. 基準價欄位
+2. 標的與看法欄位
+   欄位：company_or_theme、ticker、market、stance、stances、stance_timeline、conviction、time_horizon
+   說明：company_or_theme、stance、conviction、time_horizon 取第一次提及的標註；stances 與 stance_timeline 保留後續提及的看法變化。
+
+3. 基準價欄位
    欄位：base_trade_date、base_price
-   說明：發布後第一個可得交易日與該日價格。
+   說明：第一次提及發布後第一個可得交易日與該日價格。
 
-3. 報酬狀態欄位
+4. 報酬狀態欄位
    欄位：available_horizons、calculation_status、return_notes
    說明：列出目前已可計算的 horizon，例如 7d；若後續價格尚未到期，calculation_status 會維持 pending_price。
 
-4. 證據欄位
-   欄位：evidence_text
-   說明：保留原始短證據，方便檢查該 mention 是否真的值得納入追蹤。
+5. 證據與時間線欄位
+   欄位：evidence_text、mention_timeline
+   說明：evidence_text 保留第一次提及的短證據；mention_timeline 保留各次提及的日期、集數與 stance，方便檢查該標的是否真的值得納入追蹤。
 
-5. horizon 報酬欄位
+6. 至今報酬欄位
+   欄位：current_trade_date、current_price、current_return、current_return_pct、benchmark_current_return、benchmark_current_return_pct、excess_current_return、excess_current_return_pct
+   說明：從第一次提及的 base_trade_date 到目前價格資料最後一日的標的實際漲跌與相對 benchmark 超額報酬。current_return 不做 bearish 方向反轉。
+
+7. horizon 報酬欄位
    欄位：return_7d、return_30d、return_90d、return_180d，以及對應的 _pct 欄位
    說明：標的自身報酬；小數欄用於後續程式計算，_pct 欄用於人工閱讀。
 
-6. benchmark 與超額報酬欄位
+8. benchmark 與超額報酬欄位
    欄位：benchmark_return_*、excess_return_*，以及對應的 _pct 欄位
    說明：benchmark 報酬與標的相對 benchmark 的超額報酬。
 
@@ -967,12 +980,13 @@
 十七、dashboard.html
 
 用途：
-記錄由 scripts/build_dashboard.py 產生的靜態 Dashboard。此檔案從 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv 派生，提供總覽、追蹤明細、快速篩選、排序、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態與 proxy 審核表。
+記錄由 scripts/build_dashboard.py 產生的靜態 Dashboard。此檔案從 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv 派生，提供總覽、追蹤明細、快速篩選、排序、提及日期彈窗、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態與 proxy 審核表。
 
 使用規則：
 
 1. 此檔案是派生檔，可由 scripts/build_dashboard.py 重建。
-2. Dashboard 不作為原始真相來源；資料仍以 data/processed/*.csv 與 reports/*.csv 為準。
+2. scripts/build_dashboard.py 會同時輸出 reports/dashboard.html 與 docs/index.html；前者供本機檢查，後者供 GitHub Pages 發布。
+3. Dashboard 不作為原始真相來源；資料仍以 data/processed/*.csv 與 reports/*.csv 為準。
 3. 每次更新價格、mention review 或 concept proxy review 後，應重建 dashboard.html。
 4. validate_data.py 會檢查 dashboard.html 是否存在，並確認必要資料掛載點存在。
 

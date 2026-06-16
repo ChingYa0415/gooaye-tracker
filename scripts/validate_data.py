@@ -318,6 +318,12 @@ def is_return_candidate(mention: dict[str, str], proxy_concepts: set[str]) -> bo
     return mention["stance"] in {"bullish", "bearish"} and mention["company_or_theme"] in proxy_concepts
 
 
+def tracking_id_for_mention(mention: dict[str, str]) -> str:
+    if mention["mention_type"] == "company":
+        return f"company:{mention['market']}:{mention['ticker']}"
+    return f"concept:{mention['company_or_theme']}"
+
+
 def validate_price_files(root: pathlib.Path) -> int:
     price_paths = sorted((root / "data/prices").glob("*.csv"))
     expected = ["symbol", "trade_date", "close", "adj_close", "volume"]
@@ -334,10 +340,6 @@ def validate_price_files(root: pathlib.Path) -> int:
 
 
 def validate_dashboard(root: pathlib.Path) -> None:
-    path = root / "reports/dashboard.html"
-    if not path.exists():
-        raise ValidationError("Missing dashboard report: reports/dashboard.html")
-    text = path.read_text(encoding="utf-8")
     required_fragments = [
         "<title>股癌追蹤 Dashboard</title>",
         'id="return-data"',
@@ -345,9 +347,14 @@ def validate_dashboard(root: pathlib.Path) -> None:
         'id="signalsBody"',
         'id="proxyBody"',
     ]
-    missing = [fragment for fragment in required_fragments if fragment not in text]
-    if missing:
-        raise ValidationError(f"reports/dashboard.html missing fragments: {missing}")
+    for relative_path in ["reports/dashboard.html", "docs/index.html"]:
+        path = root / relative_path
+        if not path.exists():
+            raise ValidationError(f"Missing dashboard report: {relative_path}")
+        text = path.read_text(encoding="utf-8")
+        missing = [fragment for fragment in required_fragments if fragment not in text]
+        if missing:
+            raise ValidationError(f"{relative_path} missing fragments: {missing}")
 
 
 def validate(root: pathlib.Path) -> list[str]:
@@ -394,7 +401,11 @@ def validate(root: pathlib.Path) -> list[str]:
         for row in mentions
         if is_formal(row, "mention_id") and row["review_status"] == "approved"
     }
-    candidate_ids = {row["mention_id"] for row in mentions if is_return_candidate(row, proxy_concepts)}
+    candidate_tracking_ids = {
+        tracking_id_for_mention(row)
+        for row in mentions
+        if is_return_candidate(row, proxy_concepts)
+    }
 
     for row in concept_proxies:
         if row["is_active"] not in {"true", "false"}:
@@ -493,15 +504,22 @@ def validate(root: pathlib.Path) -> list[str]:
                 f"mention_returns.csv:{row['mention_id']}:excess_return_{horizon}d",
             )
 
-    report_ids = {row["mention_id"] for row in report.rows}
-    if report_ids != candidate_ids:
-        missing = sorted(candidate_ids - report_ids)
-        extra = sorted(report_ids - candidate_ids)
+    report_ids = {row["tracking_id"] for row in report.rows}
+    if report_ids != candidate_tracking_ids:
+        missing = sorted(candidate_tracking_ids - report_ids)
+        extra = sorted(report_ids - candidate_tracking_ids)
         raise ValidationError(f"return report mismatch: missing={missing}, extra={extra}")
 
     for row in report.rows:
         if row["calculation_status"] == "missing_return_row":
-            raise ValidationError(f"return report:{row['mention_id']} is missing return row")
+            raise ValidationError(f"return report:{row['tracking_id']} is missing return row")
+        validate_float(row["mention_count"], f"return report:{row['tracking_id']}:mention_count")
+        validate_date(row["first_published_at"], f"return report:{row['tracking_id']}:first_published_at")
+        validate_date(row["latest_published_at"], f"return report:{row['tracking_id']}:latest_published_at")
+        validate_date(row["base_trade_date"], f"return report:{row['tracking_id']}:base_trade_date")
+        validate_date(row["current_trade_date"], f"return report:{row['tracking_id']}:current_trade_date")
+        for followup_date in row["followup_published_dates"].split(";"):
+            validate_date(followup_date, f"return report:{row['tracking_id']}:followup_published_dates")
 
     validate_summary(summary.rows)
 
@@ -520,20 +538,31 @@ def validate(root: pathlib.Path) -> list[str]:
         f"return_report={len(report.rows)} rows available_horizons={dict(sorted(available_counts.items()))}",
         f"summary={len(summary.rows)} rows",
         "dashboard=reports/dashboard.html",
+        "pages=docs/index.html",
         f"price_files={price_file_count}",
     ]
 
 
 def return_report_fields() -> list[str]:
     fields = [
-        "mention_id",
-        "episode_id",
-        "episode_title",
-        "published_at",
+        "tracking_id",
+        "first_mention_id",
+        "mention_ids",
+        "mention_count",
+        "first_episode_id",
+        "episode_ids",
+        "first_episode_title",
+        "episode_titles",
+        "first_published_at",
+        "followup_published_dates",
+        "all_published_dates",
+        "latest_published_at",
         "company_or_theme",
         "ticker",
         "market",
         "stance",
+        "stances",
+        "stance_timeline",
         "conviction",
         "time_horizon",
         "base_trade_date",
@@ -549,6 +578,7 @@ def return_report_fields() -> list[str]:
         "available_horizons",
         "calculation_status",
         "evidence_text",
+        "mention_timeline",
         "return_notes",
     ]
     for horizon in HORIZONS:

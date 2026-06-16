@@ -237,7 +237,7 @@ python3 scripts/validate_data.py
 python3 scripts/run_daily_update.py
 
 6. 概念型回測結果會寫入 mention_returns.csv，ticker 會標示為 concept_proxy:{概念名稱}。
-7. reports/approved_company_bullish_returns.csv 會同時列出公司候選與已啟用 proxy 的概念候選。
+7. reports/approved_company_bullish_returns.csv 會同時列出公司候選與已啟用 proxy 的概念候選，並以 ticker / proxy 為單位彙整；同一標的多次提及只出現一列，報酬從第一次提及開始計算，後續提及日期列在同一列。
 
 概念 proxy 人工審核工作表：
 
@@ -258,11 +258,19 @@ python3 scripts/build_dashboard.py
 輸出：
 
 reports/dashboard.html
+docs/index.html
 
-Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、股癌看法、至今報酬、至今超額、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。此檔案是靜態 HTML，可直接用瀏覽器開啟。
+Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、股癌看法、首次提及日期、提及次數、提及日期彈窗、至今報酬、至今超額、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。reports/dashboard.html 是本機檢查用靜態 HTML；docs/index.html 是 GitHub Pages 發布入口。
+
+GitHub Pages 發布：
+
+1. GitHub repo Settings -> Pages。
+2. Source 選 Deploy from a branch。
+3. Branch 選 main，Folder 選 /docs。
+4. 儲存後，公開網址為 https://chingya0415.github.io/gooaye-tracker/。
 
 注意：
-至今報酬是從 base_trade_date 到目前價格資料最後一日的標的實際漲跌，不做 bearish 方向反轉；7 / 30 / 90 / 180 horizon 欄位則沿用既有回測邏輯。
+至今報酬是從第一次提及後的 base_trade_date 到目前價格資料最後一日的標的實際漲跌，不做 bearish 方向反轉；7 / 30 / 90 / 180 horizon 欄位則沿用既有回測邏輯，也以第一次提及作為基準。
 
 
 七、Git 提交前檢查

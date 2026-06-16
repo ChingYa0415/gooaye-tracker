@@ -7,7 +7,7 @@ returns,formal_total,36,36,
 returns,company_return_candidates,16,16,
 returns,concept_proxy_return_candidates,13,13,
 returns,total_return_candidates,29,29,
-reports,approved_company_bullish_returns_rows,29,29,
+reports,approved_company_bullish_returns_rows,18,18,
 mentions,review_status.approved,36,36,
 mentions,review_status.rejected,1,1,
 mentions,mention_type.company,16,16,
@@ -18,17 +18,16 @@ mentions,stance.past_review,7,7,
 mentions,stance.watch,7,7,
 returns,calculation_status.not_applicable,7,7,
 returns,calculation_status.pending_price,29,29,
-reports,available_horizons.(none),1,1,
-reports,available_horizons.7d,26,26,
+reports,available_horizons.7d,16,16,
 reports,available_horizons.7d;30d,2,2,
-performance,current.available_count,29,29,rows with current return from base trade date to latest price date
-performance,current.avg_return,-0.02334026763,-2.33%,raw target return from base trade date to latest price date
-performance,current.avg_excess_return,-0.03201455766,-3.20%,current target return minus benchmark return
-performance,7d.available_count,28,28,rows with available mention return
-performance,7d.avg_return,-0.06188393246,-6.19%,stance-adjusted mention return
-performance,7d.hit_rate,0.2142857143,21.43%,share of available returns above zero
-performance,7d.avg_benchmark_return,-0.02038115379,-2.04%,benchmark return over the same horizon
-performance,7d.avg_excess_return,-0.04384560708,-4.38%,mention return minus benchmark return
+performance,current.available_count,18,18,rows with current return from base trade date to latest price date
+performance,current.avg_return,-0.07515034176,-7.52%,raw target return from base trade date to latest price date
+performance,current.avg_excess_return,-0.07421764815,-7.42%,current target return minus benchmark return
+performance,7d.available_count,18,18,rows with available mention return
+performance,7d.avg_return,-0.0771357286,-7.71%,stance-adjusted mention return
+performance,7d.hit_rate,0.1111111111,11.11%,share of available returns above zero
+performance,7d.avg_benchmark_return,-0.02376046755,-2.38%,benchmark return over the same horizon
+performance,7d.avg_excess_return,-0.05337526105,-5.34%,mention return minus benchmark return
 performance,30d.available_count,2,2,rows with available mention return
 performance,30d.avg_return,-0.1033803368,-10.34%,stance-adjusted mention return
 performance,30d.hit_rate,0.5,50.00%,share of available returns above zero

@@ -20,6 +20,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--return-report", default="reports/approved_company_bullish_returns.csv")
     parser.add_argument("--concept-proxy-review", default="reports/concept_proxy_review.csv")
     parser.add_argument("--output", default="reports/dashboard.html")
+    parser.add_argument(
+        "--pages-output",
+        default="docs/index.html",
+        help="GitHub Pages entry file to write. Pass an empty value to skip.",
+    )
     return parser.parse_args()
 
 
@@ -321,7 +326,7 @@ def build_html(
     table {{
       width: 100%;
       border-collapse: collapse;
-      min-width: 1180px;
+      min-width: 1320px;
     }}
     th, td {{
       padding: 10px 12px;
@@ -340,8 +345,45 @@ def build_html(
       font-weight: 700;
     }}
     td.wrap {{ white-space: normal; min-width: 260px; max-width: 420px; }}
+    .evidence-preview {{
+      display: -webkit-box;
+      max-width: 420px;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      white-space: normal;
+    }}
+    td.date-cell {{ min-width: 110px; }}
     .name-cell strong {{ display: block; font-size: 14px; }}
     .name-cell span {{ display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }}
+    .mention-cell {{
+      min-width: 116px;
+    }}
+    .mention-control {{
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 28px;
+    }}
+    .mention-count {{
+      min-width: 38px;
+      color: #334139;
+      font-weight: 700;
+    }}
+    .date-button {{
+      width: auto;
+      min-width: 44px;
+      height: 28px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #fff;
+      color: #07524c;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+    }}
+    .date-button:hover {{ border-color: #8fd5cc; background: var(--accent-weak); }}
     .badge {{
       display: inline-flex;
       align-items: center;
@@ -454,6 +496,59 @@ def build_html(
       color: var(--muted);
       font-size: 12px;
     }}
+    .modal-backdrop {{
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(28, 36, 32, 0.34);
+    }}
+    .modal-backdrop[hidden] {{ display: none; }}
+    .modal {{
+      width: min(560px, 100%);
+      max-height: min(680px, calc(100vh - 36px));
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 18px 48px rgba(28, 36, 32, 0.24);
+    }}
+    .modal-head {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-soft);
+    }}
+    .modal-title strong {{ display: block; font-size: 16px; }}
+    .modal-title span {{ display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }}
+    .modal-close {{
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      font-size: 18px;
+    }}
+    .mention-date-list {{
+      display: grid;
+      gap: 0;
+      max-height: 540px;
+      overflow: auto;
+    }}
+    .mention-date-row {{
+      display: grid;
+      grid-template-columns: 108px minmax(0, 1fr) 86px;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+    }}
+    .mention-date-row:last-child {{ border-bottom: 0; }}
+    .mention-date-main strong {{ display: block; }}
+    .mention-date-main span {{ display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }}
     @media (max-width: 1100px) {{
       .stats {{ grid-template-columns: repeat(3, minmax(120px, 1fr)); }}
       .grid {{ grid-template-columns: 1fr; }}
@@ -468,6 +563,7 @@ def build_html(
       .sort-control {{ min-width: 0; }}
       .stat-value {{ font-size: 22px; }}
       h1 {{ font-size: 21px; }}
+      .mention-date-row {{ grid-template-columns: 1fr; gap: 4px; }}
     }}
   </style>
 </head>
@@ -502,8 +598,10 @@ def build_html(
             <div class="sort-control">
               <label for="sortSelect">排序</label>
               <select id="sortSelect" aria-label="sort">
-                <option value="published_desc">發布日新到舊</option>
-                <option value="published_asc">發布日舊到新</option>
+                <option value="latest_desc">最近提及新到舊</option>
+                <option value="latest_asc">最近提及舊到新</option>
+                <option value="first_desc">首次提及新到舊</option>
+                <option value="first_asc">首次提及舊到新</option>
                 <option value="return_7d_desc">7d 報酬高到低</option>
                 <option value="return_7d_asc">7d 報酬低到高</option>
                 <option value="excess_7d_desc">7d 超額高到低</option>
@@ -517,7 +615,7 @@ def build_html(
             </div>
           </div>
           <div class="filters">
-            <input id="searchInput" type="search" placeholder="搜尋標的、ticker、episode">
+            <input id="searchInput" type="search" placeholder="搜尋標的、ticker、集數">
             <select id="kindFilter" aria-label="kind">
               <option value="">全部類型</option>
               <option value="company">公司</option>
@@ -543,7 +641,8 @@ def build_html(
                   <th>標的</th>
                   <th>類型</th>
                   <th>看法</th>
-                  <th>發布</th>
+                  <th>首次提及</th>
+                  <th>提及</th>
                   <th>基準日</th>
                   <th>狀態</th>
                   <th>Horizon</th>
@@ -598,6 +697,19 @@ def build_html(
     </main>
   </div>
 
+  <div class="modal-backdrop" id="mentionModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="mentionModalTitle">
+      <div class="modal-head">
+        <div class="modal-title">
+          <strong id="mentionModalTitle"></strong>
+          <span id="mentionModalSubtitle"></span>
+        </div>
+        <button class="modal-close" id="closeMentionModal" type="button" aria-label="關閉提及日期">×</button>
+      </div>
+      <div class="mention-date-list" id="mentionModalBody"></div>
+    </section>
+  </div>
+
   {json_script("return-data", returns)}
   {json_script("proxy-data", proxies)}
   <script>
@@ -620,6 +732,11 @@ def build_html(
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
     const signalCount = document.getElementById("signalCount");
+    const mentionModal = document.getElementById("mentionModal");
+    const mentionModalTitle = document.getElementById("mentionModalTitle");
+    const mentionModalSubtitle = document.getElementById("mentionModalSubtitle");
+    const mentionModalBody = document.getElementById("mentionModalBody");
+    const closeMentionModal = document.getElementById("closeMentionModal");
 
     const proxySearchInput = document.getElementById("proxySearchInput");
     const proxyPriorityFilter = document.getElementById("proxyPriorityFilter");
@@ -695,11 +812,75 @@ def build_html(
       }}).join("");
     }}
 
+    function splitCsvList(value) {{
+      return String(value || "").split(";").map(item => item.trim()).filter(Boolean);
+    }}
+
+    function stanceByDate(row) {{
+      const output = new Map();
+      for (const item of splitCsvList(row.stance_timeline)) {{
+        const [date, stance] = item.split(":");
+        if (!date || !stance) continue;
+        const current = output.get(date) || [];
+        if (!current.includes(stance)) current.push(stance);
+        output.set(date, current);
+      }}
+      return output;
+    }}
+
+    function episodeByDate(row) {{
+      const dates = splitCsvList(row.all_published_dates);
+      const episodeIds = splitCsvList(row.episode_ids);
+      const output = new Map();
+      dates.forEach((date, index) => {{
+        output.set(date, episodeIds[index] || "");
+      }});
+      return output;
+    }}
+
+    function mentionButton(row) {{
+      return `
+        <div class="mention-control">
+          <span class="mention-count">${{escapeHtml(row.mention_count || "1")}} 次</span>
+          <button class="date-button" type="button" data-tracking-id="${{escapeHtml(row.tracking_id)}}" aria-label="查看 ${{escapeHtml(row.company_or_theme)}} 提及日期">日期</button>
+        </div>
+      `;
+    }}
+
+    function openMentionModal(row) {{
+      const dates = splitCsvList(row.all_published_dates);
+      const stances = stanceByDate(row);
+      const episodes = episodeByDate(row);
+      mentionModalTitle.textContent = `${{row.company_or_theme}} 提及日期`;
+      mentionModalSubtitle.textContent = `${{row.ticker}} · ${{row.market}} · ${{row.mention_count || "1"}} 次提及`;
+      mentionModalBody.innerHTML = dates.map((date, index) => {{
+        const label = index === 0 ? "首次" : "後續";
+        const dateStances = stances.get(date) || [];
+        return `
+          <div class="mention-date-row">
+            <div class="mention-date-main">
+              <strong>${{escapeHtml(date)}}</strong>
+              <span>${{escapeHtml(label)}}</span>
+            </div>
+            <div>${{escapeHtml(episodes.get(date) || "-")}}</div>
+            <div>${{dateStances.map(stance => stanceBadge({{ stance }})).join("") || badge("unclear", "badge-neutral")}}</div>
+          </div>
+        `;
+      }}).join("");
+      mentionModal.hidden = false;
+    }}
+
+    function hideMentionModal() {{
+      mentionModal.hidden = true;
+    }}
+
     function compareSignals(a, b) {{
       const sortValue = sortSelect.value;
       const byName = a.company_or_theme.localeCompare(b.company_or_theme, "zh-Hant");
-      if (sortValue === "published_asc") return a.published_at.localeCompare(b.published_at) || byName;
-      if (sortValue === "published_desc") return b.published_at.localeCompare(a.published_at) || byName;
+      if (sortValue === "first_asc") return a.first_published_at.localeCompare(b.first_published_at) || byName;
+      if (sortValue === "first_desc") return b.first_published_at.localeCompare(a.first_published_at) || byName;
+      if (sortValue === "latest_asc") return a.latest_published_at.localeCompare(b.latest_published_at) || byName;
+      if (sortValue === "latest_desc") return b.latest_published_at.localeCompare(a.latest_published_at) || byName;
       if (sortValue === "return_7d_desc") return Number(b.return_7d_value || 0) - Number(a.return_7d_value || 0) || byName;
       if (sortValue === "return_7d_asc") return Number(a.return_7d_value || 0) - Number(b.return_7d_value || 0) || byName;
       if (sortValue === "excess_7d_desc") return Number(b.excess_return_7d_value || 0) - Number(a.excess_return_7d_value || 0) || byName;
@@ -708,8 +889,8 @@ def build_html(
       if (sortValue === "current_return_asc") return Number(a.current_return_value || 0) - Number(b.current_return_value || 0) || byName;
       if (sortValue === "current_excess_desc") return Number(b.excess_current_return_value || 0) - Number(a.excess_current_return_value || 0) || byName;
       if (sortValue === "current_excess_asc") return Number(a.excess_current_return_value || 0) - Number(b.excess_current_return_value || 0) || byName;
-      if (sortValue === "name_asc") return byName || b.published_at.localeCompare(a.published_at);
-      return b.published_at.localeCompare(a.published_at) || byName;
+      if (sortValue === "name_asc") return byName || b.latest_published_at.localeCompare(a.latest_published_at);
+      return b.latest_published_at.localeCompare(a.latest_published_at) || byName;
     }}
 
     function matchesSignal(row) {{
@@ -717,9 +898,13 @@ def build_html(
       const haystack = [
         row.company_or_theme,
         row.ticker,
-        row.episode_title,
+        row.first_episode_title,
+        row.episode_titles,
         row.evidence_text,
-        row.mention_id
+        row.mention_timeline,
+        row.tracking_id,
+        row.first_mention_id,
+        row.mention_ids
       ].join(" ").toLowerCase();
       if (query && !haystack.includes(query)) return false;
       if (kindFilter.value && row.kind !== kindFilter.value) return false;
@@ -739,11 +924,12 @@ def build_html(
         <tr>
           <td class="name-cell">
             <strong>${{escapeHtml(row.company_or_theme)}}</strong>
-            <span>${{escapeHtml(row.ticker)}} · ${{escapeHtml(row.market)}}</span>
+            <span>${{escapeHtml(row.ticker)}} · ${{escapeHtml(row.market)}} · ${{escapeHtml(row.mention_count || "1")}} 次提及</span>
           </td>
           <td>${{badge(row.kind_label, row.kind === "concept" ? "badge-concept" : "badge-company")}}</td>
           <td>${{stanceBadge(row)}}</td>
-          <td>${{escapeHtml(row.published_at)}}</td>
+          <td class="date-cell" title="${{escapeHtml(row.first_episode_title || "")}}">${{escapeHtml(row.first_published_at)}}</td>
+          <td class="mention-cell" title="${{escapeHtml(row.mention_timeline || "")}}">${{mentionButton(row)}}</td>
           <td>${{escapeHtml(row.base_trade_date || "等待")}}</td>
           <td>${{badge(row.available_horizons || row.calculation_status, row.available_horizons ? "badge-ready" : "badge-status")}}</td>
           <td><div class="horizon-list">${{horizonPills(row)}}</div></td>
@@ -751,7 +937,7 @@ def build_html(
           <td class="bar-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnBar(row.excess_current_return_value, row.excess_current_display)}}</td>
           <td class="bar-cell">${{returnBar(row.return_7d_value, row.return_7d_display)}}</td>
           <td class="bar-cell">${{returnBar(row.excess_return_7d_value, row.excess_7d_display)}}</td>
-          <td class="wrap">${{escapeHtml(row.evidence_text)}}</td>
+          <td class="wrap"><span class="evidence-preview" title="${{escapeHtml(row.evidence_text)}}">${{escapeHtml(row.evidence_text)}}</span></td>
         </tr>
       `).join("");
       signalCount.textContent = `${{rows.length}} / ${{returns.length}}`;
@@ -827,6 +1013,19 @@ def build_html(
         renderSignals();
       }});
     }});
+    signalsBody.addEventListener("click", event => {{
+      const button = event.target.closest("[data-tracking-id]");
+      if (!button) return;
+      const row = returns.find(item => item.tracking_id === button.dataset.trackingId);
+      if (row) openMentionModal(row);
+    }});
+    closeMentionModal.addEventListener("click", hideMentionModal);
+    mentionModal.addEventListener("click", event => {{
+      if (event.target === mentionModal) hideMentionModal();
+    }});
+    document.addEventListener("keydown", event => {{
+      if (event.key === "Escape" && !mentionModal.hidden) hideMentionModal();
+    }});
     clearProxyFilters.addEventListener("click", () => {{
       proxySearchInput.value = "";
       proxyPriorityFilter.value = "";
@@ -856,6 +1055,9 @@ def main() -> int:
     )
     write_dashboard(pathlib.Path(args.output), html_text)
     print(f"Wrote dashboard to {args.output}")
+    if args.pages_output:
+        write_dashboard(pathlib.Path(args.pages_output), html_text)
+        print(f"Wrote GitHub Pages dashboard to {args.pages_output}")
     return 0
 
 

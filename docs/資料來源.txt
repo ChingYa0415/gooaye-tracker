@@ -226,16 +226,16 @@ needs_context rows 應優先補上下文或用較大 Whisper 模型重轉相關 
 scripts/build_return_report.py
 
 用途：
-讀取 data/processed/mentions.csv、data/processed/episodes.csv、data/processed/concept_proxies.csv 與 data/processed/mention_returns.csv，輸出 reports/approved_company_bullish_returns.csv。此報表列出已 approved 且可追蹤績效的公司 mentions，以及已啟用 proxy 的概念 bullish / bearish mentions。
+讀取 data/processed/mentions.csv、data/processed/episodes.csv、data/processed/concept_proxies.csv 與 data/processed/mention_returns.csv，輸出 reports/approved_company_bullish_returns.csv。此報表列出已 approved 且可追蹤績效的公司標的，以及已啟用 proxy 的概念 bullish / bearish 標的。
 
 範例：
 python3 scripts/build_return_report.py
 
 目前使用：
-目前 reports/approved_company_bullish_returns.csv 會包含公司 bullish、bearish、neutral、watch、past_review 等看法；其中 bullish / bearish 才視為方向性訊號。概念型 mention 仍需 bullish / bearish 且有啟用 proxy 才進入報表。
+目前 reports/approved_company_bullish_returns.csv 會包含公司 bullish、bearish、neutral、watch、past_review 等看法；其中 bullish / bearish 才視為方向性訊號。概念型 mention 仍需 bullish / bearish 且有啟用 proxy 才進入報表。報表以 ticker / proxy 為單位彙整，同一標的多次提及只出現一列，報酬從第一次提及開始計算，後續提及日期與集數保留在同一列。
 
 注意：
-此報表是 mention_returns.csv 的人工檢查視圖。每次重跑 scripts/fetch_prices.py 更新價格與報酬後，應再重跑 scripts/build_return_report.py，讓可讀報表同步反映最新 horizon return。
+此報表是 mention_returns.csv 的標的層檢查視圖，不取代逐次提及的原始 mention_returns.csv。每次重跑 scripts/fetch_prices.py 更新價格與報酬後，應再重跑 scripts/build_return_report.py，讓可讀報表同步反映最新 horizon return。
 
 9. 總覽報表
 
@@ -306,13 +306,13 @@ python3 scripts/build_concept_proxy_review.py
 scripts/build_dashboard.py
 
 用途：
-讀取 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv，輸出 reports/dashboard.html。Dashboard 提供總覽卡片、追蹤明細表、股癌看法、7d 報酬與超額報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、快速篩選、排序，以及概念 proxy 審核表。
+讀取 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv，輸出 reports/dashboard.html 與 docs/index.html。Dashboard 提供總覽卡片、追蹤明細表、股癌看法、首次提及、提及次數、提及日期彈窗、7d 報酬與超額報酬條圖、至今報酬、至今超額、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、快速篩選、排序，以及概念 proxy 審核表。
 
 範例：
 python3 scripts/build_dashboard.py
 
 目前使用：
-已產生 reports/dashboard.html 測試版。此檔案為靜態 HTML，不需後端即可開啟。
+已產生 reports/dashboard.html 測試版與 docs/index.html GitHub Pages 發布版。兩者都是靜態 HTML，不需後端即可開啟。
 
 注意：
 Dashboard 是 reports/*.csv 的可讀視圖，不是原始真相來源。每次更新價格、mentions 或 proxy review 後，應透過 scripts/run_daily_update.py 重建。
