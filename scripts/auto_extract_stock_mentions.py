@@ -68,6 +68,16 @@ STANCE_KEYWORDS = {
     ],
 }
 
+EXCLUDED_CONTEXT_KEYWORDS = [
+    "本集節目由",
+    "贊助",
+    "檔期",
+    "優惠",
+    "馬卡",
+    "火星生技",
+    "火星升機",
+]
+
 
 @dataclass(frozen=True)
 class Alias:
@@ -190,6 +200,19 @@ def score_stance(context: str) -> tuple[str, int]:
     return best_stance, best_score
 
 
+def is_excluded_context(context: str) -> bool:
+    return any(keyword in context for keyword in EXCLUDED_CONTEXT_KEYWORDS)
+
+
+def evidence_context(contexts: list[str]) -> str:
+    candidates = [context for context in contexts if not is_excluded_context(context)]
+    if not candidates:
+        candidates = contexts
+    if not candidates:
+        return ""
+    return max(candidates, key=lambda context: score_stance(context)[1])
+
+
 def classify_time_horizon(context: str) -> str:
     if any(keyword in context for keyword in ["短期", "最近", "這波", "後面", "接下來"]):
         return "short"
@@ -284,9 +307,10 @@ def build_new_mentions(
                 }
             )
             continue
-        context = " / ".join(contexts)
+        usable_contexts = [context for context in contexts if not is_excluded_context(context)]
+        context = " / ".join(usable_contexts or contexts)
         stance, score = score_stance(context)
-        evidence = compact(contexts[0] if contexts else "")
+        evidence = compact(evidence_context(contexts))
         if score <= 0 and not include_low_confidence:
             report_rows.append(
                 {

@@ -1,5 +1,5 @@
 section,metric,value,display_value,notes
-episodes,formal_total,13,13,
+episodes,formal_total,15,15,
 mentions,formal_total,37,37,
 mentions,approved_total,36,36,
 mentions,needs_context_total,0,0,
@@ -21,13 +21,13 @@ returns,calculation_status.pending_price,29,29,
 reports,available_horizons.7d,16,16,
 reports,available_horizons.7d;30d,2,2,
 performance,current.available_count,18,18,rows with current return from base trade date to latest price date
-performance,current.avg_return,-0.07515034176,-7.52%,raw target return from base trade date to latest price date
-performance,current.avg_excess_return,-0.07421764815,-7.42%,current target return minus benchmark return
+performance,current.avg_return,-0.08046922784,-8.05%,raw target return from base trade date to latest price date
+performance,current.avg_excess_return,-0.07825270382,-7.83%,current target return minus benchmark return
 performance,7d.available_count,18,18,rows with available mention return
-performance,7d.avg_return,-0.0771357286,-7.71%,stance-adjusted mention return
+performance,7d.avg_return,-0.07713572695,-7.71%,stance-adjusted mention return
 performance,7d.hit_rate,0.1111111111,11.11%,share of available returns above zero
 performance,7d.avg_benchmark_return,-0.02376046755,-2.38%,benchmark return over the same horizon
-performance,7d.avg_excess_return,-0.05337526105,-5.34%,mention return minus benchmark return
+performance,7d.avg_excess_return,-0.0533752594,-5.34%,mention return minus benchmark return
 performance,30d.available_count,2,2,rows with available mention return
 performance,30d.avg_return,-0.1033803368,-10.34%,stance-adjusted mention return
 performance,30d.hit_rate,0.5,50.00%,share of available returns above zero

@@ -51,3 +51,11 @@ ep_20260613_670,0,data/raw/audio_chunks/ep_20260613_670_000.mp3,data/raw/transcr
 ep_20260613_670,1,data/raw/audio_chunks/ep_20260613_670_001.mp3,data/raw/transcripts/ep_20260613_670_001.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
 ep_20260613_670,2,data/raw/audio_chunks/ep_20260613_670_002.mp3,data/raw/transcripts/ep_20260613_670_002.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
 ep_20260613_670,3,data/raw/audio_chunks/ep_20260613_670_003.mp3,data/raw/transcripts/ep_20260613_670_003.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260617_671,0,data/raw/audio_chunks/ep_20260617_671_000.mp3,data/raw/transcripts/ep_20260617_671_000.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260617_671,1,data/raw/audio_chunks/ep_20260617_671_001.mp3,data/raw/transcripts/ep_20260617_671_001.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260617_671,2,data/raw/audio_chunks/ep_20260617_671_002.mp3,data/raw/transcripts/ep_20260617_671_002.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260617_671,3,data/raw/audio_chunks/ep_20260617_671_003.mp3,data/raw/transcripts/ep_20260617_671_003.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260620_672,0,data/raw/audio_chunks/ep_20260620_672_000.mp3,data/raw/transcripts/ep_20260620_672_000.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260620_672,1,data/raw/audio_chunks/ep_20260620_672_001.mp3,data/raw/transcripts/ep_20260620_672_001.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260620_672,2,data/raw/audio_chunks/ep_20260620_672_002.mp3,data/raw/transcripts/ep_20260620_672_002.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
+ep_20260620_672,3,data/raw/audio_chunks/ep_20260620_672_003.mp3,data/raw/transcripts/ep_20260620_672_003.txt,whisper.cpp:ggml-base.bin,generated,local whisper.cpp transcript file is gitignored
