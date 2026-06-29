@@ -870,8 +870,8 @@
    說明：列出目前已可計算的 horizon，例如 7d；若後續價格尚未到期，calculation_status 會維持 pending_price。
 
 5. 證據與時間線欄位
-   欄位：evidence_text、mention_timeline
-   說明：evidence_text 保留第一次提及的短證據；mention_timeline 保留各次提及的日期、集數與 stance，方便檢查該標的是否真的值得納入追蹤。
+   欄位：evidence_text、evidence_items、mention_timeline
+   說明：evidence_text 保留第一次提及的短證據；evidence_items 以 JSON list 保留每次提及的日期、集數、stance 與證據文字；mention_timeline 保留各次提及的日期、集數與 stance，方便檢查該標的是否真的值得納入追蹤。
 
 6. 至今報酬欄位
    欄位：current_trade_date、current_price、current_return、current_return_pct、benchmark_current_return、benchmark_current_return_pct、excess_current_return、excess_current_return_pct

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import pathlib
 
 
@@ -70,6 +71,26 @@ def timeline_item(mention: dict[str, str], episode: dict[str, str]) -> str:
     episode_title = episode.get("title", "")
     title_text = f" {episode_title}" if episode_title else ""
     return f"{mention['published_at']} {mention['episode_id']} {mention['stance']}{title_text}"
+
+
+def evidence_items(
+    mentions: list[dict[str, str]],
+    episodes_by_id: dict[str, dict[str, str]],
+) -> str:
+    items = []
+    for mention in mentions:
+        episode = episodes_by_id.get(mention["episode_id"], {})
+        items.append(
+            {
+                "mention_id": mention["mention_id"],
+                "episode_id": mention["episode_id"],
+                "episode_title": episode.get("title", ""),
+                "published_at": mention["published_at"],
+                "stance": mention["stance"],
+                "evidence_text": mention["evidence_text"],
+            }
+        )
+    return json.dumps(items, ensure_ascii=False, separators=(",", ":"))
 
 
 def active_proxy_concepts(rows: list[dict[str, str]]) -> set[str]:
@@ -169,6 +190,7 @@ def build_rows(
             "available_horizons": available_horizons(return_row),
             "calculation_status": return_row.get("calculation_status", "missing_return_row"),
             "evidence_text": mention["evidence_text"],
+            "evidence_items": evidence_items(group_mentions, episodes_by_id),
             "mention_timeline": mention_timeline,
             "return_notes": return_row.get("notes", ""),
         }
@@ -220,6 +242,7 @@ def fieldnames() -> list[str]:
         "available_horizons",
         "calculation_status",
         "evidence_text",
+        "evidence_items",
         "mention_timeline",
         "return_notes",
     ]

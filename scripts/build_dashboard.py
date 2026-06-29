@@ -345,14 +345,6 @@ def build_html(
       font-weight: 700;
     }}
     td.wrap {{ white-space: normal; min-width: 260px; max-width: 420px; }}
-    .evidence-preview {{
-      display: -webkit-box;
-      max-width: 420px;
-      overflow: hidden;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      white-space: normal;
-    }}
     td.date-cell {{ min-width: 110px; }}
     .name-cell strong {{ display: block; font-size: 14px; }}
     .name-cell span {{ display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }}
@@ -507,7 +499,7 @@ def build_html(
     }}
     .modal-backdrop[hidden] {{ display: none; }}
     .modal {{
-      width: min(560px, 100%);
+      width: min(720px, 100%);
       max-height: min(680px, calc(100vh - 36px));
       overflow: hidden;
       background: var(--panel);
@@ -549,6 +541,25 @@ def build_html(
     .mention-date-row:last-child {{ border-bottom: 0; }}
     .mention-date-main strong {{ display: block; }}
     .mention-date-main span {{ display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }}
+    .evidence-list {{
+      display: grid;
+      max-height: 560px;
+      overflow: auto;
+    }}
+    .evidence-row {{
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }}
+    .evidence-row:last-child {{ border-bottom: 0; }}
+    .evidence-meta strong {{ display: block; }}
+    .evidence-meta span {{ display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }}
+    .evidence-text {{
+      white-space: normal;
+      color: #28342d;
+    }}
     @media (max-width: 1100px) {{
       .stats {{ grid-template-columns: repeat(3, minmax(120px, 1fr)); }}
       .grid {{ grid-template-columns: 1fr; }}
@@ -564,6 +575,7 @@ def build_html(
       .stat-value {{ font-size: 22px; }}
       h1 {{ font-size: 21px; }}
       .mention-date-row {{ grid-template-columns: 1fr; gap: 4px; }}
+      .evidence-row {{ grid-template-columns: 1fr; gap: 8px; }}
     }}
   </style>
 </head>
@@ -710,6 +722,19 @@ def build_html(
     </section>
   </div>
 
+  <div class="modal-backdrop" id="evidenceModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="evidenceModalTitle">
+      <div class="modal-head">
+        <div class="modal-title">
+          <strong id="evidenceModalTitle"></strong>
+          <span id="evidenceModalSubtitle"></span>
+        </div>
+        <button class="modal-close" id="closeEvidenceModal" type="button" aria-label="關閉證據內容">×</button>
+      </div>
+      <div class="evidence-list" id="evidenceModalBody"></div>
+    </section>
+  </div>
+
   {json_script("return-data", returns)}
   {json_script("proxy-data", proxies)}
   <script>
@@ -737,6 +762,11 @@ def build_html(
     const mentionModalSubtitle = document.getElementById("mentionModalSubtitle");
     const mentionModalBody = document.getElementById("mentionModalBody");
     const closeMentionModal = document.getElementById("closeMentionModal");
+    const evidenceModal = document.getElementById("evidenceModal");
+    const evidenceModalTitle = document.getElementById("evidenceModalTitle");
+    const evidenceModalSubtitle = document.getElementById("evidenceModalSubtitle");
+    const evidenceModalBody = document.getElementById("evidenceModalBody");
+    const closeEvidenceModal = document.getElementById("closeEvidenceModal");
 
     const proxySearchInput = document.getElementById("proxySearchInput");
     const proxyPriorityFilter = document.getElementById("proxyPriorityFilter");
@@ -847,6 +877,31 @@ def build_html(
       `;
     }}
 
+    function parseEvidenceItems(row) {{
+      try {{
+        const items = JSON.parse(row.evidence_items || "[]");
+        if (Array.isArray(items) && items.length) return items;
+      }} catch (_error) {{}}
+      return [{{
+        mention_id: row.first_mention_id || "",
+        episode_id: row.first_episode_id || "",
+        episode_title: row.first_episode_title || "",
+        published_at: row.first_published_at || "",
+        stance: row.stance || "",
+        evidence_text: row.evidence_text || ""
+      }}];
+    }}
+
+    function evidenceButton(row) {{
+      const count = parseEvidenceItems(row).length;
+      return `
+        <div class="mention-control">
+          <span class="mention-count">${{count}} 段</span>
+          <button class="date-button" type="button" data-evidence-id="${{escapeHtml(row.tracking_id)}}" aria-label="查看 ${{escapeHtml(row.company_or_theme)}} 證據內容">內容</button>
+        </div>
+      `;
+    }}
+
     function openMentionModal(row) {{
       const dates = splitCsvList(row.all_published_dates);
       const stances = stanceByDate(row);
@@ -872,6 +927,27 @@ def build_html(
 
     function hideMentionModal() {{
       mentionModal.hidden = true;
+    }}
+
+    function openEvidenceModal(row) {{
+      const items = parseEvidenceItems(row);
+      evidenceModalTitle.textContent = `${{row.company_or_theme}} 證據`;
+      evidenceModalSubtitle.textContent = `${{row.ticker}} · ${{row.market}} · ${{items.length}} 段來源`;
+      evidenceModalBody.innerHTML = items.map((item, index) => `
+        <div class="evidence-row">
+          <div class="evidence-meta">
+            <strong>${{escapeHtml(item.episode_title || item.episode_id || "-")}}</strong>
+            <span>${{escapeHtml(item.published_at || "-")}} · ${{index === 0 ? "首次" : "後續"}}</span>
+            <span>${{stanceBadge({{ stance: item.stance || "unclear" }})}}</span>
+          </div>
+          <div class="evidence-text">${{escapeHtml(item.evidence_text || "-")}}</div>
+        </div>
+      `).join("");
+      evidenceModal.hidden = false;
+    }}
+
+    function hideEvidenceModal() {{
+      evidenceModal.hidden = true;
     }}
 
     function compareSignals(a, b) {{
@@ -901,6 +977,7 @@ def build_html(
         row.first_episode_title,
         row.episode_titles,
         row.evidence_text,
+        row.evidence_items,
         row.mention_timeline,
         row.tracking_id,
         row.first_mention_id,
@@ -937,7 +1014,7 @@ def build_html(
           <td class="bar-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnBar(row.excess_current_return_value, row.excess_current_display)}}</td>
           <td class="bar-cell">${{returnBar(row.return_7d_value, row.return_7d_display)}}</td>
           <td class="bar-cell">${{returnBar(row.excess_return_7d_value, row.excess_7d_display)}}</td>
-          <td class="wrap"><span class="evidence-preview" title="${{escapeHtml(row.evidence_text)}}">${{escapeHtml(row.evidence_text)}}</span></td>
+          <td class="mention-cell">${{evidenceButton(row)}}</td>
         </tr>
       `).join("");
       signalCount.textContent = `${{rows.length}} / ${{returns.length}}`;
@@ -1014,17 +1091,29 @@ def build_html(
       }});
     }});
     signalsBody.addEventListener("click", event => {{
-      const button = event.target.closest("[data-tracking-id]");
-      if (!button) return;
-      const row = returns.find(item => item.tracking_id === button.dataset.trackingId);
-      if (row) openMentionModal(row);
+      const mentionButton = event.target.closest("[data-tracking-id]");
+      if (mentionButton) {{
+        const row = returns.find(item => item.tracking_id === mentionButton.dataset.trackingId);
+        if (row) openMentionModal(row);
+        return;
+      }}
+      const evidenceButton = event.target.closest("[data-evidence-id]");
+      if (evidenceButton) {{
+        const row = returns.find(item => item.tracking_id === evidenceButton.dataset.evidenceId);
+        if (row) openEvidenceModal(row);
+      }}
     }});
     closeMentionModal.addEventListener("click", hideMentionModal);
+    closeEvidenceModal.addEventListener("click", hideEvidenceModal);
     mentionModal.addEventListener("click", event => {{
       if (event.target === mentionModal) hideMentionModal();
     }});
+    evidenceModal.addEventListener("click", event => {{
+      if (event.target === evidenceModal) hideEvidenceModal();
+    }});
     document.addEventListener("keydown", event => {{
       if (event.key === "Escape" && !mentionModal.hidden) hideMentionModal();
+      if (event.key === "Escape" && !evidenceModal.hidden) hideEvidenceModal();
     }});
     clearProxyFilters.addEventListener("click", () => {{
       proxySearchInput.value = "";

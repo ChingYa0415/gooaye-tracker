@@ -8,6 +8,7 @@ import csv
 from collections import Counter
 from dataclasses import dataclass
 from datetime import date
+import json
 import pathlib
 
 
@@ -339,6 +340,27 @@ def validate_price_files(root: pathlib.Path) -> int:
     return len(price_paths)
 
 
+def validate_evidence_items(value: str, label: str, mention_count: str) -> None:
+    try:
+        items = json.loads(value)
+    except json.JSONDecodeError as exc:
+        raise ValidationError(f"{label}: invalid evidence_items JSON") from exc
+    if not isinstance(items, list):
+        raise ValidationError(f"{label}: evidence_items must be a list")
+    if mention_count and len(items) != int(float(mention_count)):
+        raise ValidationError(f"{label}: evidence_items count does not match mention_count")
+    required = {"mention_id", "episode_id", "episode_title", "published_at", "stance", "evidence_text"}
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise ValidationError(f"{label}: evidence_items[{index}] must be an object")
+        missing = sorted(required - set(item))
+        if missing:
+            raise ValidationError(f"{label}: evidence_items[{index}] missing {missing}")
+        validate_date(str(item["published_at"]), f"{label}:evidence_items[{index}].published_at")
+        if not item["evidence_text"]:
+            raise ValidationError(f"{label}:evidence_items[{index}] has blank evidence_text")
+
+
 def validate_dashboard(root: pathlib.Path) -> None:
     required_fragments = [
         "<title>股癌追蹤 Dashboard</title>",
@@ -518,6 +540,11 @@ def validate(root: pathlib.Path) -> list[str]:
         validate_date(row["latest_published_at"], f"return report:{row['tracking_id']}:latest_published_at")
         validate_date(row["base_trade_date"], f"return report:{row['tracking_id']}:base_trade_date")
         validate_date(row["current_trade_date"], f"return report:{row['tracking_id']}:current_trade_date")
+        validate_evidence_items(
+            row["evidence_items"],
+            f"return report:{row['tracking_id']}",
+            row["mention_count"],
+        )
         for followup_date in row["followup_published_dates"].split(";"):
             validate_date(followup_date, f"return report:{row['tracking_id']}:followup_published_dates")
 
@@ -578,6 +605,7 @@ def return_report_fields() -> list[str]:
         "available_horizons",
         "calculation_status",
         "evidence_text",
+        "evidence_items",
         "mention_timeline",
         "return_notes",
     ]
