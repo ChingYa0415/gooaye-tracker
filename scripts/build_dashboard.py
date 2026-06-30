@@ -796,6 +796,7 @@ def build_html(
     const horizonFilter = document.getElementById("horizonFilter");
     const sortSelect = document.getElementById("sortSelect");
     const sortHeaderButtons = Array.from(document.querySelectorAll("[data-sort-key]"));
+    const defaultSignalSort = "latest_desc";
     const clearSignalFilters = document.getElementById("clearSignalFilters");
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
@@ -1016,7 +1017,7 @@ def build_html(
         button.dataset.sortDirection = active ? direction : "";
         button.setAttribute(
           "aria-label",
-          `${{button.textContent.trim()}}排序${{active && direction === "asc" ? "，目前升冪" : active ? "，目前降冪" : ""}}`
+          `${{button.textContent.trim()}}排序${{active && direction === "asc" ? "，目前升冪" : active ? "，目前降冪" : "，目前原排序"}}`
         );
         if (th) th.setAttribute("aria-sort", active ? (direction === "asc" ? "ascending" : "descending") : "none");
       }});
@@ -1144,8 +1145,13 @@ def build_html(
     sortHeaderButtons.forEach(button => {{
       button.addEventListener("click", () => {{
         const {{ key, direction }} = sortParts(sortSelect.value);
-        const nextDirection = key === button.dataset.sortKey && direction === "asc" ? "desc" : "asc";
-        sortSelect.value = `${{button.dataset.sortKey}}_${{nextDirection}}`;
+        if (key !== button.dataset.sortKey) {{
+          sortSelect.value = `${{button.dataset.sortKey}}_asc`;
+        }} else if (direction === "asc") {{
+          sortSelect.value = `${{button.dataset.sortKey}}_desc`;
+        }} else {{
+          sortSelect.value = defaultSignalSort;
+        }}
         renderSignals();
       }});
     }});
