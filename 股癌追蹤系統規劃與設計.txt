@@ -1695,3 +1695,43 @@ P4：Dashboard。
 
 1. 用瀏覽器檢查 Dashboard 至今欄位在桌面與手機版的呈現。
 2. 如果 Dashboard 欄位過寬，評估加入欄位顯示切換或把 7d / 至今圖表合併成緊湊呈現。
+
+
+二十之六、2026-06-30 實作紀錄
+
+日期：
+2026-06-30
+
+今日目標：
+讓 Dashboard 追蹤明細支援指定欄位的欄頭點擊排序。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將追蹤明細的標的、類型、看法、首次提及欄頭改為可點擊排序按鈕。
+2. 每個可排序欄頭支援升冪 / 降冪切換，並以欄頭箭頭與 aria-sort 顯示目前排序狀態。
+3. 保留原本排序下拉選單，讓 7d、至今報酬與至今超額等排序仍可使用。
+4. 將欄頭排序與排序下拉選單共用同一套 sort value，避免兩邊狀態不一致。
+5. 重建 reports/dashboard.html 與 docs/index.html。
+6. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄欄頭點擊排序行為。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 以 http://127.0.0.1:8765/reports/dashboard.html 做瀏覽器互動檢查，標的、類型、看法、首次提及欄頭皆可升冪 / 降冪切換，且 console 無錯誤。
+
+明日待辦：
+
+1. 若使用者覺得排序選單與欄頭排序重複，可評估把下拉選單縮減為只保留報酬排序。
+2. 觀察手機版欄頭排序在橫向捲動表格中的可點擊性。

@@ -184,6 +184,43 @@
       font-size: 12px;
       font-weight: 700;
     }
+    .sort-header {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      width: auto;
+      height: auto;
+      min-height: 24px;
+      padding: 2px 4px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      line-height: 1.2;
+    }
+    .sort-header:hover {
+      background: #dde6df;
+      border-color: transparent;
+      color: #102018;
+    }
+    .sort-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 12px;
+      min-height: 12px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .sort-indicator::before { content: "↕"; }
+    .sort-header.active .sort-indicator {
+      color: #07524c;
+      font-weight: 800;
+    }
+    .sort-header.active[data-sort-direction="asc"] .sort-indicator::before { content: "↑"; }
+    .sort-header.active[data-sort-direction="desc"] .sort-indicator::before { content: "↓"; }
     td.wrap { white-space: normal; min-width: 260px; max-width: 420px; }
     td.date-cell { min-width: 110px; }
     .name-cell strong { display: block; font-size: 14px; }
@@ -426,7 +463,7 @@
         <h1>股癌追蹤 Dashboard</h1>
         <div class="subtle">公司訊號、概念 proxy、回測進度與代理籃子審核</div>
       </div>
-      <div class="generated subtle">Generated<br>2026-06-29 14:03:33 CST</div>
+      <div class="generated subtle">Generated<br>2026-06-30 16:59:01 CST</div>
     </header>
 
     <main>
@@ -517,7 +554,12 @@
                 <option value="current_return_asc">至今報酬低到高</option>
                 <option value="current_excess_desc">至今超額高到低</option>
                 <option value="current_excess_asc">至今超額低到高</option>
-                <option value="name_asc">標的名稱</option>
+                <option value="name_asc">標的名稱 A 到 Z</option>
+                <option value="name_desc">標的名稱 Z 到 A</option>
+                <option value="kind_asc">類型 A 到 Z</option>
+                <option value="kind_desc">類型 Z 到 A</option>
+                <option value="stance_asc">看法 A 到 Z</option>
+                <option value="stance_desc">看法 Z 到 A</option>
               </select>
             </div>
           </div>
@@ -545,10 +587,10 @@
             <table>
               <thead>
                 <tr>
-                  <th>標的</th>
-                  <th>類型</th>
-                  <th>看法</th>
-                  <th>首次提及</th>
+                  <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="name" aria-label="依標的排序"><span>標的</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="kind" aria-label="依類型排序"><span>類型</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="stance" aria-label="依看法排序"><span>看法</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="first" aria-label="依首次提及日期排序"><span>首次提及</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th>提及</th>
                   <th>基準日</th>
                   <th>狀態</th>
@@ -652,6 +694,7 @@
     const statusFilter = document.getElementById("statusFilter");
     const horizonFilter = document.getElementById("horizonFilter");
     const sortSelect = document.getElementById("sortSelect");
+    const sortHeaderButtons = Array.from(document.querySelectorAll("[data-sort-key]"));
     const clearSignalFilters = document.getElementById("clearSignalFilters");
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
@@ -849,9 +892,42 @@
       evidenceModal.hidden = true;
     }
 
+    function sortParts(value) {
+      const match = String(value || "").match(/^(.+)_(asc|desc)$/);
+      return match ? { key: match[1], direction: match[2] } : { key: "latest", direction: "desc" };
+    }
+
+    function compareText(a, b) {
+      return String(a || "").localeCompare(String(b || ""), "zh-Hant", { numeric: true });
+    }
+
+    function orderedText(a, b, direction) {
+      const result = compareText(a, b);
+      return direction === "asc" ? result : -result;
+    }
+
+    function updateSortHeaders() {
+      const { key, direction } = sortParts(sortSelect.value);
+      sortHeaderButtons.forEach(button => {
+        const active = button.dataset.sortKey === key;
+        const th = button.closest("th");
+        button.classList.toggle("active", active);
+        button.dataset.sortDirection = active ? direction : "";
+        button.setAttribute(
+          "aria-label",
+          `${button.textContent.trim()}排序${active && direction === "asc" ? "，目前升冪" : active ? "，目前降冪" : ""}`
+        );
+        if (th) th.setAttribute("aria-sort", active ? (direction === "asc" ? "ascending" : "descending") : "none");
+      });
+    }
+
     function compareSignals(a, b) {
       const sortValue = sortSelect.value;
+      const { key, direction } = sortParts(sortValue);
       const byName = a.company_or_theme.localeCompare(b.company_or_theme, "zh-Hant");
+      if (key === "name") return orderedText(a.company_or_theme, b.company_or_theme, direction) || b.latest_published_at.localeCompare(a.latest_published_at) || compareText(a.ticker, b.ticker);
+      if (key === "kind") return orderedText(a.kind_label, b.kind_label, direction) || byName;
+      if (key === "stance") return orderedText(a.stance, b.stance, direction) || byName;
       if (sortValue === "first_asc") return a.first_published_at.localeCompare(b.first_published_at) || byName;
       if (sortValue === "first_desc") return b.first_published_at.localeCompare(a.first_published_at) || byName;
       if (sortValue === "latest_asc") return a.latest_published_at.localeCompare(b.latest_published_at) || byName;
@@ -864,7 +940,6 @@
       if (sortValue === "current_return_asc") return Number(a.current_return_value || 0) - Number(b.current_return_value || 0) || byName;
       if (sortValue === "current_excess_desc") return Number(b.excess_current_return_value || 0) - Number(a.excess_current_return_value || 0) || byName;
       if (sortValue === "current_excess_asc") return Number(a.excess_current_return_value || 0) - Number(b.excess_current_return_value || 0) || byName;
-      if (sortValue === "name_asc") return byName || b.latest_published_at.localeCompare(a.latest_published_at);
       return b.latest_published_at.localeCompare(a.latest_published_at) || byName;
     }
 
@@ -896,6 +971,7 @@
 
     function renderSignals() {
       const rows = returns.filter(matchesSignal).sort(compareSignals);
+      updateSortHeaders();
       signalsBody.innerHTML = rows.map(row => `
         <tr>
           <td class="name-cell">
@@ -963,6 +1039,14 @@
     [searchInput, kindFilter, marketFilter, statusFilter, horizonFilter, sortSelect].forEach(input => {
       input.addEventListener("input", renderSignals);
       input.addEventListener("change", renderSignals);
+    });
+    sortHeaderButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const { key, direction } = sortParts(sortSelect.value);
+        const nextDirection = key === button.dataset.sortKey && direction === "asc" ? "desc" : "asc";
+        sortSelect.value = `${button.dataset.sortKey}_${nextDirection}`;
+        renderSignals();
+      });
     });
     [proxySearchInput, proxyPriorityFilter].forEach(input => {
       input.addEventListener("input", renderProxies);

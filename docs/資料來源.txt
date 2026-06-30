@@ -306,7 +306,7 @@ python3 scripts/build_concept_proxy_review.py
 scripts/build_dashboard.py
 
 用途：
-讀取 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv，輸出 reports/dashboard.html 與 docs/index.html。Dashboard 提供總覽卡片、追蹤明細表、股癌看法、首次提及、提及次數、提及日期彈窗、證據來源彈窗、7d 報酬與超額報酬條圖、至今報酬、至今超額、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、快速篩選、排序，以及概念 proxy 審核表。
+讀取 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv，輸出 reports/dashboard.html 與 docs/index.html。Dashboard 提供總覽卡片、追蹤明細表、股癌看法、首次提及、提及次數、提及日期彈窗、證據來源彈窗、7d 報酬與超額報酬條圖、至今報酬、至今超額、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、快速篩選、排序，以及概念 proxy 審核表。追蹤明細表支援標的、類型、看法、首次提及欄頭點擊排序，點擊同一欄可切換升冪 / 降冪。
 
 範例：
 python3 scripts/build_dashboard.py
