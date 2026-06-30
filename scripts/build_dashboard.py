@@ -665,6 +665,8 @@ def build_html(
                 <option value="kind_desc">類型 Z 到 A</option>
                 <option value="stance_asc">看法 A 到 Z</option>
                 <option value="stance_desc">看法 Z 到 A</option>
+                <option value="base_asc">基準日舊到新</option>
+                <option value="base_desc">基準日新到舊</option>
               </select>
             </div>
           </div>
@@ -697,7 +699,7 @@ def build_html(
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="stance" aria-label="依看法排序"><span>看法</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="first" aria-label="依首次提及日期排序"><span>首次提及</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th>提及</th>
-                  <th>基準日</th>
+                  <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="base" aria-label="依基準日排序"><span>基準日</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th>狀態</th>
                   <th>Horizon</th>
                   <th>至今報酬</th>
@@ -1030,6 +1032,7 @@ def build_html(
       if (key === "name") return orderedText(a.company_or_theme, b.company_or_theme, direction) || b.latest_published_at.localeCompare(a.latest_published_at) || compareText(a.ticker, b.ticker);
       if (key === "kind") return orderedText(a.kind_label, b.kind_label, direction) || byName;
       if (key === "stance") return orderedText(a.stance, b.stance, direction) || byName;
+      if (key === "base") return orderedText(a.base_trade_date, b.base_trade_date, direction) || byName;
       if (sortValue === "first_asc") return a.first_published_at.localeCompare(b.first_published_at) || byName;
       if (sortValue === "first_desc") return b.first_published_at.localeCompare(a.first_published_at) || byName;
       if (sortValue === "latest_asc") return a.latest_published_at.localeCompare(b.latest_published_at) || byName;

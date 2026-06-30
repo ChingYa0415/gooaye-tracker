@@ -1768,3 +1768,36 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器互動檢查標的、類型、看法、首次提及欄頭皆可依序切換升冪、降冪、原排序，且 console 無錯誤。
+
+
+二十之八、2026-06-30 追加實作紀錄
+
+日期：
+2026-06-30
+
+今日目標：
+將 Dashboard 追蹤明細的基準日納入欄頭排序。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將基準日欄頭改為可點擊排序按鈕。
+2. 基準日排序沿用欄頭三段式循環：原排序 -> 升冪 -> 降冪 -> 原排序。
+3. 排序下拉選單新增基準日舊到新與基準日新到舊。
+4. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄基準日欄頭排序。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器互動檢查基準日欄頭可依序切換升冪、降冪、原排序，且 console 無錯誤。
