@@ -1968,3 +1968,36 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查初始 sort value 為 mentions_desc；點擊提及欄後切到 mentions_asc，再點回 latest_desc，提及欄頭恢復未啟用狀態且 console 無錯誤。
+
+
+二十之十四、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+將 Dashboard 上方總覽卡片改為中文/英文格式。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將總覽卡片標題改為中文/英文並列，例如集數/Episodes、提及/Mentions、可追蹤/Trackable。
+2. 將總覽卡片註記同步改為中文/英文格式，例如正式來源/formal sources、已核准/approved、相對 benchmark/vs benchmark。
+3. 移除總覽卡片標題的強制 uppercase 樣式，避免英文被轉成全大寫。
+4. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄總覽卡片也採中文/英文格式。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 檢查 reports/dashboard.html 與 docs/index.html 的總覽卡片已呈現中文/英文格式。

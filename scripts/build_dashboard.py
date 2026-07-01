@@ -130,14 +130,14 @@ def build_html(
     proxies = enriched_proxy_rows(proxy_rows)
 
     stat_cards = [
-        ("Episodes", metric(summary, "episodes.formal_total"), "formal sources"),
-        ("Mentions", metric(summary, "mentions.formal_total"), f"{metric(summary, 'mentions.approved_total')} approved"),
-        ("Trackable", metric(summary, "returns.total_return_candidates"), f"{metric(summary, 'returns.concept_proxy_return_candidates')} concept proxy"),
-        ("Current Avg", metric(summary, "performance.current.avg_return", "-"), f"{metric(summary, 'performance.current.available_count')} ready"),
-        ("Current Excess", metric(summary, "performance.current.avg_excess_return", "-"), "vs benchmark"),
-        ("7d Ready", metric(summary, "performance.7d.available_count"), f"{metric(summary, 'performance.7d.hit_rate')} hit rate"),
-        ("7d Avg", metric(summary, "performance.7d.avg_return", "-"), "stance-adjusted"),
-        ("7d Excess", metric(summary, "performance.7d.avg_excess_return", "-"), "vs benchmark"),
+        ("集數/Episodes", metric(summary, "episodes.formal_total"), "正式來源/formal sources"),
+        ("提及/Mentions", metric(summary, "mentions.formal_total"), f"{metric(summary, 'mentions.approved_total')} 已核准/approved"),
+        ("可追蹤/Trackable", metric(summary, "returns.total_return_candidates"), f"{metric(summary, 'returns.concept_proxy_return_candidates')} 概念 proxy/concept proxy"),
+        ("至今平均/Current Avg", metric(summary, "performance.current.avg_return", "-"), f"{metric(summary, 'performance.current.available_count')} 已完成/ready"),
+        ("至今超額/Current Excess", metric(summary, "performance.current.avg_excess_return", "-"), "相對 benchmark/vs benchmark"),
+        ("7日完成/7D Ready", metric(summary, "performance.7d.available_count"), f"{metric(summary, 'performance.7d.hit_rate')} 命中率/hit rate"),
+        ("7日平均/7D Avg", metric(summary, "performance.7d.avg_return", "-"), "看法調整/stance-adjusted"),
+        ("7日超額/7D Excess", metric(summary, "performance.7d.avg_excess_return", "-"), "相對 benchmark/vs benchmark"),
     ]
     stat_html = "\n".join(
         f"""
@@ -228,7 +228,6 @@ def build_html(
     .stat-label {{
       color: var(--muted);
       font-size: 12px;
-      text-transform: uppercase;
       letter-spacing: 0;
     }}
     .stat-value {{
