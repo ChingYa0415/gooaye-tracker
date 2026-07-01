@@ -835,7 +835,9 @@ def build_html(
     const horizonFilter = document.getElementById("horizonFilter");
     const sortSelect = document.getElementById("sortSelect");
     const sortHeaderButtons = Array.from(document.querySelectorAll("[data-sort-key]"));
-    const defaultSignalSort = "mentions_desc";
+    const initialSignalSort = "mentions_desc";
+    const originalSignalSort = "latest_desc";
+    sortSelect.value = initialSignalSort;
     const clearSignalFilters = document.getElementById("clearSignalFilters");
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
@@ -1075,13 +1077,9 @@ def build_html(
     }}
 
     function nextHeaderSortValue(headerKey, currentKey, currentDirection) {{
-      if (headerKey === "mentions") {{
-        if (currentKey !== "mentions") return "mentions_desc";
-        return currentDirection === "desc" ? "mentions_asc" : "mentions_desc";
-      }}
-      if (currentKey !== headerKey) return `${{headerKey}}_asc`;
-      if (currentDirection === "asc") return `${{headerKey}}_desc`;
-      return defaultSignalSort;
+      if (currentKey !== headerKey) return `${{headerKey}}_desc`;
+      if (currentDirection === "desc") return `${{headerKey}}_asc`;
+      return originalSignalSort;
     }}
 
     function compareSignals(a, b) {{

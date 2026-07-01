@@ -1934,3 +1934,37 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查初始 sort value 為 mentions_desc，提及/Mentions 欄頭顯示降冪；點擊後切到 mentions_asc，再次點擊回到 mentions_desc，且 console 無錯誤。
+
+
+二十之十三、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+修正 Dashboard 欄頭排序循環，讓提及欄位也能回到原始排序。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將頁面初始排序與欄頭循環的原排序拆開。
+2. 頁面載入時仍預設使用 mentions_desc，也就是提及次數高到低。
+3. 欄頭循環的原排序改回 latest_desc，也就是最近提及新到舊。
+4. 所有可點擊欄頭統一採用原排序 -> 降冪 -> 升冪 -> 原排序的循環；如果目前已在該欄降冪，點擊會切到升冪，再點會回原排序。
+5. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄新的欄頭循環規則。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查初始 sort value 為 mentions_desc；點擊提及欄後切到 mentions_asc，再點回 latest_desc，提及欄頭恢復未啟用狀態且 console 無錯誤。

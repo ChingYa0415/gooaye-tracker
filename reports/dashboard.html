@@ -490,7 +490,7 @@
         <h1>股癌追蹤 Dashboard</h1>
         <div class="subtle">公司訊號、概念 proxy、回測進度與代理籃子審核</div>
       </div>
-      <div class="generated subtle">Generated<br>2026-07-01 10:44:37 CST</div>
+      <div class="generated subtle">Generated<br>2026-07-01 11:03:19 CST</div>
     </header>
 
     <main>
@@ -734,7 +734,9 @@
     const horizonFilter = document.getElementById("horizonFilter");
     const sortSelect = document.getElementById("sortSelect");
     const sortHeaderButtons = Array.from(document.querySelectorAll("[data-sort-key]"));
-    const defaultSignalSort = "mentions_desc";
+    const initialSignalSort = "mentions_desc";
+    const originalSignalSort = "latest_desc";
+    sortSelect.value = initialSignalSort;
     const clearSignalFilters = document.getElementById("clearSignalFilters");
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
@@ -974,13 +976,9 @@
     }
 
     function nextHeaderSortValue(headerKey, currentKey, currentDirection) {
-      if (headerKey === "mentions") {
-        if (currentKey !== "mentions") return "mentions_desc";
-        return currentDirection === "desc" ? "mentions_asc" : "mentions_desc";
-      }
-      if (currentKey !== headerKey) return `${headerKey}_asc`;
-      if (currentDirection === "asc") return `${headerKey}_desc`;
-      return defaultSignalSort;
+      if (currentKey !== headerKey) return `${headerKey}_desc`;
+      if (currentDirection === "desc") return `${headerKey}_asc`;
+      return originalSignalSort;
     }
 
     function compareSignals(a, b) {
