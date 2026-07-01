@@ -1801,3 +1801,36 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器互動檢查基準日欄頭可依序切換升冪、降冪、原排序，且 console 無錯誤。
+
+
+二十之九、2026-07-01 實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+將 Dashboard 表格欄位改為中文/英文格式，提升國際化可讀性。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將追蹤明細表欄頭改為中文/英文格式。
+2. 追蹤期欄位改為「追蹤期/Horizon」，保留 Horizon 作為英文金融回測語彙。
+3. 更新 Proxy 審核表欄頭為中文/英文格式，例如概念/Concept、優先度/Priority、成分/Component、權重/Weight、問題/Issue。
+4. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄 Dashboard 欄頭採中文/英文格式。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查追蹤明細與 Proxy 審核表欄頭已改為中文/英文格式，既有排序功能仍可運作且 console 無錯誤。

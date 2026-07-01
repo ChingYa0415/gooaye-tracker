@@ -260,7 +260,7 @@ python3 scripts/build_dashboard.py
 reports/dashboard.html
 docs/index.html
 
-Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、股癌看法、首次提及日期、提及次數、提及日期彈窗、證據來源彈窗、至今報酬、至今超額、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。追蹤明細的標的、類型、看法、首次提及、基準日欄頭可直接點擊，依序切換原排序、升冪、降冪；其他排序仍可使用排序下拉選單。reports/dashboard.html 是本機檢查用靜態 HTML；docs/index.html 是 GitHub Pages 發布入口。
+Dashboard 讀取 summary.csv、approved_company_bullish_returns.csv 與 concept_proxy_review.csv，提供總覽、追蹤明細、股癌看法、首次提及日期、提及次數、提及日期彈窗、證據來源彈窗、至今報酬、至今超額、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態、公司 / 概念 proxy 篩選、狀態篩選、快速篩選、排序與 proxy 審核表。追蹤明細與 proxy 審核表欄頭採中文/英文格式。追蹤明細的標的、類型、看法、首次提及、基準日欄頭可直接點擊，依序切換原排序、升冪、降冪；其他排序仍可使用排序下拉選單。reports/dashboard.html 是本機檢查用靜態 HTML；docs/index.html 是 GitHub Pages 發布入口。
 
 GitHub Pages 發布：
 
