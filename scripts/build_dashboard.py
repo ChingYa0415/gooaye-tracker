@@ -730,7 +730,7 @@ def build_html(
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="kind" aria-label="依類型排序"><span>類型/Type</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="stance" aria-label="依看法排序"><span>看法/Stance</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="first" aria-label="依首次提及日期排序"><span>首次提及/First Mention</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
-                  <th>提及/Mentions</th>
+                  <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="mentions" aria-label="依提及次數排序"><span>提及/Mentions</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="base" aria-label="依基準日排序"><span>基準日/Base Date</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th>狀態/Status</th>
                   <th>追蹤期/Horizon</th>
@@ -1074,6 +1074,16 @@ def build_html(
       }});
     }}
 
+    function nextHeaderSortValue(headerKey, currentKey, currentDirection) {{
+      if (headerKey === "mentions") {{
+        if (currentKey !== "mentions") return "mentions_desc";
+        return currentDirection === "desc" ? "mentions_asc" : "mentions_desc";
+      }}
+      if (currentKey !== headerKey) return `${{headerKey}}_asc`;
+      if (currentDirection === "asc") return `${{headerKey}}_desc`;
+      return defaultSignalSort;
+    }}
+
     function compareSignals(a, b) {{
       const sortValue = sortSelect.value;
       const {{ key, direction }} = sortParts(sortValue);
@@ -1082,8 +1092,10 @@ def build_html(
       if (key === "kind") return orderedText(a.kind_label, b.kind_label, direction) || byName;
       if (key === "stance") return orderedText(a.stance, b.stance, direction) || byName;
       if (key === "base") return orderedText(a.base_trade_date, b.base_trade_date, direction) || byName;
-      if (sortValue === "mentions_desc") return Number(b.mention_count || 0) - Number(a.mention_count || 0) || b.latest_published_at.localeCompare(a.latest_published_at) || byName;
-      if (sortValue === "mentions_asc") return Number(a.mention_count || 0) - Number(b.mention_count || 0) || b.latest_published_at.localeCompare(a.latest_published_at) || byName;
+      if (key === "mentions") {{
+        const result = Number(a.mention_count || 0) - Number(b.mention_count || 0);
+        return (direction === "asc" ? result : -result) || b.latest_published_at.localeCompare(a.latest_published_at) || byName;
+      }}
       if (sortValue === "first_asc") return a.first_published_at.localeCompare(b.first_published_at) || byName;
       if (sortValue === "first_desc") return b.first_published_at.localeCompare(a.first_published_at) || byName;
       if (sortValue === "latest_asc") return a.latest_published_at.localeCompare(b.latest_published_at) || byName;
@@ -1199,13 +1211,7 @@ def build_html(
     sortHeaderButtons.forEach(button => {{
       button.addEventListener("click", () => {{
         const {{ key, direction }} = sortParts(sortSelect.value);
-        if (key !== button.dataset.sortKey) {{
-          sortSelect.value = `${{button.dataset.sortKey}}_asc`;
-        }} else if (direction === "asc") {{
-          sortSelect.value = `${{button.dataset.sortKey}}_desc`;
-        }} else {{
-          sortSelect.value = defaultSignalSort;
-        }}
+        sortSelect.value = nextHeaderSortValue(button.dataset.sortKey, key, direction);
         renderSignals();
       }});
     }});

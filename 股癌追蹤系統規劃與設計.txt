@@ -1901,3 +1901,36 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查初始 sort value 為 mentions_desc，第一列為目前提及次數最高的追蹤標的，且 console 無錯誤。
+
+
+二十之十二、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+將 Dashboard 追蹤明細的提及欄位納入欄頭點擊排序。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將提及/Mentions 欄頭改為可點擊排序按鈕。
+2. 將 mentions_desc 與 mentions_asc 排序整合到欄頭狀態顯示，頁面載入時提及欄會顯示目前為降冪排序。
+3. 因追蹤明細預設排序就是提及次數高到低，提及欄頭點擊會在高到低與低到高之間切換，回到高到低即回到原排序。
+4. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄提及欄頭排序行為。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查初始 sort value 為 mentions_desc，提及/Mentions 欄頭顯示降冪；點擊後切到 mentions_asc，再次點擊回到 mentions_desc，且 console 無錯誤。
