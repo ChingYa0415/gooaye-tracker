@@ -130,25 +130,90 @@ def build_html(
     proxies = enriched_proxy_rows(proxy_rows)
 
     stat_cards = [
-        ("集數/Episodes", metric(summary, "episodes.formal_total"), "正式來源/formal sources"),
-        ("提及/Mentions", metric(summary, "mentions.formal_total"), f"{metric(summary, 'mentions.approved_total')} 已核准/approved"),
-        ("可追蹤/Trackable", metric(summary, "returns.total_return_candidates"), f"{metric(summary, 'returns.concept_proxy_return_candidates')} 概念 proxy/concept proxy"),
-        ("至今平均/Current Avg", metric(summary, "performance.current.avg_return", "-"), f"{metric(summary, 'performance.current.available_count')} 已完成/ready"),
-        ("至今超額/Current Excess", metric(summary, "performance.current.avg_excess_return", "-"), "相對 benchmark/vs benchmark"),
-        ("7日完成/7D Ready", metric(summary, "performance.7d.available_count"), f"{metric(summary, 'performance.7d.hit_rate')} 命中率/hit rate"),
-        ("7日平均/7D Avg", metric(summary, "performance.7d.avg_return", "-"), "看法調整/stance-adjusted"),
-        ("7日超額/7D Excess", metric(summary, "performance.7d.avg_excess_return", "-"), "相對 benchmark/vs benchmark"),
+        {
+            "key": "episodes",
+            "label": "集數/Episodes",
+            "value": metric(summary, "episodes.formal_total"),
+            "note": "正式來源/formal sources",
+            "description": "已納入正式資料管線的節目集數。只計算通過來源整理、可供後續轉錄、標的擷取與報酬追蹤使用的集數。",
+            "source": "reports/summary.csv -> episodes.formal_total",
+            "reading": "數字越高代表 Dashboard 覆蓋的節目越多；新集數同步後，這個數字應該會增加。",
+        },
+        {
+            "key": "mentions",
+            "label": "提及/Mentions",
+            "value": metric(summary, "mentions.formal_total"),
+            "note": f"{metric(summary, 'mentions.approved_total')} 已核准/approved",
+            "description": "資料管線從逐字稿整理出的正式提及筆數，包含公司與概念。已核准數代表目前可進入追蹤與報酬計算的提及。",
+            "source": "reports/summary.csv -> mentions.formal_total, mentions.approved_total",
+            "reading": "這是素材量，不等於可追蹤標的數；同一標的多次被提及會在追蹤明細彙整成同一列。",
+        },
+        {
+            "key": "trackable",
+            "label": "可追蹤/Trackable",
+            "value": metric(summary, "returns.total_return_candidates"),
+            "note": f"{metric(summary, 'returns.concept_proxy_return_candidates')} 概念 proxy/concept proxy",
+            "description": "目前可建立報酬追蹤的標的數，包含已對應 ticker 的公司，以及已設定 proxy basket 的概念。",
+            "source": "reports/summary.csv -> returns.total_return_candidates, returns.concept_proxy_return_candidates",
+            "reading": "這個數字越高，代表越多提及已能連到價格資料；概念 proxy 仍需要注意成分與權重是否合理。",
+        },
+        {
+            "key": "current_avg",
+            "label": "至今平均/Current Avg",
+            "value": metric(summary, "performance.current.avg_return", "-"),
+            "note": f"{metric(summary, 'performance.current.available_count')} 已完成/ready",
+            "description": "從每個標的第一次提及後的基準交易日開始，計算到最新可得價格日的平均報酬。",
+            "source": "reports/summary.csv -> performance.current.avg_return, performance.current.available_count",
+            "reading": "用來快速看目前已可計算標的的整體表現；它是平均值，仍需要回到追蹤明細看個別標的差異。",
+        },
+        {
+            "key": "current_excess",
+            "label": "至今超額/Current Excess",
+            "value": metric(summary, "performance.current.avg_excess_return", "-"),
+            "note": "相對 benchmark/vs benchmark",
+            "description": "至今平均報酬扣掉對應市場 benchmark 後的平均超額報酬。",
+            "source": "reports/summary.csv -> performance.current.avg_excess_return",
+            "reading": "正值代表平均跑贏 benchmark；負值代表平均落後 benchmark。",
+        },
+        {
+            "key": "ready_7d",
+            "label": "7日完成/7D Ready",
+            "value": metric(summary, "performance.7d.available_count"),
+            "note": f"{metric(summary, 'performance.7d.hit_rate')} 命中率/hit rate",
+            "description": "已經有足夠價格資料可計算提及後 7 個交易日表現的標的數。",
+            "source": "reports/summary.csv -> performance.7d.available_count, performance.7d.hit_rate",
+            "reading": "新提及通常會先等待價格，等交易日走完後才會進入 7D Ready。",
+        },
+        {
+            "key": "avg_7d",
+            "label": "7日平均/7D Avg",
+            "value": metric(summary, "performance.7d.avg_return", "-"),
+            "note": "看法調整/stance-adjusted",
+            "description": "已完成 7 日追蹤標的的平均報酬，並依股癌當時看法做方向調整。",
+            "source": "reports/summary.csv -> performance.7d.avg_return",
+            "reading": "此數字用來快速觀察短線追蹤結果；看法調整後，bearish 提及會以反向表現解讀。",
+        },
+        {
+            "key": "excess_7d",
+            "label": "7日超額/7D Excess",
+            "value": metric(summary, "performance.7d.avg_excess_return", "-"),
+            "note": "相對 benchmark/vs benchmark",
+            "description": "7 個交易日報酬扣除對應市場 benchmark 後的平均超額報酬。",
+            "source": "reports/summary.csv -> performance.7d.avg_excess_return",
+            "reading": "正值代表 7 日內平均跑贏 benchmark；負值代表平均落後 benchmark。",
+        },
     ]
     stat_html = "\n".join(
         f"""
-        <section class="stat">
-          <div class="stat-label">{escape(label)}</div>
-          <div class="stat-value">{escape(value)}</div>
-          <div class="stat-note">{escape(note)}</div>
-        </section>
+        <button class="stat stat-button" type="button" data-stat-key="{escape(card['key'])}" aria-label="查看 {escape(card['label'])} 說明">
+          <span class="stat-label">{escape(card['label'])}</span>
+          <span class="stat-value">{escape(card['value'])}</span>
+          <span class="stat-note">{escape(card['note'])}</span>
+        </button>
         """
-        for label, value, note in stat_cards
+        for card in stat_cards
     )
+    stat_info = {card["key"]: card for card in stat_cards}
 
     issue_counts: dict[str, int] = {}
     for row in proxies:
@@ -225,19 +290,37 @@ def build_html(
       box-shadow: var(--shadow);
     }}
     .stat {{ padding: 12px 14px; min-height: 92px; }}
+    .stat-button {{
+      display: block;
+      width: 100%;
+      height: auto;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }}
+    .stat-button:hover {{
+      border-color: #b9cdc3;
+      background: #fbfdfb;
+    }}
+    .stat-button:focus-visible {{
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }}
     .stat-label {{
+      display: block;
       color: var(--muted);
       font-size: 12px;
       letter-spacing: 0;
     }}
     .stat-value {{
+      display: block;
       margin-top: 8px;
       font-size: 26px;
       font-weight: 720;
       line-height: 1;
       letter-spacing: 0;
     }}
-    .stat-note {{ margin-top: 8px; color: var(--muted); font-size: 12px; }}
+    .stat-note {{ display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }}
     .grid {{
       display: grid;
       grid-template-columns: minmax(0, 1fr);
@@ -585,6 +668,34 @@ def build_html(
       flex: 0 0 auto;
       font-size: 18px;
     }}
+    .stat-info {{
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }}
+    .stat-info p {{
+      margin: 0;
+      color: var(--text);
+      line-height: 1.65;
+    }}
+    .stat-info dl {{
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }}
+    .stat-info dt {{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }}
+    .stat-info dd {{
+      margin: 0;
+      line-height: 1.6;
+    }}
     .mention-date-list {{
       display: grid;
       gap: 0;
@@ -751,6 +862,19 @@ def build_html(
     </main>
   </div>
 
+  <div class="modal-backdrop" id="statModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="statModalTitle">
+      <div class="modal-head">
+        <div class="modal-title">
+          <strong id="statModalTitle"></strong>
+          <span id="statModalSubtitle"></span>
+        </div>
+        <button class="modal-close" id="closeStatModal" type="button" aria-label="關閉總覽說明">×</button>
+      </div>
+      <div class="stat-info" id="statModalBody"></div>
+    </section>
+  </div>
+
   <div class="modal-backdrop" id="mentionModal" hidden>
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="mentionModalTitle">
       <div class="modal-head">
@@ -815,9 +939,11 @@ def build_html(
     </section>
   </div>
 
+  {json_script("stat-data", stat_info)}
   {json_script("return-data", returns)}
   {json_script("proxy-data", proxies)}
   <script>
+    const stats = JSON.parse(document.getElementById("stat-data").textContent);
     const returns = JSON.parse(document.getElementById("return-data").textContent);
     const proxies = JSON.parse(document.getElementById("proxy-data").textContent);
     const maxAbsReturn = Math.max(0.01, ...returns.flatMap(row => [
@@ -841,6 +967,12 @@ def build_html(
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
     const signalCount = document.getElementById("signalCount");
+    const statButtons = Array.from(document.querySelectorAll("[data-stat-key]"));
+    const statModal = document.getElementById("statModal");
+    const statModalTitle = document.getElementById("statModalTitle");
+    const statModalSubtitle = document.getElementById("statModalSubtitle");
+    const statModalBody = document.getElementById("statModalBody");
+    const closeStatModal = document.getElementById("closeStatModal");
     const mentionModal = document.getElementById("mentionModal");
     const mentionModalTitle = document.getElementById("mentionModalTitle");
     const mentionModalSubtitle = document.getElementById("mentionModalSubtitle");
@@ -884,6 +1016,27 @@ def build_html(
         '"': "&quot;",
         "'": "&#39;"
       }}[char]));
+    }}
+
+    function openStatModal(statKey) {{
+      const stat = stats[statKey];
+      if (!stat) return;
+      statModalTitle.textContent = `${{stat.label}} 說明`;
+      statModalSubtitle.textContent = `${{stat.value}} · ${{stat.note}}`;
+      statModalBody.innerHTML = `
+        <p>${{escapeHtml(stat.description)}}</p>
+        <dl>
+          <dt>資料來源/Source</dt>
+          <dd>${{escapeHtml(stat.source)}}</dd>
+          <dt>解讀方式/How to read</dt>
+          <dd>${{escapeHtml(stat.reading)}}</dd>
+        </dl>
+      `;
+      statModal.hidden = false;
+    }}
+
+    function hideStatModal() {{
+      statModal.hidden = true;
     }}
 
     function badge(text, cls) {{
@@ -1250,10 +1403,17 @@ def build_html(
         if (row) openEvidenceModal(row);
       }}
     }});
+    statButtons.forEach(button => {{
+      button.addEventListener("click", () => openStatModal(button.dataset.statKey));
+    }});
+    closeStatModal.addEventListener("click", hideStatModal);
     closeMentionModal.addEventListener("click", hideMentionModal);
     closeEvidenceModal.addEventListener("click", hideEvidenceModal);
     openProxyModalButton.addEventListener("click", showProxyModal);
     closeProxyModal.addEventListener("click", hideProxyModal);
+    statModal.addEventListener("click", event => {{
+      if (event.target === statModal) hideStatModal();
+    }});
     mentionModal.addEventListener("click", event => {{
       if (event.target === mentionModal) hideMentionModal();
     }});
@@ -1264,6 +1424,7 @@ def build_html(
       if (event.target === proxyModal) hideProxyModal();
     }});
     document.addEventListener("keydown", event => {{
+      if (event.key === "Escape" && !statModal.hidden) hideStatModal();
       if (event.key === "Escape" && !mentionModal.hidden) hideMentionModal();
       if (event.key === "Escape" && !evidenceModal.hidden) hideEvidenceModal();
       if (event.key === "Escape" && !proxyModal.hidden) hideProxyModal();

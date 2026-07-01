@@ -2001,3 +2001,37 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 檢查 reports/dashboard.html 與 docs/index.html 的總覽卡片已呈現中文/英文格式。
+
+
+二十之十五、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+讓 Dashboard 上方總覽卡片可點擊，並用彈窗說明各指標含義。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將總覽卡片改為可點擊按鈕，保留原本卡片視覺。
+2. 新增 stat-data JSON，集中保存每個總覽指標的標題、目前數值、註記、指標說明、資料來源與解讀方式。
+3. 新增總覽說明彈窗，點擊卡片後顯示對應指標說明。
+4. 總覽說明彈窗支援關閉按鈕、點擊背景與 Escape 關閉。
+5. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄總覽卡片可點擊說明。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查點擊集數/Episodes 卡片會開啟說明彈窗，且可用關閉按鈕、背景與 Escape 關閉。
