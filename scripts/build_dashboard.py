@@ -231,21 +231,21 @@ def build_html(
   <title>股癌追蹤 Dashboard</title>
   <style>
     :root {{
-      --bg: #f6f7f4;
+      --bg: #fff6f8;
       --panel: #ffffff;
-      --panel-soft: #f0f3ef;
-      --ink: #1c2420;
-      --muted: #66716a;
-      --line: #dce2dc;
-      --accent: #0f766e;
-      --accent-weak: #d7f0eb;
+      --panel-soft: #fff0f4;
+      --ink: #2f1f27;
+      --muted: #7b6470;
+      --line: #f0d4dc;
+      --accent: #be185d;
+      --accent-weak: #ffe4ee;
       --amber: #b7791f;
       --amber-weak: #f7e8c8;
       --rose: #b42318;
       --rose-weak: #f8d8d4;
       --green: #147a43;
       --green-weak: #d9f1df;
-      --shadow: 0 1px 2px rgba(28, 36, 32, 0.06);
+      --shadow: 0 1px 2px rgba(78, 35, 50, 0.08);
     }}
     * {{ box-sizing: border-box; }}
     body {{
@@ -299,8 +299,8 @@ def build_html(
       cursor: pointer;
     }}
     .stat-button:hover {{
-      border-color: #b9cdc3;
-      background: #fbfdfb;
+      border-color: #efb8c9;
+      background: #fff7fa;
     }}
     .stat-button:focus-visible {{
       outline: 2px solid var(--accent);
@@ -351,13 +351,13 @@ def build_html(
       height: 30px;
       padding: 0 10px;
       border-radius: 6px;
-      color: #07524c;
+      color: #9d174d;
       background: #fff;
       font-size: 12px;
       font-weight: 700;
       white-space: nowrap;
     }}
-    .secondary-button:hover {{ border-color: #8fd5cc; background: var(--accent-weak); }}
+    .secondary-button:hover {{ border-color: #f3a7bf; background: var(--accent-weak); }}
     .toolbar {{
       display: flex;
       justify-content: space-between;
@@ -382,9 +382,9 @@ def build_html(
       background: #fff;
     }}
     .quick-filter.active {{
-      color: #07524c;
+      color: #9d174d;
       background: var(--accent-weak);
-      border-color: #8fd5cc;
+      border-color: #f3a7bf;
       font-weight: 700;
     }}
     .sort-control {{
@@ -404,7 +404,7 @@ def build_html(
       gap: 8px;
       padding: 12px 14px;
       border-bottom: 1px solid var(--line);
-      background: #fbfcfa;
+      background: #fff8fa;
     }}
     input, select, button {{
       width: 100%;
@@ -423,7 +423,7 @@ def build_html(
       cursor: pointer;
       color: var(--muted);
     }}
-    button:hover {{ border-color: #b8c4bc; color: var(--ink); }}
+    button:hover {{ border-color: #e7bccb; color: var(--ink); }}
     .table-wrap {{ overflow: auto; max-height: 690px; }}
     table {{
       width: 100%;
@@ -441,8 +441,8 @@ def build_html(
       position: sticky;
       top: 0;
       z-index: 1;
-      background: #eef2ec;
-      color: #334139;
+      background: #fde8ef;
+      color: #4a2434;
       font-size: 12px;
       font-weight: 700;
     }}
@@ -465,9 +465,9 @@ def build_html(
       line-height: 1.2;
     }}
     .sort-header:hover {{
-      background: #dde6df;
+      background: #f8d7e2;
       border-color: transparent;
-      color: #102018;
+      color: #3b1726;
     }}
     .sort-indicator {{
       display: inline-flex;
@@ -480,7 +480,7 @@ def build_html(
     }}
     .sort-indicator::before {{ content: "↕"; }}
     .sort-header.active .sort-indicator {{
-      color: #07524c;
+      color: #be185d;
       font-weight: 800;
     }}
     .sort-header.active[data-sort-direction="asc"] .sort-indicator::before {{ content: "↑"; }}
@@ -500,7 +500,7 @@ def build_html(
     }}
     .mention-count {{
       min-width: 38px;
-      color: #334139;
+      color: #4a2434;
       font-weight: 700;
     }}
     .date-button {{
@@ -511,12 +511,12 @@ def build_html(
       border: 1px solid var(--line);
       border-radius: 5px;
       background: #fff;
-      color: #07524c;
+      color: #9d174d;
       font-size: 11px;
       font-weight: 700;
       line-height: 1.2;
     }}
-    .date-button:hover {{ border-color: #8fd5cc; background: var(--accent-weak); }}
+    .date-button:hover {{ border-color: #f3a7bf; background: var(--accent-weak); }}
     .badge {{
       display: inline-flex;
       align-items: center;
@@ -529,10 +529,10 @@ def build_html(
     }}
     .badge-company {{ color: #075985; background: #dff0fb; border-color: #bee3f8; }}
     .badge-concept {{ color: #6b4e00; background: var(--amber-weak); border-color: #efd08f; }}
-    .badge-status {{ color: #445047; background: #edf1ed; border-color: var(--line); }}
+    .badge-status {{ color: #5b4650; background: #fbedf2; border-color: var(--line); }}
     .badge-bullish {{ color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }}
     .badge-bearish {{ color: var(--rose); background: var(--rose-weak); border-color: #efb5ad; }}
-    .badge-neutral {{ color: #445047; background: #edf1ed; border-color: var(--line); }}
+    .badge-neutral {{ color: #5b4650; background: #fbedf2; border-color: var(--line); }}
     .badge-past {{ color: #6b4e00; background: var(--amber-weak); border-color: #efd08f; }}
     .badge-ready {{ color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }}
     .badge-high {{ color: var(--rose); background: var(--rose-weak); border-color: #efb5ad; }}
@@ -564,13 +564,13 @@ def build_html(
       padding: 4px 6px;
       border-radius: 6px;
       border: 1px solid var(--line);
-      background: #f7f9f6;
+      background: #fff8fa;
       font-size: 11px;
       line-height: 1.1;
     }}
     .horizon-pill.ready {{
-      background: #eef8f1;
-      border-color: #b6e2c0;
+      background: #ffeaf1;
+      border-color: #f3a7bf;
     }}
     .horizon-pill strong {{ font-size: 11px; }}
     .horizon-pill span {{ color: var(--muted); }}
@@ -586,7 +586,7 @@ def build_html(
       gap: 8px;
       padding: 12px 14px;
       border-bottom: 1px solid var(--line);
-      background: #fbfcfa;
+      background: #fff8fa;
     }}
     .issue-chip {{
       display: inline-flex;
@@ -594,8 +594,8 @@ def build_html(
       gap: 6px;
       padding: 5px 8px;
       border-radius: 6px;
-      background: #eef2ec;
-      color: #334139;
+      background: #fde8ef;
+      color: #4a2434;
       font-size: 12px;
       border: 1px solid var(--line);
     }}
@@ -618,7 +618,7 @@ def build_html(
       display: grid;
       place-items: center;
       padding: 18px;
-      background: rgba(28, 36, 32, 0.34);
+      background: rgba(64, 24, 42, 0.34);
     }}
     .modal-backdrop[hidden] {{ display: none; }}
     .modal {{
@@ -628,7 +628,7 @@ def build_html(
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
-      box-shadow: 0 18px 48px rgba(28, 36, 32, 0.24);
+      box-shadow: 0 18px 48px rgba(64, 24, 42, 0.24);
     }}
     .modal-head {{
       display: flex;

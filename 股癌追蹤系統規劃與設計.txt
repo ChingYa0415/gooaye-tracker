@@ -2130,3 +2130,32 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查標的欄不再顯示提及次數，提及/Mentions 欄位仍正常顯示。
+
+
+二十之十九、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+將 Dashboard 介面主題由偏綠底色調整為粉紅色主題。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py 的 CSS token，將背景、面板淡底、邊框、主色與弱主色改為粉紅系。
+2. 將表頭、篩選列、快速篩選 active、排序 hover、按鈕 hover、issue chip、modal 背景遮罩與 horizon ready pill 改為粉紅主題。
+3. 保留報酬數字的正值紅色、負值綠色語意，避免漲跌判讀混淆。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查 Dashboard 主背景、表頭、篩選區與狀態底色已改為粉紅系，且 console 無錯誤。
