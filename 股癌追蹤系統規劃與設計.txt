@@ -1834,3 +1834,37 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查追蹤明細與 Proxy 審核表欄頭已改為中文/英文格式，既有排序功能仍可運作且 console 無錯誤。
+
+
+二十之十、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+調整 Dashboard 版面，讓追蹤明細滿版顯示，Proxy 審核改由按鈕開啟。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將主版面從追蹤明細 + Proxy 審核雙欄改為追蹤明細單欄滿版。
+2. 在追蹤明細標題列加入 Proxy 審核/Proxy Review 按鈕。
+3. 將 Proxy 審核表移入大型彈出視窗，保留原本 issue chips、搜尋、優先度篩選、清除篩選與表格。
+4. Proxy 審核視窗支援按關閉鈕、點擊背景與 Escape 關閉。
+5. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄新版 Dashboard 版面。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查追蹤明細滿版顯示，Proxy 審核按鈕可開啟/關閉彈出視窗，Proxy 表篩選仍可運作且 console 無錯誤。

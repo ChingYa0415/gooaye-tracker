@@ -980,7 +980,7 @@
 十七、dashboard.html
 
 用途：
-記錄由 scripts/build_dashboard.py 產生的靜態 Dashboard。此檔案從 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv 派生，提供總覽、追蹤明細、快速篩選、排序、提及日期彈窗、證據來源彈窗、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態與 proxy 審核表。追蹤明細與 proxy 審核表欄頭採中文/英文格式。追蹤明細的標的、類型、看法、首次提及、基準日欄頭可點擊排序，並以欄頭箭頭表示目前升冪或降冪；再次點擊降冪欄頭會回到原排序。
+記錄由 scripts/build_dashboard.py 產生的靜態 Dashboard。此檔案從 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv 派生，提供總覽、滿版追蹤明細、快速篩選、排序、提及日期彈窗、證據來源彈窗、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態與由按鈕開啟的 proxy 審核表。追蹤明細與 proxy 審核表欄頭採中文/英文格式。追蹤明細的標的、類型、看法、首次提及、基準日欄頭可點擊排序，並以欄頭箭頭表示目前升冪或降冪；再次點擊降冪欄頭會回到原排序。
 
 使用規則：
 

@@ -241,7 +241,7 @@ def build_html(
     .stat-note {{ margin-top: 8px; color: var(--muted); font-size: 12px; }}
     .grid {{
       display: grid;
-      grid-template-columns: minmax(0, 1.8fr) minmax(320px, 0.95fr);
+      grid-template-columns: minmax(0, 1fr);
       gap: 14px;
       align-items: start;
     }}
@@ -256,6 +256,26 @@ def build_html(
       background: var(--panel-soft);
     }}
     h2 {{ margin: 0; font-size: 16px; letter-spacing: 0; }}
+    .panel-actions {{
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: 0;
+    }}
+    .secondary-button {{
+      width: auto;
+      min-width: 0;
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 6px;
+      color: #07524c;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }}
+    .secondary-button:hover {{ border-color: #8fd5cc; background: var(--accent-weak); }}
     .toolbar {{
       display: flex;
       justify-content: space-between;
@@ -518,8 +538,13 @@ def build_html(
       font-size: 12px;
       border: 1px solid var(--line);
     }}
-    .proxy-table table {{ min-width: 760px; }}
-    .proxy-table .table-wrap {{ max-height: 520px; }}
+    .proxy-modal .modal {{
+      width: min(1180px, 100%);
+    }}
+    .proxy-modal table {{ min-width: 900px; }}
+    .proxy-modal .table-wrap {{
+      max-height: min(560px, calc(100vh - 270px));
+    }}
     .footer-note {{
       margin-top: 14px;
       color: var(--muted);
@@ -609,6 +634,8 @@ def build_html(
       .filters {{ grid-template-columns: 1fr; }}
       .toolbar {{ align-items: stretch; flex-direction: column; }}
       .sort-control {{ min-width: 0; }}
+      .panel-head {{ align-items: flex-start; flex-direction: column; }}
+      .panel-actions {{ width: 100%; justify-content: space-between; }}
       .stat-value {{ font-size: 22px; }}
       h1 {{ font-size: 21px; }}
       .mention-date-row {{ grid-template-columns: 1fr; gap: 4px; }}
@@ -635,7 +662,10 @@ def build_html(
         <div class="panel">
           <div class="panel-head">
             <h2>追蹤明細</h2>
-            <span class="subtle" id="signalCount"></span>
+            <div class="panel-actions">
+              <button class="secondary-button" id="openProxyModal" type="button">Proxy 審核/Proxy Review</button>
+              <span class="subtle" id="signalCount"></span>
+            </div>
           </div>
           <div class="toolbar">
             <div class="quick-filters" aria-label="quick filters">
@@ -714,39 +744,6 @@ def build_html(
           </div>
           <div class="empty" id="signalsEmpty">沒有符合篩選條件的追蹤項目。</div>
         </div>
-
-        <aside class="panel proxy-table">
-          <div class="panel-head">
-            <h2>Proxy 審核</h2>
-            <span class="subtle" id="proxyCount"></span>
-          </div>
-          <div class="proxy-summary">{issue_html}</div>
-          <div class="filters" style="grid-template-columns: minmax(160px, 1fr) minmax(120px, .7fr) 40px;">
-            <input id="proxySearchInput" type="search" placeholder="搜尋概念、成分股、issue">
-            <select id="proxyPriorityFilter" aria-label="priority">
-              <option value="">全部</option>
-              <option value="high">優先</option>
-              <option value="watch">檢查</option>
-              <option value="ok">OK</option>
-            </select>
-            <button id="clearProxyFilters" type="button" aria-label="清除 proxy 篩選" title="清除篩選">×</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>概念/Concept</th>
-                  <th>優先度/Priority</th>
-                  <th>成分/Component</th>
-                  <th>權重/Weight</th>
-                  <th>問題/Issue</th>
-                </tr>
-              </thead>
-              <tbody id="proxyBody"></tbody>
-            </table>
-          </div>
-          <div class="empty" id="proxyEmpty">沒有符合篩選條件的 proxy 成分。</div>
-        </aside>
       </section>
 
       <div class="footer-note">資料來源：reports/summary.csv、reports/approved_company_bullish_returns.csv、reports/concept_proxy_review.csv。更新請執行 python3 scripts/run_daily_update.py。</div>
@@ -776,6 +773,44 @@ def build_html(
         <button class="modal-close" id="closeEvidenceModal" type="button" aria-label="關閉證據內容">×</button>
       </div>
       <div class="evidence-list" id="evidenceModalBody"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop proxy-modal" id="proxyModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="proxyModalTitle">
+      <div class="modal-head">
+        <div class="modal-title">
+          <strong id="proxyModalTitle">Proxy 審核/Proxy Review</strong>
+          <span id="proxyCount"></span>
+        </div>
+        <button class="modal-close" id="closeProxyModal" type="button" aria-label="關閉 Proxy 審核">×</button>
+      </div>
+      <div class="proxy-summary">{issue_html}</div>
+      <div class="filters" style="grid-template-columns: minmax(160px, 1fr) minmax(120px, .7fr) 40px;">
+        <input id="proxySearchInput" type="search" placeholder="搜尋概念、成分股、issue">
+        <select id="proxyPriorityFilter" aria-label="priority">
+          <option value="">全部</option>
+          <option value="high">優先</option>
+          <option value="watch">檢查</option>
+          <option value="ok">OK</option>
+        </select>
+        <button id="clearProxyFilters" type="button" aria-label="清除 proxy 篩選" title="清除篩選">×</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>概念/Concept</th>
+              <th>優先度/Priority</th>
+              <th>成分/Component</th>
+              <th>權重/Weight</th>
+              <th>問題/Issue</th>
+            </tr>
+          </thead>
+          <tbody id="proxyBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="proxyEmpty">沒有符合篩選條件的 proxy 成分。</div>
     </section>
   </div>
 
@@ -813,6 +848,9 @@ def build_html(
     const evidenceModalSubtitle = document.getElementById("evidenceModalSubtitle");
     const evidenceModalBody = document.getElementById("evidenceModalBody");
     const closeEvidenceModal = document.getElementById("closeEvidenceModal");
+    const openProxyModalButton = document.getElementById("openProxyModal");
+    const proxyModal = document.getElementById("proxyModal");
+    const closeProxyModal = document.getElementById("closeProxyModal");
 
     const proxySearchInput = document.getElementById("proxySearchInput");
     const proxyPriorityFilter = document.getElementById("proxyPriorityFilter");
@@ -994,6 +1032,15 @@ def build_html(
 
     function hideEvidenceModal() {{
       evidenceModal.hidden = true;
+    }}
+
+    function showProxyModal() {{
+      renderProxies();
+      proxyModal.hidden = false;
+    }}
+
+    function hideProxyModal() {{
+      proxyModal.hidden = true;
     }}
 
     function sortParts(value) {{
@@ -1198,15 +1245,21 @@ def build_html(
     }});
     closeMentionModal.addEventListener("click", hideMentionModal);
     closeEvidenceModal.addEventListener("click", hideEvidenceModal);
+    openProxyModalButton.addEventListener("click", showProxyModal);
+    closeProxyModal.addEventListener("click", hideProxyModal);
     mentionModal.addEventListener("click", event => {{
       if (event.target === mentionModal) hideMentionModal();
     }});
     evidenceModal.addEventListener("click", event => {{
       if (event.target === evidenceModal) hideEvidenceModal();
     }});
+    proxyModal.addEventListener("click", event => {{
+      if (event.target === proxyModal) hideProxyModal();
+    }});
     document.addEventListener("keydown", event => {{
       if (event.key === "Escape" && !mentionModal.hidden) hideMentionModal();
       if (event.key === "Escape" && !evidenceModal.hidden) hideEvidenceModal();
+      if (event.key === "Escape" && !proxyModal.hidden) hideProxyModal();
     }});
     clearProxyFilters.addEventListener("click", () => {{
       proxySearchInput.value = "";
