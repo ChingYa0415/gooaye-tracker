@@ -2069,3 +2069,36 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查報酬與超額欄位只顯示數字，正值為紅色、負值為綠色，且 console 無錯誤。
+
+
+二十之十七、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+將 Dashboard 資料表欄位內容調整為置中對齊。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，將追蹤明細與 Proxy 審核表的 th / td 改為水平置中、垂直置中。
+2. 將可排序欄頭按鈕置中，避免欄頭文字仍偏左。
+3. 將多行名稱欄、問題欄與報酬數字欄一起調整為置中呈現。
+4. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄資料表欄位內容置中對齊。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查追蹤明細的標的、報酬、提及、證據等欄位內容置中，且 console 無錯誤。

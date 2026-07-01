@@ -433,8 +433,8 @@ def build_html(
     th, td {{
       padding: 10px 12px;
       border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: top;
+      text-align: center;
+      vertical-align: middle;
       white-space: nowrap;
     }}
     th {{
@@ -449,9 +449,11 @@ def build_html(
     .sort-header {{
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 5px;
       width: auto;
       height: auto;
+      margin: 0 auto;
       min-height: 24px;
       padding: 2px 4px;
       border: 0;
@@ -483,7 +485,7 @@ def build_html(
     }}
     .sort-header.active[data-sort-direction="asc"] .sort-indicator::before {{ content: "↑"; }}
     .sort-header.active[data-sort-direction="desc"] .sort-indicator::before {{ content: "↓"; }}
-    td.wrap {{ white-space: normal; min-width: 260px; max-width: 420px; }}
+    td.wrap {{ white-space: normal; min-width: 260px; max-width: 420px; text-align: center; }}
     td.date-cell {{ min-width: 110px; }}
     .name-cell strong {{ display: block; font-size: 14px; }}
     .name-cell span {{ display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }}
@@ -540,7 +542,7 @@ def build_html(
     .return-value {{
       display: inline-flex;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: center;
       min-width: 70px;
       font-variant-numeric: tabular-nums;
       font-weight: 750;
