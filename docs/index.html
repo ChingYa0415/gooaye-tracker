@@ -490,7 +490,7 @@
         <h1>股癌追蹤 Dashboard</h1>
         <div class="subtle">公司訊號、概念 proxy、回測進度與代理籃子審核</div>
       </div>
-      <div class="generated subtle">Generated<br>2026-07-01 09:42:52 CST</div>
+      <div class="generated subtle">Generated<br>2026-07-01 09:50:34 CST</div>
     </header>
 
     <main>
@@ -572,6 +572,8 @@
             <div class="sort-control">
               <label for="sortSelect">排序</label>
               <select id="sortSelect" aria-label="sort">
+                <option value="mentions_desc">提及次數高到低</option>
+                <option value="mentions_asc">提及次數低到高</option>
                 <option value="latest_desc">最近提及新到舊</option>
                 <option value="latest_asc">最近提及舊到新</option>
                 <option value="first_desc">首次提及新到舊</option>
@@ -732,7 +734,7 @@
     const horizonFilter = document.getElementById("horizonFilter");
     const sortSelect = document.getElementById("sortSelect");
     const sortHeaderButtons = Array.from(document.querySelectorAll("[data-sort-key]"));
-    const defaultSignalSort = "latest_desc";
+    const defaultSignalSort = "mentions_desc";
     const clearSignalFilters = document.getElementById("clearSignalFilters");
     const signalsBody = document.getElementById("signalsBody");
     const signalsEmpty = document.getElementById("signalsEmpty");
@@ -979,6 +981,8 @@
       if (key === "kind") return orderedText(a.kind_label, b.kind_label, direction) || byName;
       if (key === "stance") return orderedText(a.stance, b.stance, direction) || byName;
       if (key === "base") return orderedText(a.base_trade_date, b.base_trade_date, direction) || byName;
+      if (sortValue === "mentions_desc") return Number(b.mention_count || 0) - Number(a.mention_count || 0) || b.latest_published_at.localeCompare(a.latest_published_at) || byName;
+      if (sortValue === "mentions_asc") return Number(a.mention_count || 0) - Number(b.mention_count || 0) || b.latest_published_at.localeCompare(a.latest_published_at) || byName;
       if (sortValue === "first_asc") return a.first_published_at.localeCompare(b.first_published_at) || byName;
       if (sortValue === "first_desc") return b.first_published_at.localeCompare(a.first_published_at) || byName;
       if (sortValue === "latest_asc") return a.latest_published_at.localeCompare(b.latest_published_at) || byName;

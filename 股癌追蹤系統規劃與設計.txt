@@ -1868,3 +1868,36 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查追蹤明細滿版顯示，Proxy 審核按鈕可開啟/關閉彈出視窗，Proxy 表篩選仍可運作且 console 無錯誤。
+
+
+二十之十一、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+將 Dashboard 追蹤明細預設排序改為提及次數降冪。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，新增 mentions_desc 與 mentions_asc 排序邏輯。
+2. 將排序下拉選單第一個選項改為提及次數高到低，頁面載入時預設使用 mentions_desc。
+3. 欄頭排序的原排序狀態同步改為 mentions_desc，因此點擊欄頭循環回原排序時會回到提及次數高到低。
+4. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄追蹤明細預設依提及次數由高到低排序。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查初始 sort value 為 mentions_desc，第一列為目前提及次數最高的追蹤標的，且 console 無錯誤。
