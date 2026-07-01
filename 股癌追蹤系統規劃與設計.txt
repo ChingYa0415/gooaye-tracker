@@ -2102,3 +2102,31 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查追蹤明細的標的、報酬、提及、證據等欄位內容置中，且 console 無錯誤。
+
+
+二十之十八、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+移除追蹤明細標的欄下方重複顯示的提及次數。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，追蹤明細的標的欄下方只顯示 ticker 與市場。
+2. 提及次數仍保留在提及/Mentions 欄位，避免同一列重複呈現相同資訊。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查標的欄不再顯示提及次數，提及/Mentions 欄位仍正常顯示。

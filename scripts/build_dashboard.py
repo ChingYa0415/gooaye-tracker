@@ -1259,7 +1259,7 @@ def build_html(
         <tr>
           <td class="name-cell">
             <strong>${{escapeHtml(row.company_or_theme)}}</strong>
-            <span>${{escapeHtml(row.ticker)}} · ${{escapeHtml(row.market)}} · ${{escapeHtml(row.mention_count || "1")}} 次提及</span>
+            <span>${{escapeHtml(row.ticker)}} · ${{escapeHtml(row.market)}}</span>
           </td>
           <td>${{badge(row.kind_label, row.kind === "concept" ? "badge-concept" : "badge-company")}}</td>
           <td>${{stanceBadge(row)}}</td>
