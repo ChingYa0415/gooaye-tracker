@@ -980,7 +980,7 @@
 十七、dashboard.html
 
 用途：
-記錄由 scripts/build_dashboard.py 產生的靜態 Dashboard。此檔案從 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv 派生，提供總覽、滿版追蹤明細、快速篩選、排序、提及日期彈窗、證據來源彈窗、7d 報酬條圖、7 / 30 / 90 / 180 horizon 狀態與由按鈕開啟的 proxy 審核表。追蹤明細進入頁面時預設依提及次數由高到低排序；總覽卡片、追蹤明細與 proxy 審核表欄位採中文/英文格式。總覽卡片可點擊開啟說明彈窗，內容包含指標說明、資料來源與解讀方式。追蹤明細的標的、類型、看法、首次提及、提及次數與基準日欄頭可點擊排序，並以欄頭箭頭表示目前升冪或降冪；欄頭點擊循環為原排序、降冪、升冪，回到原排序時使用最近提及新到舊。
+記錄由 scripts/build_dashboard.py 產生的靜態 Dashboard。此檔案從 reports/summary.csv、reports/approved_company_bullish_returns.csv 與 reports/concept_proxy_review.csv 派生，提供總覽、滿版追蹤明細、快速篩選、排序、提及日期彈窗、證據來源彈窗、報酬與超額數字、7 / 30 / 90 / 180 horizon 狀態與由按鈕開啟的 proxy 審核表。追蹤明細進入頁面時預設依提及次數由高到低排序；總覽卡片、追蹤明細與 proxy 審核表欄位採中文/英文格式。總覽卡片可點擊開啟說明彈窗，內容包含指標說明、資料來源與解讀方式。報酬與超額欄位使用純數字呈現，正值紅色、負值綠色、等待或零值為中性色。追蹤明細的標的、類型、看法、首次提及、提及次數與基準日欄頭可點擊排序，並以欄頭箭頭表示目前升冪或降冪；欄頭點擊循環為原排序、降冪、升冪，回到原排序時使用最近提及新到舊。
 
 使用規則：
 

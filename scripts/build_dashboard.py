@@ -536,42 +536,19 @@ def build_html(
     .badge-high {{ color: var(--rose); background: var(--rose-weak); border-color: #efb5ad; }}
     .badge-watch {{ color: var(--amber); background: var(--amber-weak); border-color: #efd08f; }}
     .badge-ok {{ color: var(--green); background: var(--green-weak); border-color: #b6e2c0; }}
-    .bar-cell {{ min-width: 170px; }}
-    .bar-track {{
-      position: relative;
-      height: 24px;
-      width: 150px;
-      background: #edf0eb;
-      border: 1px solid var(--line);
-      border-radius: 5px;
-      overflow: hidden;
+    .return-cell {{ min-width: 110px; }}
+    .return-value {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      min-width: 70px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 750;
     }}
-    .bar-zero {{
-      position: absolute;
-      left: 50%;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: #a9b2aa;
-    }}
-    .bar-fill {{
-      position: absolute;
-      top: 3px;
-      bottom: 3px;
-      border-radius: 3px;
-      min-width: 2px;
-    }}
-    .bar-fill.pos {{ left: 50%; background: var(--green); }}
-    .bar-fill.neg {{ right: 50%; background: var(--rose); }}
-    .bar-label {{
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--ink);
-    }}
+    .return-value.pos {{ color: var(--rose); }}
+    .return-value.neg {{ color: var(--green); }}
+    .return-value.flat,
+    .return-value.pending {{ color: var(--muted); }}
     .horizon-list {{
       display: grid;
       grid-template-columns: repeat(4, minmax(52px, 1fr));
@@ -946,13 +923,6 @@ def build_html(
     const stats = JSON.parse(document.getElementById("stat-data").textContent);
     const returns = JSON.parse(document.getElementById("return-data").textContent);
     const proxies = JSON.parse(document.getElementById("proxy-data").textContent);
-    const maxAbsReturn = Math.max(0.01, ...returns.flatMap(row => [
-      Math.abs(Number(row.return_7d_value || 0)),
-      Math.abs(Number(row.excess_return_7d_value || 0)),
-      Math.abs(Number(row.current_return_value || 0)),
-      Math.abs(Number(row.excess_current_return_value || 0))
-    ]));
-
     const searchInput = document.getElementById("searchInput");
     const kindFilter = document.getElementById("kindFilter");
     const marketFilter = document.getElementById("marketFilter");
@@ -1055,18 +1025,11 @@ def build_html(
       return badge(stance, cls);
     }}
 
-    function returnBar(value, label) {{
+    function returnValue(value, label) {{
       const numeric = Number(value || 0);
-      const width = Math.min(50, Math.abs(numeric) / maxAbsReturn * 50);
-      const cls = numeric >= 0 ? "pos" : "neg";
       const shown = label && label !== "等待" ? label : "等待";
-      return `
-        <div class="bar-track">
-          <div class="bar-zero"></div>
-          ${{label && label !== "等待" ? `<div class="bar-fill ${{cls}}" style="width:${{width}}%;"></div>` : ""}}
-          <div class="bar-label">${{escapeHtml(shown)}}</div>
-        </div>
-      `;
+      const cls = shown === "等待" ? "pending" : numeric > 0 ? "pos" : numeric < 0 ? "neg" : "flat";
+      return `<span class="return-value ${{cls}}">${{escapeHtml(shown)}}</span>`;
     }}
 
     function horizonPills(row) {{
@@ -1303,10 +1266,10 @@ def build_html(
           <td>${{escapeHtml(row.base_trade_date || "等待")}}</td>
           <td>${{badge(row.available_horizons || row.calculation_status, row.available_horizons ? "badge-ready" : "badge-status")}}</td>
           <td><div class="horizon-list">${{horizonPills(row)}}</div></td>
-          <td class="bar-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnBar(row.current_return_value, row.current_return_display)}}</td>
-          <td class="bar-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnBar(row.excess_current_return_value, row.excess_current_display)}}</td>
-          <td class="bar-cell">${{returnBar(row.return_7d_value, row.return_7d_display)}}</td>
-          <td class="bar-cell">${{returnBar(row.excess_return_7d_value, row.excess_7d_display)}}</td>
+          <td class="return-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnValue(row.current_return_value, row.current_return_display)}}</td>
+          <td class="return-cell" title="最新價格日：${{escapeHtml(row.current_trade_date || "等待")}}">${{returnValue(row.excess_current_return_value, row.excess_current_display)}}</td>
+          <td class="return-cell">${{returnValue(row.return_7d_value, row.return_7d_display)}}</td>
+          <td class="return-cell">${{returnValue(row.excess_return_7d_value, row.excess_7d_display)}}</td>
           <td class="mention-cell">${{evidenceButton(row)}}</td>
         </tr>
       `).join("");

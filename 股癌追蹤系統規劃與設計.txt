@@ -2035,3 +2035,37 @@ P4：Dashboard。
 2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
 3. python3 scripts/validate_data.py 通過。
 4. 瀏覽器檢查點擊集數/Episodes 卡片會開啟說明彈窗，且可用關閉按鈕、背景與 Escape 關閉。
+
+
+二十之十六、2026-07-01 追加實作紀錄
+
+日期：
+2026-07-01
+
+今日目標：
+調整 Dashboard 追蹤明細中的報酬與超額呈現方式。
+
+完成內容：
+
+1. 更新 scripts/build_dashboard.py，移除至今報酬、至今超額、7d 報酬與 7d 超額欄位的橫向柱狀圖。
+2. 將報酬與超額欄位改為純數字呈現。
+3. 數字顏色改為正值紅色、負值綠色，等待或零值使用中性色。
+4. 移除柱狀圖尺度計算與 bar-track / bar-fill / bar-label 相關樣式，改用 return-value 樣式。
+5. 更新 docs/操作流程.txt、docs/資料來源.txt、docs/資料字典.txt，記錄報酬欄位改為純數字呈現。
+
+修改或新增檔案：
+
+1. scripts/build_dashboard.py
+2. reports/dashboard.html
+3. docs/index.html
+4. docs/操作流程.txt
+5. docs/資料來源.txt
+6. docs/資料字典.txt
+7. 股癌追蹤系統規劃與設計.txt
+
+驗證方式：
+
+1. python3 -m py_compile scripts/build_dashboard.py 通過。
+2. python3 scripts/build_dashboard.py 成功重建本機 Dashboard 與 GitHub Pages 入口。
+3. python3 scripts/validate_data.py 通過。
+4. 瀏覽器檢查報酬與超額欄位只顯示數字，正值為紅色、負值為綠色，且 console 無錯誤。
