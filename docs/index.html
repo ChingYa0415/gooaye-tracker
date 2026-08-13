@@ -363,6 +363,29 @@
       border-bottom: 1px solid var(--line);
       background: #fff8fa;
     }
+    .stance-panel {
+      margin-bottom: 14px;
+    }
+    .stance-legend {
+      display: grid;
+      gap: 8px;
+      padding: 12px 14px 14px;
+      background: #fff;
+    }
+    .stance-legend-row {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff8fa;
+    }
+    .stance-legend-text {
+      color: var(--ink);
+      line-height: 1.5;
+    }
     .issue-chip {
       display: inline-flex;
       align-items: center;
@@ -495,6 +518,7 @@
     @media (max-width: 720px) {
       .shell { width: min(100vw - 20px, 1440px); padding-top: 14px; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stance-legend-row { grid-template-columns: 1fr; gap: 6px; }
       .filters { grid-template-columns: 1fr; }
       .toolbar { align-items: stretch; flex-direction: column; }
       .sort-control { min-width: 0; }
@@ -514,7 +538,7 @@
         <h1>股癌追蹤 Dashboard</h1>
         <div class="subtle">公司訊號、概念 proxy、回測進度與代理籃子審核</div>
       </div>
-      <div class="generated subtle">Generated<br>2026-08-13 13:53:49 CST</div>
+      <div class="generated subtle">Generated<br>2026-08-13 14:05:30 CST</div>
     </header>
 
     <main>
@@ -582,6 +606,51 @@
           <span class="stat-note">相對 benchmark/vs benchmark</span>
         </button>
 
+      </section>
+
+      <section class="panel stance-panel" aria-label="stance legend">
+        <div class="panel-head">
+          <h2>看法狀態說明</h2>
+          <div class="subtle">Stance legend</div>
+        </div>
+        <div class="stance-legend">
+
+        <div class="stance-legend-row">
+          <div><span class="badge badge-bullish">bullish / 看多</span></div>
+          <div class="stance-legend-text">股癌對標的有明確正向判斷，語氣偏看好，可視為正向訊號。</div>
+        </div>
+
+
+        <div class="stance-legend-row">
+          <div><span class="badge badge-bearish">bearish / 看空</span></div>
+          <div class="stance-legend-text">股癌對標的有明確負向判斷，語氣偏看壞，可視為反向訊號。</div>
+        </div>
+
+
+        <div class="stance-legend-row">
+          <div><span class="badge badge-watch">watch / 觀察</span></div>
+          <div class="stance-legend-text">目前還在觀察或條件未確認，不足以直接歸類為看多或看空。</div>
+        </div>
+
+
+        <div class="stance-legend-row">
+          <div><span class="badge badge-past">past_review / 回顧</span></div>
+          <div class="stance-legend-text">內容主要是在回顧過去走勢、事後現象或歷史案例，不代表新的即時看法。</div>
+        </div>
+
+
+        <div class="stance-legend-row">
+          <div><span class="badge badge-neutral">unclear / 未明</span></div>
+          <div class="stance-legend-text">逐字稿或標註資訊不足，暫時無法可靠判斷 stance。</div>
+        </div>
+
+
+        <div class="stance-legend-row">
+          <div><span class="badge badge-neutral">neutral / 中性</span></div>
+          <div class="stance-legend-text">沒有明確偏多或偏空的立場，通常是一般討論或資訊提及。</div>
+        </div>
+
+        </div>
       </section>
 
       <section class="grid">
