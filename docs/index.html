@@ -355,6 +355,19 @@
       color: var(--muted);
       text-align: center;
     }
+    .stance-help-button {
+      width: 22px;
+      min-width: 22px;
+      height: 22px;
+      margin: 6px auto 0;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      color: #9d174d;
+      background: #fff;
+      border-color: #f3a7bf;
+    }
     .proxy-summary {
       display: flex;
       flex-wrap: wrap;
@@ -362,9 +375,6 @@
       padding: 12px 14px;
       border-bottom: 1px solid var(--line);
       background: #fff8fa;
-    }
-    .stance-panel {
-      margin-bottom: 14px;
     }
     .stance-legend {
       display: grid;
@@ -538,7 +548,7 @@
         <h1>股癌追蹤 Dashboard</h1>
         <div class="subtle">公司訊號、概念 proxy、回測進度與代理籃子審核</div>
       </div>
-      <div class="generated subtle">Generated<br>2026-08-13 14:05:30 CST</div>
+      <div class="generated subtle">Generated<br>2026-08-13 14:15:17 CST</div>
     </header>
 
     <main>
@@ -606,51 +616,6 @@
           <span class="stat-note">相對 benchmark/vs benchmark</span>
         </button>
 
-      </section>
-
-      <section class="panel stance-panel" aria-label="stance legend">
-        <div class="panel-head">
-          <h2>看法狀態說明</h2>
-          <div class="subtle">Stance legend</div>
-        </div>
-        <div class="stance-legend">
-
-        <div class="stance-legend-row">
-          <div><span class="badge badge-bullish">bullish / 看多</span></div>
-          <div class="stance-legend-text">股癌對標的有明確正向判斷，語氣偏看好，可視為正向訊號。</div>
-        </div>
-
-
-        <div class="stance-legend-row">
-          <div><span class="badge badge-bearish">bearish / 看空</span></div>
-          <div class="stance-legend-text">股癌對標的有明確負向判斷，語氣偏看壞，可視為反向訊號。</div>
-        </div>
-
-
-        <div class="stance-legend-row">
-          <div><span class="badge badge-watch">watch / 觀察</span></div>
-          <div class="stance-legend-text">目前還在觀察或條件未確認，不足以直接歸類為看多或看空。</div>
-        </div>
-
-
-        <div class="stance-legend-row">
-          <div><span class="badge badge-past">past_review / 回顧</span></div>
-          <div class="stance-legend-text">內容主要是在回顧過去走勢、事後現象或歷史案例，不代表新的即時看法。</div>
-        </div>
-
-
-        <div class="stance-legend-row">
-          <div><span class="badge badge-neutral">unclear / 未明</span></div>
-          <div class="stance-legend-text">逐字稿或標註資訊不足，暫時無法可靠判斷 stance。</div>
-        </div>
-
-
-        <div class="stance-legend-row">
-          <div><span class="badge badge-neutral">neutral / 中性</span></div>
-          <div class="stance-legend-text">沒有明確偏多或偏空的立場，通常是一般討論或資訊提及。</div>
-        </div>
-
-        </div>
       </section>
 
       <section class="grid">
@@ -723,7 +688,13 @@
                 <tr>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="name" aria-label="依標的排序"><span>標的/Asset</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="kind" aria-label="依類型排序"><span>類型/Type</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
-                  <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="stance" aria-label="依看法排序"><span>看法/Stance</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
+                  <th aria-sort="none">
+                    <button class="sort-header" type="button" data-sort-key="stance" aria-label="依看法排序">
+                      <span>看法/Stance</span>
+                      <span class="sort-indicator" aria-hidden="true"></span>
+                    </button>
+                    <button class="stance-help-button" type="button" id="openStanceModal" aria-label="查看看法狀態說明">?</button>
+                  </th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="first" aria-label="依首次提及日期排序"><span>首次提及/First Mention</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="mentions" aria-label="依提及次數排序"><span>提及/Mentions</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
                   <th aria-sort="none"><button class="sort-header" type="button" data-sort-key="base" aria-label="依基準日排序"><span>基準日/Base Date</span><span class="sort-indicator" aria-hidden="true"></span></button></th>
@@ -783,6 +754,19 @@
         <button class="modal-close" id="closeEvidenceModal" type="button" aria-label="關閉證據內容">×</button>
       </div>
       <div class="evidence-list" id="evidenceModalBody"></div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="stanceModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="stanceModalTitle">
+      <div class="modal-head">
+        <div class="modal-title">
+          <strong id="stanceModalTitle">看法狀態說明</strong>
+          <span id="stanceModalSubtitle">Stance legend</span>
+        </div>
+        <button class="modal-close" id="closeStanceModal" type="button" aria-label="關閉看法說明">×</button>
+      </div>
+      <div class="stat-info" id="stanceModalBody"></div>
     </section>
   </div>
 
@@ -860,6 +844,11 @@
     const mentionModalSubtitle = document.getElementById("mentionModalSubtitle");
     const mentionModalBody = document.getElementById("mentionModalBody");
     const closeMentionModal = document.getElementById("closeMentionModal");
+    const stanceModal = document.getElementById("stanceModal");
+    const stanceModalTitle = document.getElementById("stanceModalTitle");
+    const stanceModalSubtitle = document.getElementById("stanceModalSubtitle");
+    const stanceModalBody = document.getElementById("stanceModalBody");
+    const closeStanceModal = document.getElementById("closeStanceModal");
     const evidenceModal = document.getElementById("evidenceModal");
     const evidenceModalTitle = document.getElementById("evidenceModalTitle");
     const evidenceModalSubtitle = document.getElementById("evidenceModalSubtitle");
@@ -919,6 +908,62 @@
 
     function hideStatModal() {
       statModal.hidden = true;
+    }
+
+    function openStanceModal() {
+      const legendRows = [
+        {
+          stance: "bullish",
+          label: "bullish / 看多",
+          description: "股癌對標的有明確正向判斷，語氣偏看好，可視為正向訊號。",
+        },
+        {
+          stance: "bearish",
+          label: "bearish / 看空",
+          description: "股癌對標的有明確負向判斷，語氣偏看壞，可視為反向訊號。",
+        },
+        {
+          stance: "watch",
+          label: "watch / 觀察",
+          description: "目前還在觀察或條件未確認，不足以直接歸類為看多或看空。",
+        },
+        {
+          stance: "past_review",
+          label: "past_review / 回顧",
+          description: "內容主要是在回顧過去走勢、事後現象或歷史案例，不代表新的即時看法。",
+        },
+        {
+          stance: "unclear",
+          label: "unclear / 未明",
+          description: "逐字稿或標註資訊不足，暫時無法可靠判斷 stance。",
+        },
+        {
+          stance: "neutral",
+          label: "neutral / 中性",
+          description: "沒有明確偏多或偏空的立場，通常是一般討論或資訊提及。",
+        },
+      ];
+      const badgeClass = {
+        bullish: "badge-bullish",
+        bearish: "badge-bearish",
+        watch: "badge-watch",
+        past_review: "badge-past",
+        unclear: "badge-neutral",
+        neutral: "badge-neutral",
+      };
+      stanceModalTitle.textContent = "看法狀態說明";
+      stanceModalSubtitle.textContent = "Stance legend";
+      stanceModalBody.innerHTML = legendRows.map(row => `
+        <div class="stance-legend-row">
+          <div><span class="badge ${badgeClass[row.stance]}">${escapeHtml(row.label)}</span></div>
+          <div class="stance-legend-text">${escapeHtml(row.description)}</div>
+        </div>
+      `).join("");
+      stanceModal.hidden = false;
+    }
+
+    function hideStanceModal() {
+      stanceModal.hidden = true;
     }
 
     function badge(text, cls) {
@@ -1283,7 +1328,9 @@
     });
     closeStatModal.addEventListener("click", hideStatModal);
     closeMentionModal.addEventListener("click", hideMentionModal);
+    closeStanceModal.addEventListener("click", hideStanceModal);
     closeEvidenceModal.addEventListener("click", hideEvidenceModal);
+    document.getElementById("openStanceModal").addEventListener("click", openStanceModal);
     openProxyModalButton.addEventListener("click", showProxyModal);
     closeProxyModal.addEventListener("click", hideProxyModal);
     statModal.addEventListener("click", event => {
@@ -1291,6 +1338,9 @@
     });
     mentionModal.addEventListener("click", event => {
       if (event.target === mentionModal) hideMentionModal();
+    });
+    stanceModal.addEventListener("click", event => {
+      if (event.target === stanceModal) hideStanceModal();
     });
     evidenceModal.addEventListener("click", event => {
       if (event.target === evidenceModal) hideEvidenceModal();
@@ -1301,6 +1351,7 @@
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && !statModal.hidden) hideStatModal();
       if (event.key === "Escape" && !mentionModal.hidden) hideMentionModal();
+      if (event.key === "Escape" && !stanceModal.hidden) hideStanceModal();
       if (event.key === "Escape" && !evidenceModal.hidden) hideEvidenceModal();
       if (event.key === "Escape" && !proxyModal.hidden) hideProxyModal();
     });
